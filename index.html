@@ -357,7 +357,7 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
     <div class="btn-row">
       <button class="btn btn-blue btn-sm" onclick="genIA()"><i class="ti ti-sparkles"></i>Generar descripción</button>
       <button class="btn btn-ghost btn-sm" onclick="exportPDF()"><i class="ti ti-file-download"></i>Ver / Imprimir PDF</button>
-      <button class="btn btn-drive btn-sm" onclick="exportarADrive()" id="btn-drive">
+      <button class="btn btn-drive btn-sm" onclick="exportarADriveConGuardado()" id="btn-drive">
         <img src="https://upload.wikimedia.org/wikipedia/commons/1/12/Google_Drive_icon_%282020%29.svg" alt="Drive">
         Guardar en Drive
       </button>
@@ -1229,7 +1229,7 @@ function buildPDFHTML(){
     +'<td style="font-size:9px;color:#bbbbbb;text-align:right">Generado el '+hoy+'</td>'
     +'</tr></table>'
 
-    +'</div>
+    +'</div>'
 <!-- MODAL PROVEEDOR -->
 <div class="modal-bg" id="modal-prov">
   <div class="modal">
@@ -1588,11 +1588,10 @@ async function init(){
 }
 init();
 
-// Auto-save cotización al exportar a Drive
-const origExportarADrive = exportarADrive;
-exportarADrive = async function(){
+// Auto-save cotización al exportar a Drive - wrapped after definition
+async function exportarADriveConGuardado(){
   await guardarCotizacionDB();
-  await origExportarADrive();
-};
+  await exportarADrive();
+}
 </script>
 </body></html>
