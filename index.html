@@ -1340,7 +1340,18 @@ async function cargarUltimosEventos(){
 }
 
 async function cargarTablaEventos(){
-  const { data, error } = await supa.from('eventos').select('*').order('fecha',{ascending:false});
+  // Fetch all events with pagination
+  let data = [];
+  let from = 0;
+  while(true){
+    const { data: page, error } = await supa.from('eventos').select('*').order('fecha',{ascending:false}).range(from, from+499);
+    if(error){ console.error(error); break; }
+    if(!page||page.length===0) break;
+    data = data.concat(page);
+    if(page.length < 500) break;
+    from += 500;
+  }
+  const error = null;
   if(error){ console.error(error); return; }
   const tbody = document.querySelector('#v-eventos tbody');
   if(!data||!data.length){ tbody.innerHTML='<tr><td colspan="10" style="color:var(--white4);text-align:center;padding:20px">No hay eventos. Agrega el primero.</td></tr>'; return; }
@@ -1355,16 +1366,39 @@ async function cargarTablaEventos(){
 }
 
 async function cargarTransacciones(){
-  const { data, error } = await supa.from('transacciones').select('*').order('fecha_pago',{ascending:false}).limit(100);
-  if(error){ console.error(error); return; }
   const tbody = document.querySelector('#v-registro tbody');
-  if(!data||!data.length){ tbody.innerHTML='<tr><td colspan="11" style="color:var(--white4);text-align:center;padding:20px">No hay transacciones registradas aún</td></tr>'; return; }
-  tbody.innerHTML = data.map(t => {
+  const subEl = document.querySelector('#v-registro .ph-sub');
+  tbody.innerHTML='<tr><td colspan="11" style="color:var(--white4);text-align:center;padding:20px">Cargando...</td></tr>';
+
+  // Paginate to fetch ALL records regardless of count
+  let allData = [];
+  let from = 0;
+  const pageSize = 1000;
+  while(true){
+    const { data, error } = await supa
+      .from('transacciones')
+      .select('*')
+      .order('fecha_evento', {ascending:false})
+      .order('fecha_pago', {ascending:false})
+      .range(from, from + pageSize - 1);
+    if(error){ console.error(error); break; }
+    if(!data || data.length === 0) break;
+    allData = allData.concat(data);
+    if(data.length < pageSize) break; // last page
+    from += pageSize;
+  }
+
+  if(subEl) subEl.textContent = allData.length.toLocaleString() + ' transacciones registradas';
+  if(!allData.length){
+    tbody.innerHTML='<tr><td colspan="11" style="color:var(--white4);text-align:center;padding:20px">No hay transacciones registradas aún</td></tr>';
+    return;
+  }
+  tbody.innerHTML = allData.map(t => {
     const bc = t.estado==='Cobrado'?'b-green':'b-magenta';
     const fe = t.fecha_evento ? new Date(t.fecha_evento+'T12:00:00').toLocaleDateString('es-VE',{day:'2-digit',month:'short',year:'2-digit'}) : '—';
     const fp = t.fecha_pago   ? new Date(t.fecha_pago  +'T12:00:00').toLocaleDateString('es-VE',{day:'2-digit',month:'short',year:'2-digit'}) : '—';
     const ing = t.ingreso>0 ? '<td style="color:#3dca6e;font-weight:600">$'+parseFloat(t.ingreso).toLocaleString()+'</td>' : '<td>—</td>';
-    const egr = t.egreso >0 ? '<td style="color:#e05555;font-weight:600">$'+parseFloat(t.egreso ).toLocaleString()+'</td>' : '<td>—</td>';
+    const egr = t.egreso >0 ? '<td style="color:#e05555;font-weight:600">$'+parseFloat(t.egreso).toLocaleString()+'</td>' : '<td>—</td>';
     return '<tr><td>'+fe+'</td><td>'+fp+'</td><td>'+(t.categoria||'—')+'</td><td>'+(t.subcategoria||'—')+'</td><td>'+t.concepto+'</td><td class="mono">'+(t.codigo_evento||'—')+'</td><td>'+(t.metodo_pago||'—')+'</td><td>'+(t.responsable||'—')+'</td>'+ing+egr+'<td><span class="badge '+bc+'">'+t.estado+'</span></td></tr>';
   }).join('');
 }
