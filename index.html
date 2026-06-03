@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- Blast ProSound Sistema v4.1 - 2026-06-03 14:16 -->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -578,8 +579,8 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
       <div class="fgrp"><label class="flabel">Código</label><input type="text" id="new-codigo" placeholder="ej: 15072026-SM"></div>
       <div class="fgrp"><label class="flabel">Fecha</label><input type="date" id="new-fecha"></div>
       <div class="fgrp"><label class="flabel">Categoría</label><select id="new-categoria"><option>Privado</option><option>Corporativo</option><option>Institucional</option><option>Club</option></select></div>
-      <div class="fgrp"><label class="flabel">Referente</label><select id="new-referente"><option>Gustavo Briceño</option><option>Eduardo Behrens</option><option>Francisco Massari</option></select></div>
-      <div class="fgrp"><label class="flabel">Estado</label><select id="new-estado"><option>Por cobrar</option><option>Cobrado</option><option>Exonerado</option></select></div>
+      <div class="fgrp"><label class="flabel">Referente</label><select><option>Gustavo Briceño</option><option>Eduardo Behrens</option><option>Francisco Massari</option></select></div>
+      <div class="fgrp"><label class="flabel">Estado</label><select><option>Por cobrar</option><option>Cobrado</option><option>Exonerado</option></select></div>
       <div class="fgrp"><label class="flabel">Ingreso ($)</label><input type="number" id="new-ingreso" placeholder="0"></div>
       <div class="fgrp"><label class="flabel">Gasto ($)</label><input type="number" id="new-gasto" placeholder="0"></div>
     </div>
@@ -603,13 +604,13 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
       <div class="fgrp"><label class="flabel">Código de evento</label><input type="text" id="tx-codigo" placeholder="ej: 15072026-SM"></div>
       <div class="fgrp"><label class="flabel">Concepto / Persona</label><input type="text" id="tx-concepto" placeholder="Nombre o descripción"></div>
       <div class="fgrp"><label class="flabel">Método de pago</label><select id="tx-metodo"><option>Efectivo $</option><option>Zelle</option><option>Bs</option><option>Euro</option></select></div>
-      <div class="fgrp"><label class="flabel">Responsable</label><select id="tx-responsable"><option>Gustavo Briceño</option><option>Eduardo Behrens</option><option>Francisco Massari</option></select></div>
+      <div class="fgrp"><label class="flabel">Responsable</label><select><option>Gustavo Briceño</option><option>Eduardo Behrens</option><option>Francisco Massari</option></select></div>
       <div class="fgrp"><label class="flabel">Monto ($)</label><input type="number" id="tx-monto" placeholder="0.00"></div>
     </div>
     <div class="fgrp" style="margin-bottom:12px"><label class="flabel">Descripción</label><textarea id="tx-descripcion" rows="2" placeholder="Descripción adicional..."></textarea></div>
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="document.getElementById('modal-tx').classList.remove('show')">Cancelar</button>
-      <button class="btn btn-blue" onclick="guardarTransaccion()">Guardar</button>
+      <button class="btn btn-blue">Guardar</button>
     </div>
   </div>
 </div>
@@ -746,10 +747,10 @@ function sv(id,btn){
   document.querySelectorAll('.ni').forEach(b=>b.classList.remove('on'));
   document.getElementById('v-'+id).classList.add('on');
   btn.classList.add('on');
-  if(id==='eventos')     cargarTablaEventos();
-  if(id==='registro')    cargarTransacciones();
+  if(id==='eventos') cargarTablaEventos();
+  if(id==='registro') cargarTransacciones();
   if(id==='proveedores') cargarProveedores();
-  if(id==='dashboard')   cargarUltimosEventos();
+  if(id==='dashboard') cargarUltimosEventos();
 }
 
 // ─── CERRAR MODALES ───
@@ -1229,7 +1230,12 @@ function buildPDFHTML(){
     +'<td style="font-size:9px;color:#bbbbbb;text-align:right">Generado el '+hoy+'</td>'
     +'</tr></table>'
 
-    +'</div>'
+    +'</div>';
+  return { cliente, codigo, html };
+}
+
+</script>
+
 <!-- MODAL PROVEEDOR -->
 <div class="modal-bg" id="modal-prov">
   <div class="modal">
@@ -1248,9 +1254,6 @@ function buildPDFHTML(){
   </div>
 </div>
 </body></html>';
-
-  return { cliente, codigo, html };
-}
 
 
 function showDriveStatus(msg, type){
@@ -1314,266 +1317,149 @@ async function exportarADrive(){
   });
 }
 
-// ─── SUPABASE CONFIG ───
+<script>
+// ─── SUPABASE ───
 const SUPA_URL = 'https://bfnjiobiymexguqhltft.supabase.co';
 const SUPA_KEY = 'sb_publishable_st_DvrbnUNe4ZmRbeQtMwQ_SK0rWDgT';
 const supa = supabase.createClient(SUPA_URL, SUPA_KEY);
 
-// ─── DATA LAYER ───
-
-// Cargar eventos y mostrar últimos 5 en dashboard
 async function cargarUltimosEventos(){
-  const { data, error } = await supa
-    .from('eventos')
-    .select('*')
-    .order('fecha', { ascending: false })
-    .limit(50);
-  if(error){ console.error('Error cargando eventos:', error); return; }
-
-  // Ordenar por proximidad a hoy
+  const { data, error } = await supa.from('eventos').select('*').order('fecha', {ascending:false}).limit(50);
+  if(error){ console.error(error); return; }
   const hoy = new Date();
-  const sorted = (data||[]).sort((a,b) => {
-    return Math.abs(new Date(a.fecha) - hoy) - Math.abs(new Date(b.fecha) - hoy);
-  }).slice(0,5);
-
+  const sorted = (data||[]).sort((a,b) => Math.abs(new Date(a.fecha)-hoy) - Math.abs(new Date(b.fecha)-hoy)).slice(0,5);
   const tbody = document.getElementById('ultimos-eventos');
-  if(!sorted.length){
-    tbody.innerHTML = '<tr><td colspan="6" style="color:var(--white4);text-align:center;padding:20px">No hay eventos registrados aún</td></tr>';
-    return;
-  }
+  if(!sorted.length){ tbody.innerHTML='<tr><td colspan="6" style="color:var(--white4);text-align:center;padding:20px">No hay eventos aún. ¡Agrega el primero!</td></tr>'; return; }
   tbody.innerHTML = sorted.map(e => {
-    const d = new Date(e.fecha + 'T12:00:00');
+    const d = new Date(e.fecha+'T12:00:00');
     const fStr = d.toLocaleDateString('es-VE',{day:'2-digit',month:'short',year:'2-digit'});
-    const isFuture = new Date(e.fecha) > hoy;
-    const badge = e.estado === 'Cobrado'
-      ? '<span class="badge b-green">Cobrado</span>'
-      : e.estado === 'Exonerado'
-      ? '<span class="badge b-white">Exonerado</span>'
-      : '<span class="badge b-orange">Por cobrar</span>';
-    const tag = isFuture ? '<span style="font-size:9px;color:var(--blue);margin-left:4px">PRÓXIMO</span>' : '';
-    return `<tr>
-      <td>${fStr}${tag}</td>
-      <td>${e.cliente_nombre}</td>
-      <td>${e.categoria||'—'}</td>
-      <td style="font-weight:600">$${parseFloat(e.ingreso||0).toLocaleString()}</td>
-      <td style="color:var(--white4)">${e.referente||'—'}</td>
-      <td>${badge}</td>
-    </tr>`;
+    const future = new Date(e.fecha) > hoy;
+    const badge = e.estado==='Cobrado' ? '<span class="badge b-green">Cobrado</span>' : e.estado==='Exonerado' ? '<span class="badge b-white">Exonerado</span>' : '<span class="badge b-orange">Por cobrar</span>';
+    return '<tr><td>'+fStr+(future?'<span style="font-size:9px;color:var(--blue);margin-left:4px">PRÓXIMO</span>':'')+'</td><td>'+e.cliente_nombre+'</td><td>'+(e.categoria||'—')+'</td><td style="font-weight:600">$'+parseFloat(e.ingreso||0).toLocaleString()+'</td><td style="color:var(--white4)">'+(e.referente||'—')+'</td><td>'+badge+'</td></tr>';
   }).join('');
 }
 
-// Cargar todos los eventos en la tabla
 async function cargarTablaEventos(){
-  const { data, error } = await supa
-    .from('eventos')
-    .select('*')
-    .order('fecha', { ascending: false });
+  const { data, error } = await supa.from('eventos').select('*').order('fecha',{ascending:false});
   if(error){ console.error(error); return; }
-
   const tbody = document.querySelector('#v-eventos tbody');
-  if(!data||!data.length){
-    tbody.innerHTML = '<tr><td colspan="10" style="color:var(--white4);text-align:center;padding:20px">No hay eventos. Agrega el primero.</td></tr>';
-    return;
-  }
+  if(!data||!data.length){ tbody.innerHTML='<tr><td colspan="10" style="color:var(--white4);text-align:center;padding:20px">No hay eventos. Agrega el primero.</td></tr>'; return; }
   tbody.innerHTML = data.map(e => {
-    const utilidad = (parseFloat(e.ingreso)||0) - (parseFloat(e.gasto)||0);
-    const margen   = e.ingreso > 0 ? ((utilidad/e.ingreso)*100).toFixed(1)+'%' : '—';
-    const badge    = e.estado==='Cobrado' ? 'b-green' : e.estado==='Exonerado' ? 'b-white' : 'b-orange';
-    const catBadge = e.categoria==='Privado' ? 'b-blue' : e.categoria==='Corporativo' ? 'b-magenta' : 'b-orange';
-    return `<tr>
-      <td class="mono">${e.codigo}</td>
-      <td>${new Date(e.fecha+'T12:00:00').toLocaleDateString('es-VE',{day:'2-digit',month:'short',year:'2-digit'})}</td>
-      <td>${e.cliente_nombre}</td>
-      <td><span class="badge ${catBadge}">${e.categoria||'—'}</span></td>
-      <td>${e.referente||'—'}</td>
-      <td>$${parseFloat(e.ingreso||0).toLocaleString()}</td>
-      <td>$${parseFloat(e.gasto||0).toLocaleString()}</td>
-      <td style="color:#3dca6e;font-weight:600">$${utilidad.toLocaleString()}</td>
-      <td style="color:var(--white4)">${margen}</td>
-      <td><span class="badge ${badge}">${e.estado}</span></td>
-    </tr>`;
+    const util = (parseFloat(e.ingreso)||0)-(parseFloat(e.gasto)||0);
+    const margen = e.ingreso>0 ? ((util/e.ingreso)*100).toFixed(1)+'%' : '—';
+    const bc = e.estado==='Cobrado'?'b-green':e.estado==='Exonerado'?'b-white':'b-orange';
+    const cc = e.categoria==='Privado'?'b-blue':e.categoria==='Corporativo'?'b-magenta':'b-orange';
+    const fd = new Date(e.fecha+'T12:00:00').toLocaleDateString('es-VE',{day:'2-digit',month:'short',year:'2-digit'});
+    return '<tr><td class="mono">'+e.codigo+'</td><td>'+fd+'</td><td>'+e.cliente_nombre+'</td><td><span class="badge '+cc+'">'+(e.categoria||'—')+'</span></td><td>'+(e.referente||'—')+'</td><td>$'+parseFloat(e.ingreso||0).toLocaleString()+'</td><td>$'+parseFloat(e.gasto||0).toLocaleString()+'</td><td style="color:#3dca6e;font-weight:600">$'+util.toLocaleString()+'</td><td style="color:var(--white4)">'+margen+'</td><td><span class="badge '+bc+'">'+e.estado+'</span></td></tr>';
   }).join('');
 }
 
-// Cargar transacciones
 async function cargarTransacciones(){
-  const { data, error } = await supa
-    .from('transacciones')
-    .select('*')
-    .order('fecha_pago', { ascending: false })
-    .limit(100);
+  const { data, error } = await supa.from('transacciones').select('*').order('fecha_pago',{ascending:false}).limit(100);
   if(error){ console.error(error); return; }
-
   const tbody = document.querySelector('#v-registro tbody');
-  if(!data||!data.length){
-    tbody.innerHTML = '<tr><td colspan="11" style="color:var(--white4);text-align:center;padding:20px">No hay transacciones registradas aún</td></tr>';
-    return;
-  }
+  if(!data||!data.length){ tbody.innerHTML='<tr><td colspan="11" style="color:var(--white4);text-align:center;padding:20px">No hay transacciones registradas aún</td></tr>'; return; }
   tbody.innerHTML = data.map(t => {
-    const badgeClass = t.estado==='Cobrado' ? 'b-green' : 'b-magenta';
-    const fEvento = t.fecha_evento ? new Date(t.fecha_evento+'T12:00:00').toLocaleDateString('es-VE',{day:'2-digit',month:'short',year:'2-digit'}) : '—';
-    const fPago   = t.fecha_pago   ? new Date(t.fecha_pago  +'T12:00:00').toLocaleDateString('es-VE',{day:'2-digit',month:'short',year:'2-digit'}) : '—';
-    const ingreso = t.ingreso > 0 ? `<td style="color:#3dca6e;font-weight:600">$${parseFloat(t.ingreso).toLocaleString()}</td>` : '<td>—</td>';
-    const egreso  = t.egreso  > 0 ? `<td style="color:#e05555;font-weight:600">$${parseFloat(t.egreso ).toLocaleString()}</td>` : '<td>—</td>';
-    return `<tr>
-      <td>${fEvento}</td><td>${fPago}</td>
-      <td>${t.categoria||'—'}</td><td>${t.subcategoria||'—'}</td>
-      <td>${t.concepto}</td>
-      <td class="mono">${t.codigo_evento||'—'}</td>
-      <td>${t.metodo_pago||'—'}</td>
-      <td>${t.responsable||'—'}</td>
-      ${ingreso}${egreso}
-      <td><span class="badge ${badgeClass}">${t.estado}</span></td>
-    </tr>`;
+    const bc = t.estado==='Cobrado'?'b-green':'b-magenta';
+    const fe = t.fecha_evento ? new Date(t.fecha_evento+'T12:00:00').toLocaleDateString('es-VE',{day:'2-digit',month:'short',year:'2-digit'}) : '—';
+    const fp = t.fecha_pago   ? new Date(t.fecha_pago  +'T12:00:00').toLocaleDateString('es-VE',{day:'2-digit',month:'short',year:'2-digit'}) : '—';
+    const ing = t.ingreso>0 ? '<td style="color:#3dca6e;font-weight:600">$'+parseFloat(t.ingreso).toLocaleString()+'</td>' : '<td>—</td>';
+    const egr = t.egreso >0 ? '<td style="color:#e05555;font-weight:600">$'+parseFloat(t.egreso ).toLocaleString()+'</td>' : '<td>—</td>';
+    return '<tr><td>'+fe+'</td><td>'+fp+'</td><td>'+(t.categoria||'—')+'</td><td>'+(t.subcategoria||'—')+'</td><td>'+t.concepto+'</td><td class="mono">'+(t.codigo_evento||'—')+'</td><td>'+(t.metodo_pago||'—')+'</td><td>'+(t.responsable||'—')+'</td>'+ing+egr+'<td><span class="badge '+bc+'">'+t.estado+'</span></td></tr>';
   }).join('');
 }
 
-// Cargar cotizaciones historial
-async function cargarCotizaciones(){
-  const { data, error } = await supa
-    .from('cotizaciones')
-    .select('*')
-    .order('created_at', { ascending: false })
-    .limit(50);
-  if(error){ console.error(error); return; }
-  return data || [];
-}
-
-// Cargar proveedores
 async function cargarProveedores(){
-  const { data, error } = await supa
-    .from('proveedores')
-    .select('*')
-    .order('nombre');
+  const { data, error } = await supa.from('proveedores').select('*').order('nombre');
   if(error){ console.error(error); return; }
-
   const tbody = document.querySelector('#v-proveedores tbody');
-  if(!data||!data.length){
-    tbody.innerHTML = '<tr><td colspan="5" style="color:var(--white4);text-align:center;padding:20px">No hay proveedores registrados aún</td></tr>';
-    return;
-  }
-  tbody.innerHTML = data.map(p => `<tr>
-    <td>${p.nombre}</td>
-    <td>${p.tipo||'—'}</td>
-    <td>${p.telefono||'—'}</td>
-    <td>${p.metodo_pago||'—'}</td>
-    <td style="color:var(--white4)">${p.notas||'—'}</td>
-  </tr>`).join('');
+  if(!data||!data.length){ tbody.innerHTML='<tr><td colspan="5" style="color:var(--white4);text-align:center;padding:20px">No hay proveedores registrados aún</td></tr>'; return; }
+  tbody.innerHTML = data.map(p => '<tr><td>'+p.nombre+'</td><td>'+(p.tipo||'—')+'</td><td>'+(p.telefono||'—')+'</td><td>'+(p.metodo_pago||'—')+'</td><td style="color:var(--white4)">'+(p.notas||'—')+'</td></tr>').join('');
 }
 
-// GUARDAR EVENTO
 async function guardarEvento(){
-  const codigo        = document.getElementById('new-codigo').value.trim();
-  const fecha         = document.getElementById('new-fecha').value;
-  const cliente_nombre= document.getElementById('new-cliente').value.trim();
-  const categoria     = document.getElementById('new-categoria').value;
-  const referente     = document.getElementById('new-referente').value;
-  const estado        = document.getElementById('new-estado').value;
-  const ingreso       = parseFloat(document.getElementById('new-ingreso').value)||0;
-  const gasto         = parseFloat(document.getElementById('new-gasto').value)||0;
-  const notas         = document.getElementById('new-notas').value;
-
+  const codigo=document.getElementById('new-codigo').value.trim();
+  const fecha=document.getElementById('new-fecha').value;
+  const cliente_nombre=document.getElementById('new-cliente').value.trim();
+  const categoria=document.getElementById('new-categoria').value;
+  const referente=document.getElementById('new-referente').value;
+  const estado=document.getElementById('new-estado').value;
+  const ingreso=parseFloat(document.getElementById('new-ingreso').value)||0;
+  const gasto=parseFloat(document.getElementById('new-gasto').value)||0;
+  const notas=document.getElementById('new-notas').value;
   if(!codigo||!fecha||!cliente_nombre){ alert('Completa código, fecha y cliente.'); return; }
-
-  const { error } = await supa.from('eventos').insert({
-    codigo, fecha, cliente_nombre, categoria, referente, estado, ingreso, gasto, notas
-  });
-
-  if(error){ alert('Error: ' + error.message); return; }
+  const {error} = await supa.from('eventos').insert({codigo,fecha,cliente_nombre,categoria,referente,estado,ingreso,gasto,notas});
+  if(error){ alert('Error: '+error.message); return; }
   document.getElementById('modal-evento').classList.remove('show');
-  // Reset form
-  ['new-codigo','new-fecha','new-cliente','new-ingreso','new-gasto','new-notas'].forEach(id => {
-    document.getElementById(id).value = '';
-  });
+  ['new-codigo','new-fecha','new-cliente','new-ingreso','new-gasto','new-notas'].forEach(id=>document.getElementById(id).value='');
   await cargarTablaEventos();
   await cargarUltimosEventos();
   alert('✓ Evento guardado');
 }
 
-// GUARDAR TRANSACCIÓN
 async function guardarTransaccion(){
-  const concepto     = document.getElementById('tx-concepto').value.trim();
-  const fecha_evento = document.getElementById('tx-fecha-evento').value;
-  const fecha_pago   = document.getElementById('tx-fecha-pago').value;
-  const categoria    = document.getElementById('tx-categoria').value;
-  const subcategoria = document.getElementById('tx-subcategoria').value.trim();
-  const estado       = document.getElementById('tx-estado').value;
-  const codigo_evento= document.getElementById('tx-codigo').value.trim();
-  const metodo_pago  = document.getElementById('tx-metodo').value;
-  const responsable  = document.getElementById('tx-responsable').value;
-  const monto        = parseFloat(document.getElementById('tx-monto').value)||0;
-  const descripcion  = document.getElementById('tx-descripcion').value;
-
+  const concepto=document.getElementById('tx-concepto').value.trim();
   if(!concepto){ alert('El concepto es obligatorio.'); return; }
-
-  const ingreso = estado === 'Cobrado' ? monto : 0;
-  const egreso  = estado === 'Pagado'  ? monto : 0;
-
-  const { error } = await supa.from('transacciones').insert({
-    concepto, fecha_evento: fecha_evento||null, fecha_pago: fecha_pago||null,
-    categoria, subcategoria, estado, codigo_evento: codigo_evento||null,
-    metodo_pago, responsable, ingreso, egreso, descripcion
-  });
-
-  if(error){ alert('Error: ' + error.message); return; }
+  const fecha_evento=document.getElementById('tx-fecha-evento').value||null;
+  const fecha_pago=document.getElementById('tx-fecha-pago').value||null;
+  const categoria=document.getElementById('tx-categoria').value;
+  const subcategoria=document.getElementById('tx-subcategoria').value.trim();
+  const estado=document.getElementById('tx-estado').value;
+  const codigo_evento=document.getElementById('tx-codigo').value.trim()||null;
+  const metodo_pago=document.getElementById('tx-metodo').value;
+  const responsable=document.getElementById('tx-responsable').value;
+  const monto=parseFloat(document.getElementById('tx-monto').value)||0;
+  const descripcion=document.getElementById('tx-descripcion').value;
+  const ingreso=estado==='Cobrado'?monto:0;
+  const egreso=estado==='Pagado'?monto:0;
+  const {error}=await supa.from('transacciones').insert({concepto,fecha_evento,fecha_pago,categoria,subcategoria,estado,codigo_evento,metodo_pago,responsable,ingreso,egreso,descripcion});
+  if(error){ alert('Error: '+error.message); return; }
   document.getElementById('modal-tx').classList.remove('show');
   await cargarTransacciones();
   alert('✓ Transacción guardada');
 }
 
-// GUARDAR COTIZACIÓN en Supabase
-async function guardarCotizacionDB(){
-  const codigo    = document.getElementById('ccode').textContent;
-  const cliente   = document.getElementById('cc').value;
-  const tipo      = document.getElementById('ctype').value;
-  const fecha     = document.getElementById('cdate').value;
-  const lugar     = document.getElementById('cplace').value;
-  const horario   = document.getElementById('ctime').value;
-  const invitados = parseInt(document.getElementById('cguests').value)||null;
-  const responsable = document.getElementById('cresp').value;
-  const descuento = parseFloat(document.getElementById('cdesc').value)||0;
-  const iva       = document.getElementById('civa').checked;
-  const total     = parseFloat(document.getElementById('ctotal').textContent.replace('$','').replace(',',''))||0;
-  const subtotal  = parseFloat(document.getElementById('csub').textContent.replace('$',''))||0;
-  const desc_ia   = document.getElementById('aiout').textContent;
-
-  const items = [];
-  document.querySelectorAll('.cir').forEach(r => {
-    const con = r.querySelector('.xcon').value;
-    const cat = r.querySelector('.xcat').textContent;
-    const qty = parseFloat(r.querySelector('.xqty').value)||0;
-    const pri = parseFloat(r.querySelector('.xpri').value)||0;
-    if(con && pri && cat !== '—') items.push({ concepto:con, categoria:cat, cantidad:qty, precio:pri, total:qty*pri });
-  });
-
-  if(!cliente || items.length === 0){ return; }
-
-  const { error } = await supa.from('cotizaciones').upsert({
-    codigo, cliente, tipo_evento: tipo,
-    fecha_evento: fecha||null, lugar, horario,
-    invitados, responsable, subtotal, descuento, iva, total,
-    descripcion_ia: desc_ia.includes('aparecerá') ? null : desc_ia,
-    items: items
-  }, { onConflict: 'codigo' });
-
-  if(error) console.error('Error guardando cotización:', error);
-}
-
-// GUARDAR PROVEEDOR
 async function guardarProveedor(){
-  const nombre      = document.getElementById('prov-nombre').value.trim();
-  const tipo        = document.getElementById('prov-tipo').value.trim();
-  const telefono    = document.getElementById('prov-telefono').value.trim();
-  const metodo_pago = document.getElementById('prov-metodo').value;
-  const notas       = document.getElementById('prov-notas').value.trim();
-
+  const nombre=document.getElementById('prov-nombre').value.trim();
   if(!nombre){ alert('El nombre es obligatorio.'); return; }
-
-  const { error } = await supa.from('proveedores').insert({ nombre, tipo, telefono, metodo_pago, notas });
-  if(error){ alert('Error: ' + error.message); return; }
+  const tipo=document.getElementById('prov-tipo').value.trim();
+  const telefono=document.getElementById('prov-telefono').value.trim();
+  const metodo_pago=document.getElementById('prov-metodo').value;
+  const notas=document.getElementById('prov-notas').value.trim();
+  const {error}=await supa.from('proveedores').insert({nombre,tipo,telefono,metodo_pago,notas});
+  if(error){ alert('Error: '+error.message); return; }
   document.getElementById('modal-prov').classList.remove('show');
   await cargarProveedores();
   alert('✓ Proveedor guardado');
+}
+
+async function guardarCotizacionDB(){
+  const codigo=document.getElementById('ccode').textContent;
+  const cliente=document.getElementById('cc').value;
+  if(!cliente||codigo==='COT ——') return;
+  const tipo=document.getElementById('ctype').value;
+  const fecha=document.getElementById('cdate').value||null;
+  const lugar=document.getElementById('cplace').value;
+  const horario=document.getElementById('ctime').value;
+  const invitados=parseInt(document.getElementById('cguests').value)||null;
+  const responsable=document.getElementById('cresp').value;
+  const descuento=parseFloat(document.getElementById('cdesc').value)||0;
+  const iva=document.getElementById('civa').checked;
+  const total=parseFloat(document.getElementById('ctotal').textContent.replace(/[$,]/g,''))||0;
+  const subtotal=parseFloat(document.getElementById('csub').textContent.replace(/[$,]/g,''))||0;
+  const desc_ia=document.getElementById('aiout').textContent;
+  const items=[];
+  document.querySelectorAll('.cir').forEach(r=>{
+    const con=r.querySelector('.xcon').value, cat=r.querySelector('.xcat').textContent;
+    const qty=parseFloat(r.querySelector('.xqty').value)||0, pri=parseFloat(r.querySelector('.xpri').value)||0;
+    if(con&&pri&&cat!=='—') items.push({concepto:con,categoria:cat,cantidad:qty,precio:pri,total:qty*pri});
+  });
+  await supa.from('cotizaciones').upsert({codigo,cliente,tipo_evento:tipo,fecha_evento:fecha,lugar,horario,invitados,responsable,subtotal,descuento,iva,total,descripcion_ia:desc_ia.includes('aparecerá')?null:desc_ia,items},{onConflict:'codigo'});
+}
+
+async function exportarADriveConGuardado(){
+  await guardarCotizacionDB();
+  await exportarADrive();
 }
 
 // ─── INIT ───
@@ -1587,11 +1473,5 @@ async function init(){
   await cargarProveedores();
 }
 init();
-
-// Auto-save cotización al exportar a Drive - wrapped after definition
-async function exportarADriveConGuardado(){
-  await guardarCotizacionDB();
-  await exportarADrive();
-}
 </script>
 </body></html>
