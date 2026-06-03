@@ -1482,20 +1482,48 @@ function filtrarRegistro(){
 function renderTransacciones(data){
   const tbody = document.getElementById('registro-tbody');
   const subEl = document.getElementById('registro-sub');
-  if(subEl) subEl.textContent = data.length.toLocaleString() + ' transacciones' + (data.length < _allTransacciones.length ? ' (filtradas de '+_allTransacciones.length+')' : '');
-  if(!data.length){
-    tbody.innerHTML='<tr><td colspan="12" style="color:var(--white4);text-align:center;padding:20px">No hay transacciones con esos filtros</td></tr>';
+  if(!tbody){ console.error('registro-tbody not found'); return; }
+  if(subEl) subEl.textContent = (data.length).toLocaleString() + ' transacciones' + (data.length < _allTransacciones.length ? ' (filtradas de '+_allTransacciones.length+')' : ' registradas');
+  if(!data || !data.length){
+    tbody.innerHTML = '<tr><td colspan="12" style="color:var(--white4);text-align:center;padding:20px">No hay transacciones con esos filtros</td></tr>';
     return;
   }
-  tbody.innerHTML = data.map(t => {
-    const bc = t.estado==='Cobrado'?'b-green':t.estado==='Por cobrar'?'b-blue':t.estado==='Por pagar'?'b-orange':'b-magenta';
-    const fe = t.fecha_evento ? new Date(t.fecha_evento+'T12:00:00').toLocaleDateString('es-VE',{day:'2-digit',month:'short',year:'2-digit'}) : '—';
-    const fp = t.fecha_pago   ? new Date(t.fecha_pago  +'T12:00:00').toLocaleDateString('es-VE',{day:'2-digit',month:'short',year:'2-digit'}) : '—';
-    const ing = t.ingreso>0 ? '<td style="color:#3dca6e;font-weight:600">$'+parseFloat(t.ingreso).toLocaleString()+'</td>' : '<td style="color:var(--white4)">—</td>';
-    const egr = t.egreso >0 ? '<td style="color:#e05555;font-weight:600">$'+parseFloat(t.egreso).toLocaleString()+'</td>' : '<td style="color:var(--white4)">—</td>';
-    const acciones = '<td><div style="display:flex;gap:4px"><button class="btn btn-ghost btn-sm" style="padding:3px 7px;font-size:10px" onclick="abrirEditar(&quot;'+t.id+'&quot;)"><i class="ti ti-pencil"></i></button><button class="btn btn-ghost btn-sm" style="padding:3px 7px;font-size:10px" onclick="duplicarRow(&quot;'+t.id+'&quot;)" title="Duplicar"><i class="ti ti-copy"></i></button><button class="btn btn-ghost btn-sm" style="padding:3px 7px;font-size:10px;color:var(--red2)" onclick="eliminarRow(&quot;'+t.id+'&quot;)" title="Eliminar"><i class="ti ti-trash"></i></button></div></td>';
-    return '<tr data-id="'+t.id+'"><td>'+fe+'</td><td>'+fp+'</td><td>'+(t.categoria||'—')+'</td><td>'+(t.subcategoria||'—')+'</td><td>'+t.concepto+'</td><td class="mono">'+(t.codigo_evento||'—')+'</td><td>'+(t.metodo_pago||'—')+'</td><td>'+(t.responsable||'—')+'</td>'+ing+egr+'<td><span class="badge '+bc+'">'+t.estado+'</span></td>'+acciones+'</tr>';
-  }).join('');
+  const rows = [];
+  for(let i = 0; i < data.length; i++){
+    try{
+      const t = data[i];
+      const bc = t.estado==='Cobrado'?'b-green':t.estado==='Por cobrar'?'b-blue':t.estado==='Por pagar'?'b-orange':'b-magenta';
+      const fe = t.fecha_evento ? new Date(t.fecha_evento+'T12:00:00').toLocaleDateString('es-VE',{day:'2-digit',month:'short',year:'2-digit'}) : '—';
+      const fp = t.fecha_pago   ? new Date(t.fecha_pago  +'T12:00:00').toLocaleDateString('es-VE',{day:'2-digit',month:'short',year:'2-digit'}) : '—';
+      const ing = t.ingreso>0 ? '<td style="color:#3dca6e;font-weight:600">$'+parseFloat(t.ingreso).toLocaleString()+'</td>' : '<td style="color:var(--white4)">—</td>';
+      const egr = t.egreso >0 ? '<td style="color:#e05555;font-weight:600">$'+parseFloat(t.egreso ).toLocaleString()+'</td>' : '<td style="color:var(--white4)">—</td>';
+      const tid = (t.id||'').replace(/"/g,'');
+      const acciones = '<td><div style="display:flex;gap:3px">'
+        +'<button class="btn btn-ghost btn-sm" style="padding:3px 6px;font-size:10px" onclick="abrirEditar(''+tid+'')"><i class="ti ti-pencil"></i></button>'
+        +'<button class="btn btn-ghost btn-sm" style="padding:3px 6px;font-size:10px" onclick="duplicarRow(''+tid+'')" title="Duplicar"><i class="ti ti-copy"></i></button>'
+        +'<button class="btn btn-ghost btn-sm" style="padding:3px 6px;font-size:10px;color:var(--red2)" onclick="eliminarRow(''+tid+'')" title="Eliminar"><i class="ti ti-trash"></i></button>'
+        +'</div></td>';
+      const cat  = (t.categoria||'—').replace(/</g,'&lt;');
+      const sub  = (t.subcategoria||'—').replace(/</g,'&lt;');
+      const con  = (t.concepto||'').replace(/</g,'&lt;');
+      const cod  = (t.codigo_evento||'—').replace(/</g,'&lt;');
+      const met  = (t.metodo_pago||'—').replace(/</g,'&lt;');
+      const resp = (t.responsable||'—').replace(/</g,'&lt;');
+      rows.push('<tr data-id="'+tid+'">'
+        +'<td>'+fe+'</td><td>'+fp+'</td>'
+        +'<td>'+cat+'</td><td>'+sub+'</td>'
+        +'<td>'+con+'</td>'
+        +'<td class="mono" style="font-size:10px;color:var(--white4)">'+cod+'</td>'
+        +'<td>'+met+'</td><td>'+resp+'</td>'
+        +ing+egr
+        +'<td><span class="badge '+bc+'">'+t.estado+'</span></td>'
+        +acciones
+        +'</tr>');
+    } catch(err){
+      console.warn('Row '+i+' error:', err, data[i]);
+    }
+  }
+  tbody.innerHTML = rows.join('');
 }
 
 
