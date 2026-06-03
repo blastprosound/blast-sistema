@@ -187,6 +187,8 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
   <button class="ni on" onclick="sv('dashboard',this)"><i class="ti ti-layout-dashboard"></i>Dashboard</button>
   <button class="ni" onclick="sv('eventos',this)"><i class="ti ti-calendar-event"></i>Eventos</button>
   <button class="ni" onclick="sv('registro',this)"><i class="ti ti-receipt-2"></i>Registro</button>
+  <button class="ni" onclick="sv('pendientes',this)"><i class="ti ti-clock-exclamation"></i>Cuentas pendientes</button>
+  <button class="ni" onclick="sv('balance',this)"><i class="ti ti-scale"></i>Balance</button>
   <div class="ndiv"></div>
   <div class="nl">Gestión</div>
   <button class="ni" onclick="sv('cotizacion',this)"><i class="ti ti-file-invoice"></i>Cotizaciones</button>
@@ -289,7 +291,7 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
   </div>
   <div class="card np">
     <div class="twrap"><table>
-      <thead><tr><th>F.Evento</th><th>F.Pago</th><th>Categoría</th><th>Sub-Cat</th><th>Concepto</th><th>Código</th><th>Método</th><th>Resp.</th><th>Ingreso</th><th>Egreso</th><th>Estado</th></tr></thead>
+      <thead><tr><th>F.Evento</th><th>F.Pago</th><th>Categoría</th><th>Sub-Cat</th><th>Concepto</th><th>Código</th><th>Método</th><th>Resp.</th><th>Ingreso</th><th>Egreso</th><th>Estado</th><th></th></tr></thead>
       <tbody>
         <tr><td>25 Jul 25</td><td>25 Jul 25</td><td>Evento</td><td>Privado</td><td>Manuela Sanglimbeni</td><td class="mono">25072025-MS</td><td>Efectivo $</td><td>G. Briceño</td><td style="color:#3dca6e;font-weight:600">$950</td><td>—</td><td><span class="badge b-green">Cobrado</span></td></tr>
         <tr><td>25 Jul 25</td><td>25 Jul 25</td><td>Evento</td><td>Locación</td><td>Qta Biloxi (1er abono)</td><td class="mono">25072025-MS</td><td>Efectivo $</td><td>F. Massari</td><td>—</td><td style="color:#e05555;font-weight:600">$900</td><td><span class="badge b-magenta">Pagado</span></td></tr>
@@ -567,6 +569,94 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
   </div>
 </div>
 
+
+<!-- ═══ CUENTAS PENDIENTES ═══ -->
+<div id="v-pendientes" class="view">
+  <div class="ph">
+    <div><div class="accent-line"></div><div class="ph-title">Cuentas pendientes</div><div class="ph-sub" id="pend-sub">Cargando...</div></div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px">
+    <div class="sc" style="border-color:rgba(67,189,237,0.3)">
+      <div class="sc-top" style="background:var(--blue)"></div>
+      <div class="sl">Por cobrar</div>
+      <div class="sv blue" id="pend-cobrar-total">$0</div>
+      <div class="ss" id="pend-cobrar-count">0 registros</div>
+    </div>
+    <div class="sc" style="border-color:rgba(234,95,242,0.3)">
+      <div class="sc-top" style="background:var(--magenta)"></div>
+      <div class="sl">Por pagar</div>
+      <div class="sv magenta" id="pend-pagar-total">$0</div>
+      <div class="ss" id="pend-pagar-count">0 registros</div>
+    </div>
+  </div>
+  <div class="card np" style="margin-bottom:14px">
+    <div style="padding:14px 18px 8px;display:flex;align-items:center;gap:12px">
+      <div class="ct" style="margin-bottom:0">Por cobrar</div>
+      <span class="badge b-blue" id="badge-cobrar">0</span>
+    </div>
+    <div class="twrap"><table>
+      <thead><tr><th>F.Evento</th><th>Categoría</th><th>Sub-Cat</th><th>Concepto</th><th>Código</th><th>Método</th><th>Responsable</th><th>Monto</th></tr></thead>
+      <tbody id="tbody-cobrar"><tr><td colspan="8" style="color:var(--white4);text-align:center;padding:16px">Cargando...</td></tr></tbody>
+    </table></div>
+  </div>
+  <div class="card np">
+    <div style="padding:14px 18px 8px;display:flex;align-items:center;gap:12px">
+      <div class="ct" style="margin-bottom:0">Por pagar</div>
+      <span class="badge b-magenta" id="badge-pagar">0</span>
+    </div>
+    <div class="twrap"><table>
+      <thead><tr><th>F.Evento</th><th>Categoría</th><th>Sub-Cat</th><th>Concepto</th><th>Código</th><th>Método</th><th>Responsable</th><th>Monto</th></tr></thead>
+      <tbody id="tbody-pagar"><tr><td colspan="8" style="color:var(--white4);text-align:center;padding:16px">Cargando...</td></tr></tbody>
+    </table></div>
+  </div>
+</div>
+
+<!-- ═══ BALANCE ═══ -->
+<div id="v-balance" class="view">
+  <div class="ph">
+    <div><div class="accent-line"></div><div class="ph-title">Balance</div><div class="ph-sub">Dinero disponible en la empresa por socio</div></div>
+  </div>
+  <div class="sg" style="grid-template-columns:repeat(3,1fr);margin-bottom:20px">
+    <div class="sc" id="bal-gb">
+      <div class="sc-top" style="background:var(--blue)"></div>
+      <div class="sl">Gustavo Briceño</div>
+      <div class="sv blue" id="bal-gb-total">$0</div>
+      <div class="ss" id="bal-gb-detail">Agarro $0 · Entregó $0</div>
+    </div>
+    <div class="sc" id="bal-eb">
+      <div class="sc-top" style="background:var(--magenta)"></div>
+      <div class="sl">Eduardo Behrens</div>
+      <div class="sv magenta" id="bal-eb-total">$0</div>
+      <div class="ss" id="bal-eb-detail">Agarro $0 · Entregó $0</div>
+    </div>
+    <div class="sc" id="bal-fm">
+      <div class="sc-top" style="background:var(--orange)"></div>
+      <div class="sl">Francisco Massari</div>
+      <div class="sv orange" id="bal-fm-total">$0</div>
+      <div class="ss" id="bal-fm-detail">Agarro $0 · Entregó $0</div>
+    </div>
+  </div>
+  <div class="card" style="text-align:center;padding:24px">
+    <div class="ct">Total disponible en Blast ProSound</div>
+    <div style="font-size:36px;font-weight:700;color:var(--blue);letter-spacing:-1px" id="bal-total">$0</div>
+    <div style="font-size:12px;color:var(--white4);margin-top:6px">Suma del balance de los 3 socios</div>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:4px">
+    <div class="card" id="bal-detail-gb">
+      <div class="ct">Gustavo Briceño</div>
+      <div id="bal-rows-gb"></div>
+    </div>
+    <div class="card" id="bal-detail-eb">
+      <div class="ct">Eduardo Behrens</div>
+      <div id="bal-rows-eb"></div>
+    </div>
+    <div class="card" id="bal-detail-fm">
+      <div class="ct">Francisco Massari</div>
+      <div id="bal-rows-fm"></div>
+    </div>
+  </div>
+</div>
+
 </main>
 </div>
 
@@ -600,7 +690,7 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
       <div class="fgrp"><label class="flabel">Fecha pago</label><input type="date" id="tx-fecha-pago"></div>
       <div class="fgrp"><label class="flabel">Categoría</label><select id="tx-categoria"><option>Evento</option><option>Equipos</option><option>Dividendos</option><option>Cambio divisas</option><option>Reserva</option><option>Préstamo</option></select></div>
       <div class="fgrp"><label class="flabel">Sub-categoría</label><input type="text" id="tx-subcategoria" placeholder="ej: Honorarios, DJ..."></div>
-      <div class="fgrp"><label class="flabel">Estado</label><select id="tx-estado"><option>Cobrado</option><option>Pagado</option><option>Exonerado</option></select></div>
+      <div class="fgrp"><label class="flabel">Estado</label><select id="tx-estado"><option>Cobrado</option><option>Pagado</option><option>Por cobrar</option><option>Por pagar</option><option>Exonerado</option></select></div>
       <div class="fgrp"><label class="flabel">Código de evento</label><input type="text" id="tx-codigo" placeholder="ej: 15072026-SM"></div>
       <div class="fgrp"><label class="flabel">Concepto / Persona</label><input type="text" id="tx-concepto" placeholder="Nombre o descripción"></div>
       <div class="fgrp"><label class="flabel">Método de pago</label><select id="tx-metodo"><option>Efectivo $</option><option>Zelle</option><option>Bs</option><option>Euro</option></select></div>
@@ -747,10 +837,12 @@ function sv(id,btn){
   document.querySelectorAll('.ni').forEach(b=>b.classList.remove('on'));
   document.getElementById('v-'+id).classList.add('on');
   btn.classList.add('on');
-  if(id==='eventos') cargarTablaEventos();
-  if(id==='registro') cargarTransacciones();
+  if(id==='eventos')    cargarTablaEventos();
+  if(id==='registro')   cargarTransacciones();
   if(id==='proveedores') cargarProveedores();
-  if(id==='dashboard') cargarUltimosEventos();
+  if(id==='dashboard')  cargarUltimosEventos();
+  if(id==='pendientes') renderPendientes();
+  if(id==='balance')    renderBalance();
 }
 
 // ─── CERRAR MODALES ───
@@ -1253,6 +1345,32 @@ function buildPDFHTML(){
     </div>
   </div>
 </div>
+
+<!-- MODAL EDITAR TRANSACCIÓN -->
+<div class="modal-bg" id="modal-editar">
+  <div class="modal" style="width:640px">
+    <div class="modal-title">Editar transacción</div>
+    <div class="fg" style="margin-bottom:12px">
+      <div class="fgrp"><label class="flabel">Fecha evento</label><input type="date" id="edit-fecha-evento"></div>
+      <div class="fgrp"><label class="flabel">Fecha pago</label><input type="date" id="edit-fecha-pago"></div>
+      <div class="fgrp"><label class="flabel">Categoría</label><select id="edit-categoria"><option>Evento</option><option>Equipos</option><option>Dividendos</option><option>Cambio divisas</option><option>Reserva</option><option>Préstamo</option></select></div>
+      <div class="fgrp"><label class="flabel">Sub-categoría</label><input type="text" id="edit-subcategoria"></div>
+      <div class="fgrp"><label class="flabel">Estado</label><select id="edit-estado"><option>Cobrado</option><option>Pagado</option><option>Por cobrar</option><option>Por pagar</option><option>Exonerado</option></select></div>
+      <div class="fgrp"><label class="flabel">Código evento</label><input type="text" id="edit-codigo"></div>
+      <div class="fgrp"><label class="flabel">Concepto / Persona</label><input type="text" id="edit-concepto"></div>
+      <div class="fgrp"><label class="flabel">Método pago</label><select id="edit-metodo"><option>Efectivo $</option><option>Zelle</option><option>Bs</option><option>Euro</option></select></div>
+      <div class="fgrp"><label class="flabel">Responsable dinero</label><select id="edit-responsable"><option>Gustavo Briceño</option><option>Eduardo Behrens</option><option>Francisco Massari</option></select></div>
+      <div class="fgrp"><label class="flabel">Agarro Socio ($)</label><input type="number" id="edit-ingreso" placeholder="0"></div>
+      <div class="fgrp"><label class="flabel">Entregó Socio ($)</label><input type="number" id="edit-egreso" placeholder="0"></div>
+    </div>
+    <div class="fgrp" style="margin-bottom:12px"><label class="flabel">Descripción</label><textarea id="edit-descripcion" rows="2"></textarea></div>
+    <input type="hidden" id="edit-id">
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="document.getElementById('modal-editar').classList.remove('show')">Cancelar</button>
+      <button class="btn btn-blue" onclick="guardarEdicion()">Guardar cambios</button>
+    </div>
+  </div>
+</div>
 </body></html>';
 
 
@@ -1515,7 +1633,8 @@ function renderEventos(data){
     const bc = e.estado==='Cobrado'?'b-green':e.estado==='Exonerado'?'b-white':'b-orange';
     const cc = e.categoria==='Privado'?'b-blue':e.categoria==='Corporativo'?'b-magenta':'b-orange';
     const fd = new Date(e.fecha+'T12:00:00').toLocaleDateString('es-VE',{day:'2-digit',month:'short',year:'2-digit'});
-    return '<tr><td class="mono">'+e.codigo+'</td><td>'+fd+'</td><td>'+e.cliente_nombre+'</td><td><span class="badge '+cc+'">'+(e.categoria||'—')+'</span></td><td>'+(e.referente||'—')+'</td><td>$'+parseFloat(e.ingreso||0).toLocaleString()+'</td><td>$'+parseFloat(e.gasto||0).toLocaleString()+'</td><td style="color:#3dca6e;font-weight:600">$'+util.toLocaleString()+'</td><td style="color:var(--white4)">'+margen+'</td><td><span class="badge '+bc+'">'+e.estado+'</span></td></tr>';
+    const utilColor = util < 0 ? '#e05555' : '#3dca6e';
+    return '<tr><td class="mono">'+e.codigo+'</td><td>'+fd+'</td><td>'+e.cliente_nombre+'</td><td><span class="badge '+cc+'">'+(e.categoria||'—')+'</span></td><td>'+(e.referente||'—')+'</td><td>$'+parseFloat(e.ingreso||0).toLocaleString()+'</td><td>$'+parseFloat(e.gasto||0).toLocaleString()+'</td><td style="color:'+utilColor+';font-weight:600">$'+util.toLocaleString()+'</td><td style="color:var(--white4)">'+margen+'</td><td><span class="badge '+bc+'">'+e.estado+'</span></td></tr>';
   }).join('');
 }
 
@@ -1541,17 +1660,243 @@ function renderTransacciones(data){
   const subEl = document.querySelector('#v-registro .ph-sub');
   if(subEl) subEl.textContent = data.length.toLocaleString() + ' transacciones' + (data.length < _allTransacciones.length ? ' (filtradas de '+_allTransacciones.length+')' : '');
   if(!data.length){
-    tbody.innerHTML='<tr><td colspan="11" style="color:var(--white4);text-align:center;padding:20px">No hay transacciones con esos filtros</td></tr>';
+    tbody.innerHTML='<tr><td colspan="12" style="color:var(--white4);text-align:center;padding:20px">No hay transacciones con esos filtros</td></tr>';
     return;
   }
   tbody.innerHTML = data.map(t => {
-    const bc = t.estado==='Cobrado'?'b-green':'b-magenta';
+    const bc = t.estado==='Cobrado'?'b-green':t.estado==='Por cobrar'?'b-blue':t.estado==='Por pagar'?'b-orange':'b-magenta';
     const fe = t.fecha_evento ? new Date(t.fecha_evento+'T12:00:00').toLocaleDateString('es-VE',{day:'2-digit',month:'short',year:'2-digit'}) : '—';
     const fp = t.fecha_pago   ? new Date(t.fecha_pago  +'T12:00:00').toLocaleDateString('es-VE',{day:'2-digit',month:'short',year:'2-digit'}) : '—';
-    const ing = t.ingreso>0 ? '<td style="color:#3dca6e;font-weight:600">$'+parseFloat(t.ingreso).toLocaleString()+'</td>' : '<td>—</td>';
-    const egr = t.egreso >0 ? '<td style="color:#e05555;font-weight:600">$'+parseFloat(t.egreso).toLocaleString()+'</td>' : '<td>—</td>';
-    return '<tr><td>'+fe+'</td><td>'+fp+'</td><td>'+(t.categoria||'—')+'</td><td>'+(t.subcategoria||'—')+'</td><td>'+t.concepto+'</td><td class="mono">'+(t.codigo_evento||'—')+'</td><td>'+(t.metodo_pago||'—')+'</td><td>'+(t.responsable||'—')+'</td>'+ing+egr+'<td><span class="badge '+bc+'">'+t.estado+'</span></td></tr>';
+    const ing = t.ingreso>0 ? '<td style="color:#3dca6e;font-weight:600">$'+parseFloat(t.ingreso).toLocaleString()+'</td>' : '<td style="color:var(--white4)">—</td>';
+    const egr = t.egreso >0 ? '<td style="color:#e05555;font-weight:600">$'+parseFloat(t.egreso).toLocaleString()+'</td>' : '<td style="color:var(--white4)">—</td>';
+    const acciones = '<td><div style="display:flex;gap:4px">'
+      +'<button class="btn btn-ghost btn-sm" style="padding:3px 7px;font-size:10px" onclick="abrirEditar(''+t.id+'')"><i class="ti ti-pencil"></i></button>'
+      +'<button class="btn btn-ghost btn-sm" style="padding:3px 7px;font-size:10px" onclick="duplicarRow(''+t.id+'')" title="Duplicar"><i class="ti ti-copy"></i></button>'
+      +'<button class="btn btn-ghost btn-sm" style="padding:3px 7px;font-size:10px;color:var(--red2)" onclick="eliminarRow(''+t.id+'')" title="Eliminar"><i class="ti ti-trash"></i></button>'
+      +'</div></td>';
+    return '<tr data-id="'+t.id+'"><td>'+fe+'</td><td>'+fp+'</td><td>'+(t.categoria||'—')+'</td><td>'+(t.subcategoria||'—')+'</td><td>'+t.concepto+'</td><td class="mono">'+(t.codigo_evento||'—')+'</td><td>'+(t.metodo_pago||'—')+'</td><td>'+(t.responsable||'—')+'</td>'+ing+egr+'<td><span class="badge '+bc+'">'+t.estado+'</span></td>'+acciones+'</tr>';
   }).join('');
+}
+
+// ─── EDIT ROW INLINE ───
+function editRow(btn){
+  const tr = btn.closest('tr');
+  if(tr.dataset.editing === 'true'){
+    saveRow(btn, tr);
+    return;
+  }
+  tr.dataset.editing = 'true';
+  tr.dataset.id = tr.dataset.id;
+  const cells = tr.querySelectorAll('td');
+  const vals = Array.from(cells).map(c => c.innerText.trim());
+  
+  // fecha_evento, fecha_pago, categoria, subcategoria, concepto, codigo, metodo, responsable, ingreso, egreso, estado
+  const cats = ['Evento','Equipos','Dividendos','Cambio divisas','Reserva','Préstamo'];
+  const estados = ['Cobrado','Pagado','Por cobrar','Por pagar','Exonerado'];
+  const metodos = ['Efectivo $','Zelle','Bs','Euro',''];
+  const resps = ['Gustavo Briceño','Eduardo Behrens','Francisco Massari'];
+
+  cells[0].innerHTML = '<input style="width:90px;padding:2px 4px;font-size:11px" value="'+vals[0]+'">';
+  cells[1].innerHTML = '<input style="width:90px;padding:2px 4px;font-size:11px" value="'+vals[1]+'">';
+  cells[2].innerHTML = selOpts(cats, vals[2]);
+  cells[3].innerHTML = '<input style="width:80px;padding:2px 4px;font-size:11px" value="'+vals[3]+'">';
+  cells[4].innerHTML = '<input style="width:120px;padding:2px 4px;font-size:11px" value="'+vals[4]+'">';
+  cells[5].innerHTML = '<input style="width:90px;padding:2px 4px;font-size:11px" value="'+vals[5]+'">';
+  cells[6].innerHTML = selOpts(metodos, vals[6]);
+  cells[7].innerHTML = selOpts(resps, vals[7]);
+  cells[8].innerHTML = '<input type="number" style="width:70px;padding:2px 4px;font-size:11px" value="'+vals[8].replace('$','').replace(',','')+'">';
+  cells[9].innerHTML = '<input type="number" style="width:70px;padding:2px 4px;font-size:11px" value="'+vals[9].replace('$','').replace(',','')+'">';
+  cells[10].innerHTML = selOpts(estados, vals[10]);
+  cells[11].innerHTML = '<div style="display:flex;gap:4px"><button class="btn btn-blue" style="padding:3px 8px;font-size:10px" onclick="saveRow(this,this.closest('tr'))">✓</button><button class="btn btn-ghost" style="padding:3px 8px;font-size:10px" onclick="cancelEdit(this)">✕</button></div>';
+}
+
+function selOpts(opts, current){
+  return '<select style="padding:2px 4px;font-size:11px">'+opts.map(o=>'<option'+(o===current?' selected':'')+'>'+o+'</option>').join('')+'</select>';
+}
+
+function cancelEdit(btn){
+  cargarTransacciones();
+}
+
+async function saveRow(btn, tr){
+  const id = tr.dataset.id;
+  const cells = tr.querySelectorAll('td');
+  const getVal = i => cells[i].querySelector('input,select') ? cells[i].querySelector('input,select').value : cells[i].innerText.trim();
+  
+  const parseDate = s => {
+    if(!s||s==='—') return null;
+    // Try dd/mm/yy or dd mes. yy
+    const parts = s.split(/[\s\.]+/);
+    if(parts.length >= 3){
+      const months = {ene:1,feb:2,mar:3,abr:4,may:5,jun:6,jul:7,ago:8,sep:9,oct:10,nov:11,dic:12};
+      const m = months[parts[1].toLowerCase().slice(0,3)];
+      if(m){
+        const y = parseInt(parts[2]) < 100 ? 2000+parseInt(parts[2]) : parseInt(parts[2]);
+        return y+'-'+String(m).padStart(2,'0')+'-'+String(parseInt(parts[0])).padStart(2,'0');
+      }
+    }
+    return null;
+  };
+
+  const updates = {
+    fecha_evento:  parseDate(getVal(0)),
+    fecha_pago:    parseDate(getVal(1)),
+    categoria:     getVal(2),
+    subcategoria:  getVal(3),
+    concepto:      getVal(4),
+    codigo_evento: getVal(5)||null,
+    metodo_pago:   getVal(6),
+    responsable:   getVal(7),
+    ingreso:       parseFloat(getVal(8))||0,
+    egreso:        parseFloat(getVal(9))||0,
+    estado:        getVal(10)
+  };
+
+  const {error} = await supa.from('transacciones').update(updates).eq('id', id);
+  if(error){ alert('Error: '+error.message); return; }
+  await cargarTransacciones();
+}
+
+function abrirEditar(id){
+  const t = _allTransacciones.find(x => x.id === id);
+  if(!t) return;
+  document.getElementById('edit-id').value = id;
+  document.getElementById('edit-fecha-evento').value = t.fecha_evento || '';
+  document.getElementById('edit-fecha-pago').value   = t.fecha_pago   || '';
+  document.getElementById('edit-categoria').value    = t.categoria    || 'Evento';
+  document.getElementById('edit-subcategoria').value = t.subcategoria || '';
+  document.getElementById('edit-estado').value       = t.estado       || 'Cobrado';
+  document.getElementById('edit-codigo').value       = t.codigo_evento|| '';
+  document.getElementById('edit-concepto').value     = t.concepto     || '';
+  document.getElementById('edit-metodo').value       = t.metodo_pago  || 'Efectivo $';
+  document.getElementById('edit-responsable').value  = t.responsable  || 'Gustavo Briceño';
+  document.getElementById('edit-ingreso').value      = t.ingreso      || 0;
+  document.getElementById('edit-egreso').value       = t.egreso       || 0;
+  document.getElementById('edit-descripcion').value  = t.descripcion  || '';
+  document.getElementById('modal-editar').classList.add('show');
+}
+
+async function guardarEdicion(){
+  const id = document.getElementById('edit-id').value;
+  const updates = {
+    fecha_evento:  document.getElementById('edit-fecha-evento').value || null,
+    fecha_pago:    document.getElementById('edit-fecha-pago').value   || null,
+    categoria:     document.getElementById('edit-categoria').value,
+    subcategoria:  document.getElementById('edit-subcategoria').value,
+    estado:        document.getElementById('edit-estado').value,
+    codigo_evento: document.getElementById('edit-codigo').value       || null,
+    concepto:      document.getElementById('edit-concepto').value,
+    metodo_pago:   document.getElementById('edit-metodo').value,
+    responsable:   document.getElementById('edit-responsable').value,
+    ingreso:       parseFloat(document.getElementById('edit-ingreso').value) || 0,
+    egreso:        parseFloat(document.getElementById('edit-egreso').value)  || 0,
+    descripcion:   document.getElementById('edit-descripcion').value
+  };
+  const {error} = await supa.from('transacciones').update(updates).eq('id', id);
+  if(error){ alert('Error: '+error.message); return; }
+  document.getElementById('modal-editar').classList.remove('show');
+  await cargarTransacciones();
+}
+
+async function duplicarRow(id){
+  const tx = _allTransacciones.find(t => t.id === id);
+  if(!tx) return;
+  const {id:_, created_at:__, ...data} = tx;
+  const {error} = await supa.from('transacciones').insert(data);
+  if(error){ alert('Error: '+error.message); return; }
+  await cargarTransacciones();
+}
+
+async function eliminarRow(id){
+  if(!confirm('¿Eliminar esta transacción?')) return;
+  const {error} = await supa.from('transacciones').delete().eq('id', id);
+  if(error){ alert('Error: '+error.message); return; }
+  await cargarTransacciones();
+}
+
+// ─── PENDIENTES ───
+function renderPendientes(){
+  if(!_allTransacciones.length){ setTimeout(renderPendientes, 500); return; }
+  
+  const cobrar = _allTransacciones.filter(t => t.estado === 'Por cobrar');
+  const pagar  = _allTransacciones.filter(t => t.estado === 'Por pagar');
+  
+  const sumCobrar = cobrar.reduce((s,t) => s + parseFloat(t.ingreso||0), 0);
+  const sumPagar  = pagar.reduce((s,t)  => s + parseFloat(t.egreso||0),  0);
+  
+  document.getElementById('pend-cobrar-total').textContent = '$'+sumCobrar.toLocaleString('es-VE',{minimumFractionDigits:0,maximumFractionDigits:2});
+  document.getElementById('pend-pagar-total').textContent  = '$'+sumPagar.toLocaleString('es-VE',{minimumFractionDigits:0,maximumFractionDigits:2});
+  document.getElementById('pend-cobrar-count').textContent = cobrar.length + ' registros';
+  document.getElementById('pend-pagar-count').textContent  = pagar.length  + ' registros';
+  document.getElementById('badge-cobrar').textContent = cobrar.length;
+  document.getElementById('badge-pagar').textContent  = pagar.length;
+  document.getElementById('pend-sub').textContent = cobrar.length + ' por cobrar · ' + pagar.length + ' por pagar';
+
+  const rowHTML = (t) => {
+    const fe = t.fecha_evento ? new Date(t.fecha_evento+'T12:00:00').toLocaleDateString('es-VE',{day:'2-digit',month:'short',year:'2-digit'}) : '—';
+    const monto = t.ingreso > 0 ? '$'+parseFloat(t.ingreso).toLocaleString() : '$'+parseFloat(t.egreso||0).toLocaleString();
+    return '<tr><td>'+fe+'</td><td>'+(t.categoria||'—')+'</td><td>'+(t.subcategoria||'—')+'</td><td>'+t.concepto+'</td><td class="mono">'+(t.codigo_evento||'—')+'</td><td>'+(t.metodo_pago||'—')+'</td><td>'+(t.responsable||'—')+'</td><td style="font-weight:600;color:var(--blue)">'+monto+'</td></tr>';
+  };
+
+  document.getElementById('tbody-cobrar').innerHTML = cobrar.length ? cobrar.map(rowHTML).join('') : '<tr><td colspan="8" style="color:var(--white4);text-align:center;padding:16px">Sin cuentas por cobrar ✓</td></tr>';
+  document.getElementById('tbody-pagar').innerHTML  = pagar.length  ? pagar.map(rowHTML).join('')  : '<tr><td colspan="8" style="color:var(--white4);text-align:center;padding:16px">Sin cuentas por pagar ✓</td></tr>';
+}
+
+// ─── BALANCE ───
+function renderBalance(){
+  if(!_allTransacciones.length){ setTimeout(renderBalance, 500); return; }
+
+  const socios = [
+    {key:'gb', nombre:'Gustavo Briceño',   colorId:'blue',    elTotal:'bal-gb-total', elDetail:'bal-gb-detail', elRows:'bal-rows-gb'},
+    {key:'eb', nombre:'Eduardo Behrens',   colorId:'magenta', elTotal:'bal-eb-total', elDetail:'bal-eb-detail', elRows:'bal-rows-eb'},
+    {key:'fm', nombre:'Francisco Massari', colorId:'orange',  elTotal:'bal-fm-total', elDetail:'bal-fm-detail', elRows:'bal-fm-detail'},
+  ];
+
+  // Fix FM rows id
+  socios[2].elRows = 'bal-rows-fm';
+
+  let totalEmpresa = 0;
+
+  socios.forEach(s => {
+    const rows = _allTransacciones.filter(t => t.responsable === s.nombre);
+    const agarro   = rows.reduce((sum,t) => sum + parseFloat(t.ingreso||0), 0);
+    const entrego  = rows.reduce((sum,t) => sum + parseFloat(t.egreso||0),  0);
+    const balance  = agarro - entrego;
+    totalEmpresa  += balance;
+
+    const color = s.colorId === 'blue' ? 'var(--blue)' : s.colorId === 'magenta' ? 'var(--magenta)' : 'var(--orange)';
+    const balColor = balance >= 0 ? color : '#e05555';
+
+    document.getElementById(s.elTotal).textContent = '$'+balance.toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2});
+    document.getElementById(s.elTotal).style.color = balColor;
+    document.getElementById(s.elDetail).textContent = 'Agarro $'+agarro.toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2})+' · Entregó $'+entrego.toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2});
+
+    // Detail rows breakdown by category
+    const cats = {};
+    rows.forEach(t => {
+      const c = t.categoria || 'Otro';
+      if(!cats[c]) cats[c] = {agarro:0, entrego:0};
+      cats[c].agarro  += parseFloat(t.ingreso||0);
+      cats[c].entrego += parseFloat(t.egreso||0);
+    });
+    const rowsEl = document.getElementById(s.elRows);
+    if(rowsEl){
+      rowsEl.innerHTML = Object.entries(cats).map(([cat,v]) => {
+        const bal = v.agarro - v.entrego;
+        return '<div style="display:flex;justify-content:space-between;font-size:12px;padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.04)">'
+          +'<span style="color:var(--white3)">'+cat+'</span>'
+          +'<span style="color:'+(bal>=0?color:'#e05555')+';font-weight:600">$'+bal.toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2})+'</span>'
+          +'</div>';
+      }).join('') + '<div style="display:flex;justify-content:space-between;font-size:13px;padding:8px 0 0;margin-top:4px;border-top:1px solid var(--border)">'
+        +'<span style="font-weight:600;color:var(--white)">Balance total</span>'
+        +'<span style="font-weight:700;color:'+balColor+'">$'+balance.toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2})+'</span>'
+        +'</div>';
+    }
+  });
+
+  const totalColor = totalEmpresa >= 0 ? 'var(--blue)' : '#e05555';
+  document.getElementById('bal-total').textContent = '$'+totalEmpresa.toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2});
+  document.getElementById('bal-total').style.color = totalColor;
 }
 
 // ─── INIT ───
