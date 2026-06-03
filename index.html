@@ -256,10 +256,10 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
     <button class="btn btn-blue btn-sm" onclick="document.getElementById('modal-evento').classList.add('show')"><i class="ti ti-plus"></i>Nuevo evento</button>
   </div>
   <div class="btn-row" style="margin-bottom:14px">
-    <select style="width:auto;padding:6px 10px;font-size:12px"><option>Todos los años</option><option>2026</option><option>2025</option><option>2024</option><option>2023</option></select>
-    <select style="width:auto;padding:6px 10px;font-size:12px"><option>Todas las categorías</option><option>Privado</option><option>Corporativo</option><option>Institucional</option><option>Club</option></select>
-    <select style="width:auto;padding:6px 10px;font-size:12px"><option>Todos los referentes</option><option>Gustavo Briceño</option><option>Eduardo Behrens</option><option>Francisco Massari</option></select>
-    <input type="text" placeholder="Buscar cliente o código..." style="width:210px;padding:6px 10px;font-size:12px">
+    <select id="f-ev-anio" style="width:auto;padding:6px 10px;font-size:12px" onchange="filtrarEventos()"><option value="">Todos los años</option><option>2026</option><option>2025</option><option>2024</option><option>2023</option></select>
+    <select id="f-ev-cat" style="width:auto;padding:6px 10px;font-size:12px" onchange="filtrarEventos()"><option value="">Todas las categorías</option><option>Privado</option><option>Corporativo</option><option>Institucional</option><option>Club</option></select>
+    <select id="f-ev-ref" style="width:auto;padding:6px 10px;font-size:12px" onchange="filtrarEventos()"><option value="">Todos los referentes</option><option>Gustavo Briceño</option><option>Eduardo Behrens</option><option>Francisco Massari</option></select>
+    <input type="text" id="f-ev-buscar" placeholder="Buscar cliente o código..." style="width:210px;padding:6px 10px;font-size:12px" oninput="filtrarEventos()">
   </div>
   <div class="card np">
     <div class="twrap"><table>
@@ -282,10 +282,10 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
     <button class="btn btn-blue btn-sm" onclick="document.getElementById('modal-tx').classList.add('show')"><i class="ti ti-plus"></i>Nueva transacción</button>
   </div>
   <div class="btn-row" style="margin-bottom:14px">
-    <select style="width:auto;padding:6px 10px;font-size:12px"><option>Todos los estados</option><option>Cobrado</option><option>Pagado</option><option>Exonerado</option></select>
-    <select style="width:auto;padding:6px 10px;font-size:12px"><option>Todas las categorías</option><option>Evento</option><option>Equipos</option><option>Dividendos</option><option>Cambio divisas</option></select>
-    <select style="width:auto;padding:6px 10px;font-size:12px"><option>Todos los responsables</option><option>Gustavo Briceño</option><option>Eduardo Behrens</option><option>Francisco Massari</option></select>
-    <input type="text" placeholder="Buscar..." style="width:190px;padding:6px 10px;font-size:12px">
+    <select id="f-tx-estado" style="width:auto;padding:6px 10px;font-size:12px" onchange="filtrarRegistro()"><option value="">Todos los estados</option><option>Cobrado</option><option>Pagado</option><option>Exonerado</option></select>
+    <select id="f-tx-cat" style="width:auto;padding:6px 10px;font-size:12px" onchange="filtrarRegistro()"><option value="">Todas las categorías</option><option>Evento</option><option>Equipos</option><option>Dividendos</option><option>Cambio divisas</option><option>Reserva</option><option>Préstamo</option></select>
+    <select id="f-tx-resp" style="width:auto;padding:6px 10px;font-size:12px" onchange="filtrarRegistro()"><option value="">Todos los responsables</option><option>Gustavo Briceño</option><option>Eduardo Behrens</option><option>Francisco Massari</option></select>
+    <input type="text" id="f-tx-buscar" placeholder="Buscar concepto o código..." style="width:210px;padding:6px 10px;font-size:12px" oninput="filtrarRegistro()">
   </div>
   <div class="card np">
     <div class="twrap"><table>
@@ -1351,18 +1351,8 @@ async function cargarTablaEventos(){
     if(page.length < 500) break;
     from += 500;
   }
-  const error = null;
-  if(error){ console.error(error); return; }
-  const tbody = document.querySelector('#v-eventos tbody');
-  if(!data||!data.length){ tbody.innerHTML='<tr><td colspan="10" style="color:var(--white4);text-align:center;padding:20px">No hay eventos. Agrega el primero.</td></tr>'; return; }
-  tbody.innerHTML = data.map(e => {
-    const util = (parseFloat(e.ingreso)||0)-(parseFloat(e.gasto)||0);
-    const margen = e.ingreso>0 ? ((util/e.ingreso)*100).toFixed(1)+'%' : '—';
-    const bc = e.estado==='Cobrado'?'b-green':e.estado==='Exonerado'?'b-white':'b-orange';
-    const cc = e.categoria==='Privado'?'b-blue':e.categoria==='Corporativo'?'b-magenta':'b-orange';
-    const fd = new Date(e.fecha+'T12:00:00').toLocaleDateString('es-VE',{day:'2-digit',month:'short',year:'2-digit'});
-    return '<tr><td class="mono">'+e.codigo+'</td><td>'+fd+'</td><td>'+e.cliente_nombre+'</td><td><span class="badge '+cc+'">'+(e.categoria||'—')+'</span></td><td>'+(e.referente||'—')+'</td><td>$'+parseFloat(e.ingreso||0).toLocaleString()+'</td><td>$'+parseFloat(e.gasto||0).toLocaleString()+'</td><td style="color:#3dca6e;font-weight:600">$'+util.toLocaleString()+'</td><td style="color:var(--white4)">'+margen+'</td><td><span class="badge '+bc+'">'+e.estado+'</span></td></tr>';
-  }).join('');
+  _allEventos = data;
+  renderEventos(data);
 }
 
 async function cargarTransacciones(){
@@ -1393,14 +1383,8 @@ async function cargarTransacciones(){
     tbody.innerHTML='<tr><td colspan="11" style="color:var(--white4);text-align:center;padding:20px">No hay transacciones registradas aún</td></tr>';
     return;
   }
-  tbody.innerHTML = allData.map(t => {
-    const bc = t.estado==='Cobrado'?'b-green':'b-magenta';
-    const fe = t.fecha_evento ? new Date(t.fecha_evento+'T12:00:00').toLocaleDateString('es-VE',{day:'2-digit',month:'short',year:'2-digit'}) : '—';
-    const fp = t.fecha_pago   ? new Date(t.fecha_pago  +'T12:00:00').toLocaleDateString('es-VE',{day:'2-digit',month:'short',year:'2-digit'}) : '—';
-    const ing = t.ingreso>0 ? '<td style="color:#3dca6e;font-weight:600">$'+parseFloat(t.ingreso).toLocaleString()+'</td>' : '<td>—</td>';
-    const egr = t.egreso >0 ? '<td style="color:#e05555;font-weight:600">$'+parseFloat(t.egreso).toLocaleString()+'</td>' : '<td>—</td>';
-    return '<tr><td>'+fe+'</td><td>'+fp+'</td><td>'+(t.categoria||'—')+'</td><td>'+(t.subcategoria||'—')+'</td><td>'+t.concepto+'</td><td class="mono">'+(t.codigo_evento||'—')+'</td><td>'+(t.metodo_pago||'—')+'</td><td>'+(t.responsable||'—')+'</td>'+ing+egr+'<td><span class="badge '+bc+'">'+t.estado+'</span></td></tr>';
-  }).join('');
+  _allTransacciones = allData;
+  renderTransacciones(allData);
 }
 
 async function cargarProveedores(){
@@ -1494,6 +1478,80 @@ async function guardarCotizacionDB(){
 async function exportarADriveConGuardado(){
   await guardarCotizacionDB();
   await exportarADrive();
+}
+
+// ─── GLOBAL DATA CACHE ───
+let _allEventos = [];
+let _allTransacciones = [];
+
+// ─── FILTER: EVENTOS ───
+function filtrarEventos(){
+  const anio   = document.getElementById('f-ev-anio').value;
+  const cat    = document.getElementById('f-ev-cat').value;
+  const ref    = document.getElementById('f-ev-ref').value;
+  const buscar = document.getElementById('f-ev-buscar').value.toLowerCase().trim();
+
+  let filtered = _allEventos.filter(e => {
+    if(anio   && !e.fecha.startsWith(anio)) return false;
+    if(cat    && e.categoria !== cat) return false;
+    if(ref    && e.referente !== ref) return false;
+    if(buscar && !e.cliente_nombre.toLowerCase().includes(buscar) && !(e.codigo||'').toLowerCase().includes(buscar)) return false;
+    return true;
+  });
+  renderEventos(filtered);
+}
+
+function renderEventos(data){
+  const tbody = document.querySelector('#v-eventos tbody');
+  const subEl = document.querySelector('#v-eventos .ph-sub');
+  if(subEl) subEl.textContent = data.length.toLocaleString() + ' eventos' + (data.length < _allEventos.length ? ' (filtrados de '+_allEventos.length+')' : '');
+  if(!data.length){
+    tbody.innerHTML='<tr><td colspan="10" style="color:var(--white4);text-align:center;padding:20px">No hay eventos con esos filtros</td></tr>';
+    return;
+  }
+  tbody.innerHTML = data.map(e => {
+    const util = (parseFloat(e.ingreso)||0)-(parseFloat(e.gasto)||0);
+    const margen = e.ingreso>0 ? ((util/e.ingreso)*100).toFixed(1)+'%' : '—';
+    const bc = e.estado==='Cobrado'?'b-green':e.estado==='Exonerado'?'b-white':'b-orange';
+    const cc = e.categoria==='Privado'?'b-blue':e.categoria==='Corporativo'?'b-magenta':'b-orange';
+    const fd = new Date(e.fecha+'T12:00:00').toLocaleDateString('es-VE',{day:'2-digit',month:'short',year:'2-digit'});
+    return '<tr><td class="mono">'+e.codigo+'</td><td>'+fd+'</td><td>'+e.cliente_nombre+'</td><td><span class="badge '+cc+'">'+(e.categoria||'—')+'</span></td><td>'+(e.referente||'—')+'</td><td>$'+parseFloat(e.ingreso||0).toLocaleString()+'</td><td>$'+parseFloat(e.gasto||0).toLocaleString()+'</td><td style="color:#3dca6e;font-weight:600">$'+util.toLocaleString()+'</td><td style="color:var(--white4)">'+margen+'</td><td><span class="badge '+bc+'">'+e.estado+'</span></td></tr>';
+  }).join('');
+}
+
+// ─── FILTER: REGISTRO ───
+function filtrarRegistro(){
+  const estado = document.getElementById('f-tx-estado').value;
+  const cat    = document.getElementById('f-tx-cat').value;
+  const resp   = document.getElementById('f-tx-resp').value;
+  const buscar = document.getElementById('f-tx-buscar').value.toLowerCase().trim();
+
+  let filtered = _allTransacciones.filter(t => {
+    if(estado && t.estado !== estado) return false;
+    if(cat    && t.categoria !== cat) return false;
+    if(resp   && t.responsable !== resp) return false;
+    if(buscar && !t.concepto.toLowerCase().includes(buscar) && !(t.codigo_evento||'').toLowerCase().includes(buscar) && !(t.subcategoria||'').toLowerCase().includes(buscar)) return false;
+    return true;
+  });
+  renderTransacciones(filtered);
+}
+
+function renderTransacciones(data){
+  const tbody = document.querySelector('#v-registro tbody');
+  const subEl = document.querySelector('#v-registro .ph-sub');
+  if(subEl) subEl.textContent = data.length.toLocaleString() + ' transacciones' + (data.length < _allTransacciones.length ? ' (filtradas de '+_allTransacciones.length+')' : '');
+  if(!data.length){
+    tbody.innerHTML='<tr><td colspan="11" style="color:var(--white4);text-align:center;padding:20px">No hay transacciones con esos filtros</td></tr>';
+    return;
+  }
+  tbody.innerHTML = data.map(t => {
+    const bc = t.estado==='Cobrado'?'b-green':'b-magenta';
+    const fe = t.fecha_evento ? new Date(t.fecha_evento+'T12:00:00').toLocaleDateString('es-VE',{day:'2-digit',month:'short',year:'2-digit'}) : '—';
+    const fp = t.fecha_pago   ? new Date(t.fecha_pago  +'T12:00:00').toLocaleDateString('es-VE',{day:'2-digit',month:'short',year:'2-digit'}) : '—';
+    const ing = t.ingreso>0 ? '<td style="color:#3dca6e;font-weight:600">$'+parseFloat(t.ingreso).toLocaleString()+'</td>' : '<td>—</td>';
+    const egr = t.egreso >0 ? '<td style="color:#e05555;font-weight:600">$'+parseFloat(t.egreso).toLocaleString()+'</td>' : '<td>—</td>';
+    return '<tr><td>'+fe+'</td><td>'+fp+'</td><td>'+(t.categoria||'—')+'</td><td>'+(t.subcategoria||'—')+'</td><td>'+t.concepto+'</td><td class="mono">'+(t.codigo_evento||'—')+'</td><td>'+(t.metodo_pago||'—')+'</td><td>'+(t.responsable||'—')+'</td>'+ing+egr+'<td><span class="badge '+bc+'">'+t.estado+'</span></td></tr>';
+  }).join('');
 }
 
 // ─── INIT ───
