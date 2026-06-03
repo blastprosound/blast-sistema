@@ -1,0 +1,1598 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Blast ProSound · Sistema de Gestión</title>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@300;400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --black:#141414;--black2:#1c1c1c;--black3:#242424;--black4:#2e2e2e;
+  --blue:#43bded;--blue2:#6fcef2;--blue3:#2899c4;
+  --magenta:#ea5ff2;--orange:#f4a93d;
+  --white:#ffffff;--white2:#e8e8e8;--white3:#a0a0a0;--white4:#606060;
+  --border:rgba(255,255,255,0.07);--border2:rgba(67,189,237,0.3);
+  --r:6px;--r2:10px;--r3:14px;
+}
+body{font-family:'Archivo',sans-serif;font-weight:300;background:var(--black);color:var(--white2);min-height:100vh;display:flex;flex-direction:column;font-size:14px}
+.topbar{background:var(--black2);border-bottom:1px solid var(--border);height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;position:sticky;top:0;z-index:200}
+
+.topbar-right{display:flex;align-items:center;gap:14px}
+.tasa-pill{background:var(--black3);border:1px solid var(--border);border-radius:20px;padding:4px 12px;font-size:11px;color:var(--white4)}
+.tasa-pill b{color:var(--blue);font-weight:600}
+.tasa-pill.loading{opacity:.5}
+.user-chip{display:flex;align-items:center;gap:8px;cursor:pointer;padding:5px 12px;border-radius:20px;border:1px solid var(--border);transition:border .15s}
+.user-chip:hover{border-color:var(--border2)}
+.user-dot{width:6px;height:6px;background:#3dca6e;border-radius:50%}
+.user-name{font-size:12px;color:var(--white3);font-weight:400}
+.layout{display:flex;flex:1;min-height:calc(100vh - 54px)}
+.sidenav{width:194px;background:var(--black2);border-right:1px solid var(--border);padding:14px 0;flex-shrink:0;display:flex;flex-direction:column}
+.nl{font-size:9px;letter-spacing:2.5px;color:var(--white4);text-transform:uppercase;padding:10px 14px 4px;font-weight:600}
+.ni{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:6px;cursor:pointer;font-size:12px;color:var(--white3);border:none;background:none;width:calc(100% - 8px);margin:1px 4px;text-align:left;transition:all .15s;font-family:'Archivo',sans-serif;font-weight:400}
+.ni:hover{background:rgba(67,189,237,0.07);color:var(--white2)}
+.ni.on{background:rgba(67,189,237,0.1);color:var(--blue)}
+.ni.on i{color:var(--blue)}
+.ni i{font-size:16px;width:17px;text-align:center}
+.ndiv{height:1px;background:var(--border);margin:7px 12px}
+.nav-bottom{margin-top:auto;padding:10px 4px 0}
+.main{flex:1;padding:24px;overflow-y:auto}
+.view{display:none}.view.on{display:block}
+.ph{margin-bottom:20px;display:flex;align-items:flex-end;justify-content:space-between}
+.accent-line{width:28px;height:2px;background:var(--blue);margin-bottom:12px}
+.ph-title{font-family:'Archivo',sans-serif;font-weight:600;font-size:21px;color:var(--white);letter-spacing:2px;text-transform:uppercase}
+.ph-sub{font-size:11px;color:var(--white4);margin-top:3px;font-weight:300}
+.sg{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+.sc{background:var(--black2);border:1px solid var(--border);border-radius:var(--r2);padding:14px 16px;position:relative;overflow:hidden}
+.sc-top{position:absolute;top:0;left:0;right:0;height:2px}
+.sl{font-size:10px;color:var(--white4);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px;font-weight:600}
+.sv{font-size:22px;color:var(--white);font-weight:600;letter-spacing:-0.5px;line-height:1}
+.sv.blue{color:var(--blue)}.sv.magenta{color:var(--magenta)}.sv.orange{color:var(--orange)}.sv.green{color:#3dca6e}
+.ss{font-size:10px;color:var(--white4);margin-top:5px;font-weight:300}
+.card{background:var(--black2);border:1px solid var(--border);border-radius:var(--r2);padding:16px 20px;margin-bottom:14px}
+.card.np{padding:0;overflow:hidden}
+.ct{font-size:9px;letter-spacing:2.5px;color:var(--white4);text-transform:uppercase;margin-bottom:12px;font-weight:600}
+.twrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{text-align:left;padding:8px 14px;color:var(--white4);font-weight:600;border-bottom:1px solid var(--border);font-size:9px;letter-spacing:1.5px;text-transform:uppercase}
+td{padding:9px 14px;color:var(--white2);border-bottom:1px solid rgba(255,255,255,0.03);vertical-align:middle;font-weight:300}
+tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:rgba(67,189,237,0.03)}
+.badge{display:inline-flex;align-items:center;padding:2px 9px;border-radius:20px;font-size:10px;font-weight:600;letter-spacing:.5px}
+.b-blue{background:rgba(67,189,237,0.12);color:var(--blue)}
+.b-magenta{background:rgba(234,95,242,0.12);color:var(--magenta)}
+.b-orange{background:rgba(244,169,61,0.12);color:var(--orange)}
+.b-green{background:rgba(61,202,110,0.12);color:#3dca6e}
+.b-white{background:rgba(255,255,255,0.08);color:var(--white3)}
+.btn{display:inline-flex;align-items:center;gap:7px;padding:7px 14px;border-radius:6px;font-size:11px;font-family:'Archivo',sans-serif;cursor:pointer;border:none;transition:all .15s;font-weight:600;letter-spacing:.8px;text-transform:uppercase}
+.btn-blue{background:var(--blue);color:var(--black)}.btn-blue:hover{background:var(--blue2);transform:translateY(-1px)}
+.btn-ghost{background:transparent;color:var(--white3);border:1px solid var(--border);font-weight:400;letter-spacing:.3px;text-transform:none}
+.btn-ghost:hover{border-color:rgba(67,189,237,0.4);color:var(--white2)}
+.btn-sm{padding:5px 11px;font-size:11px}
+.btn-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.fgrp{display:flex;flex-direction:column;gap:5px}
+.flabel{font-size:9px;color:var(--white4);letter-spacing:1.5px;text-transform:uppercase;font-weight:600}
+input[type=text],input[type=number],input[type=date],select,textarea{background:var(--black3);border:1px solid var(--border);border-radius:6px;padding:8px 11px;color:var(--white2);font-family:'Archivo',sans-serif;font-size:13px;outline:none;width:100%;transition:border .15s;font-weight:300}
+input:focus,select:focus,textarea:focus{border-color:var(--border2);background:var(--black4)}
+input::placeholder{color:var(--white4)}
+select option{background:var(--black2)}
+input[type=checkbox]{width:auto;accent-color:var(--blue)}
+.bc{display:flex;flex-direction:column;gap:7px}
+.br{display:flex;align-items:center;gap:10px;font-size:11px}
+.bl{width:88px;color:var(--white4);text-align:right;flex-shrink:0;font-weight:300}
+.bt{flex:1;background:var(--black3);border-radius:3px;height:20px;overflow:hidden}
+.bf{height:100%;border-radius:3px;display:flex;align-items:center;padding-left:8px;font-size:10px;font-weight:700;color:var(--black)}
+.ba{width:68px;color:var(--white4);flex-shrink:0;font-size:10px;font-weight:300}
+.two{display:grid;grid-template-columns:1.4fr 1fr;gap:14px}
+.two.eq{grid-template-columns:1fr 1fr}
+.mono{font-family:'Courier New',monospace;font-size:11px;color:var(--white4)}
+
+/* ─── STATS TABS ─── */
+.stats-tabs{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
+.stab{padding:5px 13px;border-radius:20px;font-size:10px;font-family:'Archivo',sans-serif;font-weight:600;cursor:pointer;border:1px solid var(--border);color:var(--white4);background:transparent;transition:all .15s;letter-spacing:.8px;text-transform:uppercase}
+.stab:hover{border-color:rgba(67,189,237,0.3);color:var(--white2)}
+.stab.on{background:rgba(67,189,237,0.12);border-color:rgba(67,189,237,0.4);color:var(--blue)}
+.stat-panel{display:none}.stat-panel.on{display:block}
+
+/* ─── SOCIOS ─── */
+.sg3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
+.soc-card{background:var(--black2);border:1px solid var(--border);border-radius:var(--r2);padding:18px;text-align:center;transition:border .2s;position:relative;overflow:hidden}
+.soc-card:hover{border-color:rgba(67,189,237,0.25)}
+.soc-top{height:3px;position:absolute;top:0;left:0;right:0}
+.sav{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:600;margin:0 auto 10px;letter-spacing:1px}
+.sn{font-size:13px;color:var(--white);font-weight:600;letter-spacing:.5px}
+.sa{font-size:10px;color:var(--white4);margin-bottom:12px;letter-spacing:.5px;font-weight:300}
+.sst{display:flex;justify-content:space-around;border-top:1px solid var(--border);padding-top:10px}
+.ssv{font-size:15px;color:var(--blue);display:block;font-weight:600}
+.ssl{font-size:10px;color:var(--white4);letter-spacing:.3px;font-weight:300}
+
+/* ─── COTIZACIÓN ─── */
+.cot-top{display:grid;grid-template-columns:1fr 265px;gap:14px;margin-bottom:14px}
+.cot-code-box{background:var(--black3);border:1px solid var(--border2);border-radius:var(--r2);padding:16px}
+.cot-code{font-family:'Archivo',sans-serif;font-weight:600;font-size:17px;color:var(--blue);letter-spacing:3px;margin-bottom:12px;text-transform:uppercase}
+.cih{display:grid;grid-template-columns:160px 1fr 60px 80px 80px 32px;gap:6px;padding:6px 0 8px;border-bottom:1px solid var(--border);font-size:9px;color:var(--white4);letter-spacing:1.5px;text-transform:uppercase;font-weight:600}
+.cir{display:grid;grid-template-columns:160px 1fr 60px 80px 80px 32px;gap:6px;margin-bottom:5px;align-items:center;position:relative}
+.cir input,.cir select{padding:6px 8px;font-size:12px}
+.xsub{font-size:13px;color:var(--blue);text-align:center;font-weight:600}
+.xcosto{font-size:11px;color:var(--white4);text-align:center}
+.ctotals{background:var(--black3);border-radius:var(--r);padding:14px 16px;margin-top:12px;border:1px solid var(--border)}
+.ctr{display:flex;justify-content:space-between;align-items:center;font-size:13px;padding:3px 0;color:var(--white4);font-weight:300}
+.ctr.fin{color:var(--white);font-size:19px;font-weight:600;border-top:1px solid var(--border);margin-top:8px;padding-top:10px;letter-spacing:1px}
+.ctr input[type=number]{width:50px;padding:3px 6px;font-size:12px;text-align:center}
+.ai-box{background:var(--black3);border:1px solid rgba(67,189,237,0.2);border-radius:var(--r);padding:14px 16px;font-size:13px;color:var(--white2);line-height:1.7;white-space:pre-wrap;min-height:70px;margin-top:12px;font-weight:300}
+.ai-dim{color:var(--white4);font-style:italic}
+
+/* ─── DROPDOWN SEARCH ─── */
+.cir-wrap{position:relative}
+.dd-list{position:absolute;top:100%;left:0;right:0;background:var(--black2);border:1px solid var(--border2);border-radius:6px;z-index:999;max-height:200px;overflow-y:auto;display:none;box-shadow:0 8px 24px rgba(0,0,0,.4)}
+.dd-list.show{display:block}
+.dd-item{padding:7px 10px;font-size:12px;cursor:pointer;color:var(--white2);transition:background .1s;border-bottom:1px solid rgba(255,255,255,0.04)}
+.dd-item:hover{background:rgba(67,189,237,0.1);color:var(--blue)}
+.dd-cat{font-size:10px;color:var(--white4)}
+.dd-price{font-size:10px;color:var(--blue);float:right;font-weight:600}
+
+/* ─── MODAL ─── */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:500;display:none;align-items:center;justify-content:center}
+.modal-bg.show{display:flex}
+.modal{background:var(--black2);border:1px solid rgba(67,189,237,0.2);border-radius:var(--r3);padding:24px;width:560px;max-width:95vw;max-height:85vh;overflow-y:auto}
+.modal-title{font-family:'Archivo',sans-serif;font-weight:600;font-size:15px;color:var(--white);margin-bottom:16px;letter-spacing:2px;text-transform:uppercase}
+.modal-footer{display:flex;gap:8px;justify-content:flex-end;margin-top:20px;padding-top:16px;border-top:1px solid var(--border)}
+
+/* ─── DRIVE ─── */
+.btn-drive{background:#ffffff;color:#444;border:1px solid #ddd;font-weight:500;letter-spacing:.3px;text-transform:none;gap:7px}
+.btn-drive:hover{background:#f1f3f4;border-color:#bbb}
+.btn-drive img{width:16px;height:16px}
+.drive-status{font-size:11px;font-family:'Archivo',sans-serif;padding:4px 10px;border-radius:20px;margin-left:4px}
+.drive-status.ok{background:rgba(52,168,83,0.15);color:#2d7a3a}
+.drive-status.err{background:rgba(234,67,53,0.15);color:#c62828}
+.drive-status.loading{background:rgba(67,189,237,0.15);color:#43bded}
+/* ─── PDF PRINT ─── */
+#pdf-preview{display:none}
+@media print{
+  .sidenav,.topbar,.btn-row,.modal-bg,
+  .ai-box + .btn-row,.ph .btn-row{display:none!important}
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div>
+    <div style="display:flex;align-items:baseline;gap:0">
+    <span style="font-family:'Archivo',sans-serif;font-size:20px;font-weight:900;color:#ffffff;letter-spacing:4px">BLAST</span>
+    <span style="font-family:'Archivo',sans-serif;font-size:9px;font-weight:400;color:#43bded;letter-spacing:4px;margin-left:6px">PROSOUND</span>
+  </div>
+  </div>
+  <div class="topbar-right">
+    <div class="tasa-pill loading" id="tasa-pill">
+      BCV <b id="t-usd">—</b> Bs &nbsp;·&nbsp; Euro <b id="t-eur">—</b> Bs
+      <span id="t-date" style="margin-left:6px;font-size:9px;opacity:.6"></span>
+    </div>
+    <div class="user-chip">
+      <div class="user-dot"></div>
+      <span class="user-name">Gustavo Briceño</span>
+      <i class="ti ti-chevron-down" style="font-size:12px;color:var(--white4)"></i>
+    </div>
+  </div>
+</div>
+
+<div class="layout">
+<nav class="sidenav">
+  <div class="nl">Principal</div>
+  <button class="ni on" onclick="sv('dashboard',this)"><i class="ti ti-layout-dashboard"></i>Dashboard</button>
+  <button class="ni" onclick="sv('eventos',this)"><i class="ti ti-calendar-event"></i>Eventos</button>
+  <button class="ni" onclick="sv('registro',this)"><i class="ti ti-receipt-2"></i>Registro</button>
+  <div class="ndiv"></div>
+  <div class="nl">Gestión</div>
+  <button class="ni" onclick="sv('cotizacion',this)"><i class="ti ti-file-invoice"></i>Cotizaciones</button>
+  <button class="ni" onclick="sv('socios',this)"><i class="ti ti-users"></i>Socios</button>
+  <button class="ni" onclick="sv('proveedores',this)"><i class="ti ti-building-store"></i>Proveedores</button>
+  <div class="ndiv"></div>
+  <div class="nl">Reportes</div>
+  <button class="ni" onclick="sv('estadisticas',this)"><i class="ti ti-chart-bar"></i>Estadísticas</button>
+  <div class="nav-bottom">
+    <div class="ndiv"></div>
+    <button class="ni" style="color:var(--white4)"><i class="ti ti-settings"></i>Configuración</button>
+  </div>
+</nav>
+
+<main class="main">
+
+<!-- ═══ DASHBOARD ═══ -->
+<div id="v-dashboard" class="view on">
+  <div class="ph">
+    <div><div class="accent-line"></div><div class="ph-title">Dashboard</div><div class="ph-sub" id="dash-date">Cargando fecha...</div></div>
+    <button class="btn btn-ghost btn-sm" onclick="loadBCV()"><i class="ti ti-refresh"></i>Actualizar tasas</button>
+  </div>
+  <div class="sg">
+    <div class="sc"><div class="sc-top" style="background:var(--blue)"></div><div class="sl">Ingresos 2026</div><div class="sv blue">$36.061</div><div class="ss">34 eventos registrados</div></div>
+    <div class="sc"><div class="sc-top" style="background:#3dca6e"></div><div class="sl">Utilidad neta</div><div class="sv green">$16.449</div><div class="ss">Margen del 45.6%</div></div>
+    <div class="sc"><div class="sc-top" style="background:var(--orange)"></div><div class="sl">Por cobrar</div><div class="sv orange">$550</div><div class="ss">1 evento pendiente</div></div>
+    <div class="sc"><div class="sc-top" style="background:rgba(255,255,255,0.2)"></div><div class="sl">USD/Bs hoy</div><div class="sv" style="font-size:17px" id="dash-bcv">Cargando...</div><div class="ss" id="dash-eur">Euro: —</div></div>
+  </div>
+
+  <!-- Últimos 5 eventos por fecha -->
+  <div class="two">
+    <div class="card np">
+      <div style="padding:14px 18px 8px"><div class="ct">Últimos 5 eventos (más recientes a hoy)</div></div>
+      <table>
+        <thead><tr><th>Fecha</th><th>Cliente</th><th>Tipo</th><th>Monto</th><th>Referente</th><th>Estado</th></tr></thead>
+        <tbody id="ultimos-eventos">
+          <tr><td colspan="6" style="color:var(--white4);text-align:center;padding:20px">Cargando eventos...</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div>
+      <div class="card">
+        <div class="ct">Ingresos por categoría (total histórico)</div>
+        <div class="bc">
+          <div class="br"><div class="bl">Privado</div><div class="bt"><div class="bf" style="width:82%;background:var(--blue)">$129k</div></div></div>
+          <div class="br"><div class="bl">Corporativo</div><div class="bt"><div class="bf" style="width:30%;background:var(--magenta)">$39k</div></div></div>
+          <div class="br"><div class="bl">Institucional</div><div class="bt"><div class="bf" style="width:21%;background:var(--orange)">$27k</div></div></div>
+          <div class="br"><div class="bl">Club</div><div class="bt"><div class="bf" style="width:4%;background:var(--white4)">$4k</div></div></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="ct">Top 3 clientes</div>
+        <div style="display:flex;flex-direction:column;gap:7px;font-size:12px">
+          <div style="display:flex;justify-content:space-between"><span style="color:var(--white3)">Sebastián Moniz</span><span style="color:var(--blue);font-weight:600">$44.679 <span style="color:var(--white4);font-weight:300">· 21 ev.</span></span></div>
+          <div style="display:flex;justify-content:space-between"><span style="color:var(--white3)">Colegio San Ignacio</span><span style="color:var(--blue);font-weight:600">$9.964 <span style="color:var(--white4);font-weight:300">· 23 ev.</span></span></div>
+          <div style="display:flex;justify-content:space-between"><span style="color:var(--white3)">Inst. Cumbres</span><span style="color:var(--blue);font-weight:600">$7.261 <span style="color:var(--white4);font-weight:300">· 13 ev.</span></span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ EVENTOS ═══ -->
+<div id="v-eventos" class="view">
+  <div class="ph">
+    <div><div class="accent-line"></div><div class="ph-title">Eventos</div><div class="ph-sub">317 eventos registrados desde 2023</div></div>
+    <button class="btn btn-blue btn-sm" onclick="document.getElementById('modal-evento').classList.add('show')"><i class="ti ti-plus"></i>Nuevo evento</button>
+  </div>
+  <div class="btn-row" style="margin-bottom:14px">
+    <select style="width:auto;padding:6px 10px;font-size:12px"><option>Todos los años</option><option>2026</option><option>2025</option><option>2024</option><option>2023</option></select>
+    <select style="width:auto;padding:6px 10px;font-size:12px"><option>Todas las categorías</option><option>Privado</option><option>Corporativo</option><option>Institucional</option><option>Club</option></select>
+    <select style="width:auto;padding:6px 10px;font-size:12px"><option>Todos los referentes</option><option>Gustavo Briceño</option><option>Eduardo Behrens</option><option>Francisco Massari</option></select>
+    <input type="text" placeholder="Buscar cliente o código..." style="width:210px;padding:6px 10px;font-size:12px">
+  </div>
+  <div class="card np">
+    <div class="twrap"><table>
+      <thead><tr><th>Código</th><th>Fecha</th><th>Cliente</th><th>Categoría</th><th>Referente</th><th>Ingreso</th><th>Gasto</th><th>Utilidad</th><th>%</th><th>Estado</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">25072025-MS</td><td>25 Jul 25</td><td>Manuela Sanglimbeni</td><td><span class="badge b-blue">Privado</span></td><td>G. Briceño</td><td>$4.228</td><td>$3.480</td><td style="color:#3dca6e;font-weight:600">$748</td><td style="color:var(--white4)">17.7%</td><td><span class="badge b-green">Cobrado</span></td></tr>
+        <tr><td class="mono">11072025-LA</td><td>11 Jul 25</td><td>Los Arcos</td><td><span class="badge b-orange">Institucional</span></td><td>G. Briceño</td><td>$2.890</td><td>$1.780</td><td style="color:#3dca6e;font-weight:600">$1.110</td><td style="color:var(--white4)">38.4%</td><td><span class="badge b-green">Cobrado</span></td></tr>
+        <tr><td class="mono">21072025-ICC</td><td>21 Jul 25</td><td>Inst. Cumbres de Caracas</td><td><span class="badge b-orange">Institucional</span></td><td>E. Behrens</td><td>$1.000</td><td>$783</td><td style="color:#3dca6e;font-weight:600">$217</td><td style="color:var(--white4)">21.7%</td><td><span class="badge b-green">Cobrado</span></td></tr>
+        <tr><td class="mono">13062025-SM</td><td>13 Jun 25</td><td>Sebastián Moniz</td><td><span class="badge b-blue">Privado</span></td><td>G. Briceño</td><td>$2.500</td><td>$2.080</td><td style="color:#3dca6e;font-weight:600">$420</td><td style="color:var(--white4)">16.8%</td><td><span class="badge b-green">Cobrado</span></td></tr>
+        <tr><td class="mono">11072026-GU</td><td>11 Jul 26</td><td>Gabriela Urdaneta</td><td><span class="badge b-blue">Privado</span></td><td>G. Briceño</td><td>$5.930</td><td>—</td><td>—</td><td>—</td><td><span class="badge b-orange">Por cobrar</span></td></tr>
+      </tbody>
+    </table></div>
+  </div>
+</div>
+
+<!-- ═══ REGISTRO ═══ -->
+<div id="v-registro" class="view">
+  <div class="ph">
+    <div><div class="accent-line"></div><div class="ph-title">Registro</div><div class="ph-sub">Cada ingreso y egreso de la empresa</div></div>
+    <button class="btn btn-blue btn-sm" onclick="document.getElementById('modal-tx').classList.add('show')"><i class="ti ti-plus"></i>Nueva transacción</button>
+  </div>
+  <div class="btn-row" style="margin-bottom:14px">
+    <select style="width:auto;padding:6px 10px;font-size:12px"><option>Todos los estados</option><option>Cobrado</option><option>Pagado</option><option>Exonerado</option></select>
+    <select style="width:auto;padding:6px 10px;font-size:12px"><option>Todas las categorías</option><option>Evento</option><option>Equipos</option><option>Dividendos</option><option>Cambio divisas</option></select>
+    <select style="width:auto;padding:6px 10px;font-size:12px"><option>Todos los responsables</option><option>Gustavo Briceño</option><option>Eduardo Behrens</option><option>Francisco Massari</option></select>
+    <input type="text" placeholder="Buscar..." style="width:190px;padding:6px 10px;font-size:12px">
+  </div>
+  <div class="card np">
+    <div class="twrap"><table>
+      <thead><tr><th>F.Evento</th><th>F.Pago</th><th>Categoría</th><th>Sub-Cat</th><th>Concepto</th><th>Código</th><th>Método</th><th>Resp.</th><th>Ingreso</th><th>Egreso</th><th>Estado</th></tr></thead>
+      <tbody>
+        <tr><td>25 Jul 25</td><td>25 Jul 25</td><td>Evento</td><td>Privado</td><td>Manuela Sanglimbeni</td><td class="mono">25072025-MS</td><td>Efectivo $</td><td>G. Briceño</td><td style="color:#3dca6e;font-weight:600">$950</td><td>—</td><td><span class="badge b-green">Cobrado</span></td></tr>
+        <tr><td>25 Jul 25</td><td>25 Jul 25</td><td>Evento</td><td>Locación</td><td>Qta Biloxi (1er abono)</td><td class="mono">25072025-MS</td><td>Efectivo $</td><td>F. Massari</td><td>—</td><td style="color:#e05555;font-weight:600">$900</td><td><span class="badge b-magenta">Pagado</span></td></tr>
+        <tr><td>25 Jul 25</td><td>25 Jul 25</td><td>Evento</td><td>DJ</td><td>Francisco Massari</td><td class="mono">25072025-MS</td><td>Efectivo $</td><td>F. Massari</td><td>—</td><td style="color:#e05555;font-weight:600">$200</td><td><span class="badge b-magenta">Pagado</span></td></tr>
+        <tr><td>25 Jul 25</td><td>25 Jul 25</td><td>Dividendos</td><td>Dividendos</td><td>Eduardo Behrens</td><td>—</td><td>Zelle</td><td>E. Behrens</td><td>—</td><td style="color:#e05555;font-weight:600">$1.207</td><td><span class="badge b-magenta">Pagado</span></td></tr>
+        <tr><td>25 Jul 25</td><td>25 Jul 25</td><td>Dividendos</td><td>Dividendos</td><td>Gustavo Briceño</td><td>—</td><td>Efectivo $</td><td>G. Briceño</td><td>—</td><td style="color:#e05555;font-weight:600">$400</td><td><span class="badge b-magenta">Pagado</span></td></tr>
+      </tbody>
+    </table></div>
+  </div>
+</div>
+
+<!-- ═══ COTIZACIONES ═══ -->
+<div id="v-cotizacion" class="view">
+  <div class="ph">
+    <div><div class="accent-line"></div><div class="ph-title">Cotizaciones</div><div class="ph-sub">Generador con base de datos de precios y descripción por IA</div></div>
+    <button class="btn btn-ghost btn-sm"><i class="ti ti-history"></i>Historial</button>
+  </div>
+
+  <!-- Datos del evento -->
+  <div class="card" id="cot-section-datos">
+    <div class="ct">Datos del evento</div>
+    <div class="cot-top">
+      <div class="fg">
+        <div class="fgrp"><label class="flabel">Cliente</label><input type="text" id="cc" placeholder="Nombre del cliente" oninput="uc()"></div>
+        <div class="fgrp"><label class="flabel">Tipo de evento</label><select id="ctype"><option>Fiesta / After</option><option>Matrimonio</option><option>Corporativo</option><option>Graduación</option><option>Conferencia</option><option>Desfile / Institucional</option><option>Concierto</option></select></div>
+        <div class="fgrp"><label class="flabel">Fecha</label><input type="date" id="cdate" oninput="uc()"></div>
+        <div class="fgrp"><label class="flabel">Horario</label><input type="text" id="ctime" placeholder="7:00pm – 2:00am"></div>
+        <div class="fgrp"><label class="flabel">Lugar</label><input type="text" id="cplace" placeholder="Nombre del recinto"></div>
+        <div class="fgrp"><label class="flabel">Invitados aprox.</label><input type="number" id="cguests" placeholder="300"></div>
+      </div>
+      <div class="cot-code-box">
+        <div class="ct">Código de cotización</div>
+        <div class="cot-code" id="ccode">COT ——</div>
+        <div class="fgrp" style="margin-bottom:10px"><label class="flabel">Responsable</label><select id="cresp"><option>Gustavo Briceño</option><option>Eduardo Behrens</option><option>Francisco Massari</option></select></div>
+        <div class="fgrp"><label class="flabel">Moneda</label><select id="ccurr"><option>USD ($)</option><option>Euros (€)</option></select></div>
+        <div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border);font-size:10px;color:var(--white4)">
+          Tasa BCV: <b id="cot-bcv" style="color:var(--blue)">—</b> Bs/$
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Ítems con búsqueda inteligente -->
+  <div class="card" id="cot-section-items">
+    <div class="ct">Ítems del presupuesto <span style="color:var(--white4);font-weight:300;font-size:9px;margin-left:8px">— escribe para buscar en la base de datos de precios</span></div>
+    <div class="cih">
+      <div>Concepto</div><div>Categoría</div><div>Cant.</div><div>P. Unitario</div><div>Total</div><div></div>
+    </div>
+    <div id="citems"></div>
+    <div class="btn-row" style="margin-top:10px">
+      <button class="btn btn-ghost btn-sm" onclick="addRow()"><i class="ti ti-plus"></i>Agregar ítem</button>
+    </div>
+    <div class="ctotals">
+      <div class="ctr"><span>Sub total</span><span id="csub">$0</span></div>
+      <div class="ctr"><span>Descuento</span><span style="display:flex;align-items:center;gap:6px"><input type="number" id="cdesc" value="0" min="0" max="100" oninput="calcT()"> %</span></div>
+      <div class="ctr"><span>IVA 16%</span><span style="display:flex;align-items:center;gap:6px"><input type="checkbox" id="civa" onchange="calcT()"> aplicar</span></div>
+      <div class="ctr" style="margin-top:4px"><span style="font-size:11px;color:var(--white4)">Costo estimado</span><span id="ccosto" style="font-size:11px;color:var(--white4)">$0</span></div>
+      <div class="ctr fin"><span>TOTAL</span><span id="ctotal">$0</span></div>
+    </div>
+  </div>
+
+  <!-- IA + PDF -->
+  <div class="card" id="cot-section-ia">
+    <div class="ct">Descripción automática · Blast Assistant</div>
+    <p style="font-size:12px;color:var(--white4);margin-bottom:12px;font-weight:300">Genera una descripción profesional basada en los ítems cotizados, lista para enviar al cliente.</p>
+    <div class="btn-row">
+      <button class="btn btn-blue btn-sm" onclick="genIA()"><i class="ti ti-sparkles"></i>Generar descripción</button>
+      <button class="btn btn-ghost btn-sm" onclick="exportPDF()"><i class="ti ti-file-download"></i>Ver / Imprimir PDF</button>
+      <button class="btn btn-drive btn-sm" onclick="exportarADrive()" id="btn-drive">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/1/12/Google_Drive_icon_%282020%29.svg" alt="Drive">
+        Guardar en Drive
+      </button>
+      <span id="drive-status" class="drive-status" style="display:none"></span>
+      <button class="btn btn-ghost btn-sm" onclick="copiarCot()"><i class="ti ti-copy"></i>Copiar texto</button>
+    </div>
+    <div id="aiout" class="ai-box ai-dim">La descripción generada aparecerá aquí. Completa los datos y presiona "Generar descripción".</div>
+  </div>
+</div>
+
+<!-- ═══ SOCIOS ═══ -->
+<div id="v-socios" class="view">
+  <div class="ph">
+    <div><div class="accent-line"></div><div class="ph-title">Socios</div><div class="ph-sub">Balance individual y participación histórica</div></div>
+  </div>
+  <div class="sg3">
+    <div class="soc-card"><div class="soc-top" style="background:var(--blue)"></div><div class="sav" style="background:rgba(67,189,237,0.1);color:var(--blue)">GB</div><div class="sn">Gustavo Briceño</div><div class="sa">Fukity · 30% participación</div><div class="sst"><div><span class="ssv">$28.126</span><span class="ssl">Total recibido</span></div><div><span class="ssv">182</span><span class="ssl">Eventos</span></div></div></div>
+    <div class="soc-card"><div class="soc-top" style="background:var(--magenta)"></div><div class="sav" style="background:rgba(234,95,242,0.1);color:var(--magenta)">EB</div><div class="sn">Eduardo Behrens</div><div class="sa">Nene · 60% participación</div><div class="sst"><div><span class="ssv" style="color:var(--magenta)">$34.064</span><span class="ssl">Total recibido</span></div><div><span class="ssv" style="color:var(--magenta)">104</span><span class="ssl">Eventos</span></div></div></div>
+    <div class="soc-card"><div class="soc-top" style="background:var(--orange)"></div><div class="sav" style="background:rgba(244,169,61,0.1);color:var(--orange)">FM</div><div class="sn">Francisco Massari</div><div class="sa">Fran · 10% participación</div><div class="sst"><div><span class="ssv" style="color:var(--orange)">$10.420</span><span class="ssl">Total recibido</span></div><div><span class="ssv" style="color:var(--orange)">51</span><span class="ssl">Eventos</span></div></div></div>
+  </div>
+  <div class="two eq">
+    <div class="card"><div class="ct">Distribución histórica</div><table><thead><tr><th>Socio</th><th>Part.</th><th>Dividendos</th><th>Honorarios</th><th>Total P/P</th></tr></thead><tbody><tr><td>Eduardo Behrens</td><td>60%</td><td>$21.515</td><td>$12.549</td><td style="color:var(--blue);font-weight:600">$34.064</td></tr><tr><td>Gustavo Briceño</td><td>30%</td><td>$7.553</td><td>$20.574</td><td style="color:var(--blue);font-weight:600">$28.126</td></tr><tr><td>Francisco Massari</td><td>10%</td><td>$6.785</td><td>$3.635</td><td style="color:var(--blue);font-weight:600">$10.420</td></tr></tbody></table></div>
+    <div class="card"><div class="ct">Captación por socio (desde Aug 2025)</div><div class="bc"><div class="br"><div class="bl">G. Briceño</div><div class="bt"><div class="bf" style="width:43%;background:var(--blue)">33 ev.</div></div><div class="ba">$58.418</div></div><div class="br"><div class="bl">E. Behrens</div><div class="bt"><div class="bf" style="width:40%;background:var(--magenta)">32 ev.</div></div><div class="ba">$17.124</div></div><div class="br"><div class="bl">F. Massari</div><div class="bt"><div class="bf" style="width:15%;background:var(--orange)">12 ev.</div></div><div class="ba">$19.101</div></div></div></div>
+  </div>
+</div>
+
+<!-- ═══ PROVEEDORES ═══ -->
+<div id="v-proveedores" class="view">
+  <div class="ph">
+    <div><div class="accent-line"></div><div class="ph-title">Proveedores</div><div class="ph-sub">Directorio de proveedores y personal externo</div></div>
+    <button class="btn btn-blue btn-sm" onclick="document.getElementById('modal-prov').classList.add('show')"><i class="ti ti-plus"></i>Nuevo proveedor</button>
+  </div>
+  <div class="card np"><table><thead><tr><th>Proveedor</th><th>Tipo</th><th>Eventos</th><th>Total pagado</th><th>Método</th></tr></thead><tbody>
+    <tr><td>Pantallas Visual Led</td><td>Pantallas LED</td><td>14</td><td style="font-weight:600">$3.490</td><td>Efectivo $</td></tr>
+    <tr><td>Iomar Carreño</td><td>Tarima / Escenario</td><td>9</td><td style="font-weight:600">$2.054</td><td>Efectivo $</td></tr>
+    <tr><td>Gerardo Martínez</td><td>Pantallas / Escenario</td><td>8</td><td style="font-weight:600">$2.900</td><td>Efectivo $</td></tr>
+    <tr><td>Alberto Dillon</td><td>Planta Eléctrica</td><td>7</td><td style="font-weight:600">$2.800</td><td>Efectivo $</td></tr>
+    <tr><td>Wilfredo Transporte</td><td>Transporte</td><td>12</td><td style="font-weight:600">$960</td><td>Efectivo $</td></tr>
+    <tr><td>Andrés Nuñez</td><td>CDJ / Controlador</td><td>6</td><td style="font-weight:600">$730</td><td>Efectivo $</td></tr>
+    <tr><td>ACDC Electronics</td><td>Mantenimiento</td><td>5</td><td style="font-weight:600">$260</td><td>Efectivo $</td></tr>
+    <tr><td>Audio Group</td><td>Mantenimiento</td><td>4</td><td style="font-weight:600">$1.240</td><td>Efectivo $</td></tr>
+  </tbody></table></div>
+</div>
+
+<!-- ═══ ESTADÍSTICAS ═══ -->
+<div id="v-estadisticas" class="view">
+  <div class="ph">
+    <div><div class="accent-line"></div><div class="ph-title">Estadísticas</div><div class="ph-sub">Informe empresarial · Al 1 de Junio 2026</div></div>
+  </div>
+
+  <!-- TABS -->
+  <div class="stats-tabs">
+    <button class="stab on" onclick="showStat('resumen',this)">Resumen general</button>
+    <button class="stab" onclick="showStat('anual',this)">Ingresos anuales</button>
+    <button class="stab" onclick="showStat('trimestral',this)">Trimestral</button>
+    <button class="stab" onclick="showStat('categoria',this)">Por categoría</button>
+    <button class="stab" onclick="showStat('clientes',this)">Top clientes</button>
+    <button class="stab" onclick="showStat('honorarios',this)">Honorarios</button>
+    <button class="stab" onclick="showStat('socios-stat',this)">Por socio</button>
+  </div>
+
+  <!-- PANEL: Resumen -->
+  <div id="sp-resumen" class="stat-panel on">
+    <div class="sg">
+      <div class="sc"><div class="sc-top" style="background:var(--blue)"></div><div class="sl">Total eventos</div><div class="sv blue">317</div><div class="ss">2023–2026</div></div>
+      <div class="sc"><div class="sc-top" style="background:#3dca6e"></div><div class="sl">Ingresos totales</div><div class="sv green">$216k</div></div>
+      <div class="sc"><div class="sc-top" style="background:var(--magenta)"></div><div class="sl">Promedio/evento</div><div class="sv magenta">$698</div><div class="ss">Media: $235</div></div>
+      <div class="sc"><div class="sc-top" style="background:var(--orange)"></div><div class="sl">Eventos/semana</div><div class="sv orange">2.2</div><div class="ss">Histórico</div></div>
+    </div>
+    <div class="two eq">
+      <div class="card"><div class="ct">Crecimiento anual</div><div class="bc">
+        <div class="br"><div class="bl">2023</div><div class="bt"><div class="bf" style="width:7%;background:var(--white4)">$15k</div></div><div class="ba">44 ev.</div></div>
+        <div class="br"><div class="bl">2024</div><div class="bt"><div class="bf" style="width:27%;background:var(--blue)">$59k</div></div><div class="ba">121 ev.</div></div>
+        <div class="br"><div class="bl">2025</div><div class="bt"><div class="bf" style="width:49%;background:var(--magenta)">$106k</div></div><div class="ba">118 ev.</div></div>
+        <div class="br"><div class="bl">2026</div><div class="bt"><div class="bf" style="width:17%;background:var(--orange)">$36k</div></div><div class="ba">34 ev.</div></div>
+      </div></div>
+      <div class="card"><div class="ct">Metas 2026</div>
+        <div style="font-size:12px;display:flex;flex-direction:column;gap:8px">
+          <div><div style="color:var(--white4);font-size:10px;letter-spacing:1px;text-transform:uppercase;margin-bottom:3px">Meta semestral (15% sobre 2025 H1)</div><div style="color:var(--blue);font-weight:600;font-size:16px">$32.375</div><div style="color:var(--white4);font-size:10px">Actual: $30.131 · Faltan $2.244</div></div>
+          <div style="height:1px;background:var(--border)"></div>
+          <div><div style="color:var(--white4);font-size:10px;letter-spacing:1px;text-transform:uppercase;margin-bottom:3px">Mejor trimestre</div><div style="color:var(--magenta);font-weight:600;font-size:16px">Q4 2025</div><div style="color:var(--white4);font-size:10px">$45.084 en ingresos · 34 eventos</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PANEL: Anual -->
+  <div id="sp-anual" class="stat-panel">
+    <div class="two eq">
+      <div class="card"><div class="ct">Ingresos vs Egresos por año</div><table><thead><tr><th>Año</th><th>Eventos</th><th>Ingresos</th><th>Egresos</th><th>Utilidad</th><th>%</th></tr></thead><tbody>
+        <tr><td>2023</td><td>44</td><td>$15.344</td><td>$8.483</td><td style="color:#3dca6e;font-weight:600">$6.861</td><td style="color:var(--white4)">44.7%</td></tr>
+        <tr><td>2024</td><td>121</td><td>$58.966</td><td>$34.732</td><td style="color:#3dca6e;font-weight:600">$24.233</td><td style="color:var(--white4)">41.1%</td></tr>
+        <tr><td>2025</td><td>118</td><td>$105.739</td><td>$71.516</td><td style="color:#3dca6e;font-weight:600">$34.223</td><td style="color:var(--white4)">32.4%</td></tr>
+        <tr><td>2026</td><td>34</td><td>$36.061</td><td>$19.612</td><td style="color:#3dca6e;font-weight:600">$16.449</td><td style="color:var(--white4)">45.6%</td></tr>
+      </tbody></table></div>
+      <div class="card"><div class="ct">Dividendos pagados por año</div><table><thead><tr><th>Año</th><th>Total dividendos</th></tr></thead><tbody>
+        <tr><td>2023</td><td>$6.518</td></tr>
+        <tr><td>2024</td><td>$14.186</td></tr>
+        <tr><td>2025</td><td>$12.549</td></tr>
+        <tr><td>2026</td><td>$2.600</td></tr>
+      </tbody></table></div>
+    </div>
+  </div>
+
+  <!-- PANEL: Trimestral -->
+  <div id="sp-trimestral" class="stat-panel">
+    <div class="card"><div class="ct">Evaluación trimestral completa</div><table><thead><tr><th>Trimestre</th><th>Eventos</th><th>Ingresos</th><th>Egresos</th><th>Utilidad</th><th>Margen</th></tr></thead><tbody>
+      <tr><td>Q3 2023</td><td>12</td><td>$8.005</td><td>$5.178</td><td style="color:#3dca6e;font-weight:600">$2.827</td><td style="color:var(--white4)">35.3%</td></tr>
+      <tr><td>Q4 2023</td><td>28</td><td>$6.209</td><td>$2.635</td><td style="color:#3dca6e;font-weight:600">$3.574</td><td style="color:var(--white4)">57.6%</td></tr>
+      <tr><td>Q1 2024</td><td>19</td><td>$9.305</td><td>$4.523</td><td style="color:#3dca6e;font-weight:600">$4.782</td><td style="color:var(--white4)">51.4%</td></tr>
+      <tr><td>Q2 2024</td><td>43</td><td>$15.030</td><td>$8.289</td><td style="color:#3dca6e;font-weight:600">$6.741</td><td style="color:var(--white4)">44.9%</td></tr>
+      <tr><td>Q3 2024</td><td>17</td><td>$5.928</td><td>$3.565</td><td style="color:#3dca6e;font-weight:600">$2.363</td><td style="color:var(--white4)">39.9%</td></tr>
+      <tr><td>Q4 2024</td><td>42</td><td>$28.703</td><td>$18.356</td><td style="color:#3dca6e;font-weight:600">$10.347</td><td style="color:var(--white4)">36.1%</td></tr>
+      <tr><td>Q1 2025</td><td>14</td><td>$10.403</td><td>$6.223</td><td style="color:#3dca6e;font-weight:600">$4.180</td><td style="color:var(--white4)">40.2%</td></tr>
+      <tr><td>Q2 2025</td><td>38</td><td>$17.749</td><td>$11.105</td><td style="color:#3dca6e;font-weight:600">$6.644</td><td style="color:var(--white4)">37.4%</td></tr>
+      <tr><td>Q3 2025</td><td>32</td><td>$32.502</td><td>$21.924</td><td style="color:#3dca6e;font-weight:600">$10.578</td><td style="color:var(--white4)">32.5%</td></tr>
+      <tr><td>Q4 2025</td><td>34</td><td>$45.084</td><td>$32.263</td><td style="color:#3dca6e;font-weight:600">$12.821</td><td style="color:var(--white4)">28.4%</td></tr>
+      <tr><td>Q1 2026</td><td>17</td><td>$13.128</td><td>$8.509</td><td style="color:#3dca6e;font-weight:600">$4.619</td><td style="color:var(--white4)">35.2%</td></tr>
+      <tr><td>Q2 2026</td><td>16</td><td>$17.003</td><td>$11.103</td><td style="color:#3dca6e;font-weight:600">$5.900</td><td style="color:var(--white4)">34.7%</td></tr>
+    </tbody></table></div>
+  </div>
+
+  <!-- PANEL: Categoría -->
+  <div id="sp-categoria" class="stat-panel">
+    <div class="card"><div class="ct">Ingresos por categoría (histórico 2023–2026)</div>
+      <div class="bc" style="margin-bottom:16px">
+        <div class="br"><div class="bl">Privado</div><div class="bt"><div class="bf" style="width:82%;background:var(--blue)">$129.959</div></div><div class="ba">121 ev.</div></div>
+        <div class="br"><div class="bl">Corporativo</div><div class="bt"><div class="bf" style="width:25%;background:var(--magenta)">$39.424</div></div><div class="ba">82 ev.</div></div>
+        <div class="br"><div class="bl">Institucional</div><div class="bt"><div class="bf" style="width:17%;background:var(--orange)">$27.361</div></div><div class="ba">58 ev.</div></div>
+        <div class="br"><div class="bl">Club</div><div class="bt"><div class="bf" style="width:3%;background:var(--white4)">$4.022</div></div><div class="ba">11 ev.</div></div>
+      </div>
+      <table><thead><tr><th>Categoría</th><th>Eventos</th><th>Ingresos</th><th>Promedio</th><th>Utilidad prom.</th></tr></thead><tbody>
+        <tr><td>Privado</td><td>121</td><td>$129.959</td><td>$1.074</td><td style="color:#3dca6e">$480</td></tr>
+        <tr><td>Corporativo</td><td>82</td><td>$39.424</td><td>$481</td><td style="color:#3dca6e">$220</td></tr>
+        <tr><td>Institucional</td><td>58</td><td>$27.361</td><td>$472</td><td style="color:#3dca6e">$190</td></tr>
+        <tr><td>Club</td><td>11</td><td>$4.022</td><td>$366</td><td style="color:#3dca6e">$150</td></tr>
+      </tbody></table>
+    </div>
+  </div>
+
+  <!-- PANEL: Top clientes -->
+  <div id="sp-clientes" class="stat-panel">
+    <div class="card"><div class="ct">Clientes con mayor facturación</div><table><thead><tr><th>Cliente</th><th>Eventos</th><th>Total facturado</th><th>Promedio/ev.</th></tr></thead><tbody>
+      <tr><td>Sebastián Moniz</td><td>21</td><td style="color:var(--blue);font-weight:600">$44.679</td><td>$2.128</td></tr>
+      <tr><td>Colegio San Ignacio</td><td>23</td><td style="color:var(--blue);font-weight:600">$9.964</td><td>$433</td></tr>
+      <tr><td>Inst. Cumbres de Caracas</td><td>13</td><td style="color:var(--blue);font-weight:600">$7.261</td><td>$559</td></tr>
+      <tr><td>Calox</td><td>5</td><td style="color:var(--blue);font-weight:600">$5.961</td><td>$1.192</td></tr>
+      <tr><td>Avanti</td><td>9</td><td style="color:var(--blue);font-weight:600">$3.984</td><td>$443</td></tr>
+      <tr><td>Academia Washington</td><td>13</td><td style="color:var(--blue);font-weight:600">$4.020</td><td>$309</td></tr>
+      <tr><td>MG Campamento</td><td>9</td><td style="color:var(--blue);font-weight:600">$5.250</td><td>$583</td></tr>
+      <tr><td>Dj Patrick</td><td>7</td><td style="color:var(--blue);font-weight:600">$2.220</td><td>$317</td></tr>
+      <tr><td>Broz Sessions</td><td>11</td><td style="color:var(--blue);font-weight:600">$2.599</td><td>$236</td></tr>
+      <tr><td>Empresas Polar</td><td>5</td><td style="color:var(--blue);font-weight:600">$1.300</td><td>$260</td></tr>
+    </tbody></table></div>
+  </div>
+
+  <!-- PANEL: Honorarios -->
+  <div id="sp-honorarios" class="stat-panel">
+    <div class="card"><div class="ct">Honorarios Blast por persona (histórico)</div>
+      <div class="bc" style="margin-bottom:16px">
+        <div class="br"><div class="bl" style="font-size:10px">G. Briceño</div><div class="bt"><div class="bf" style="width:100%;background:var(--blue)">$19.184</div></div><div class="ba">182 ev.</div></div>
+        <div class="br"><div class="bl" style="font-size:10px">E. Behrens</div><div class="bt"><div class="bf" style="width:61%;background:var(--magenta)">$11.709</div></div><div class="ba">104 ev.</div></div>
+        <div class="br"><div class="bl" style="font-size:10px">Catire</div><div class="bt"><div class="bf" style="width:45%;background:var(--orange)">$8.690</div></div><div class="ba">125 ev.</div></div>
+        <div class="br"><div class="bl" style="font-size:10px">L. Pacheco</div><div class="bt"><div class="bf" style="width:30%;background:var(--white4)">$5.833</div></div><div class="ba">148 ev.</div></div>
+        <div class="br"><div class="bl" style="font-size:10px">F. Massari</div><div class="bt"><div class="bf" style="width:18%;background:var(--white4)">$3.475</div></div><div class="ba">51 ev.</div></div>
+        <div class="br"><div class="bl" style="font-size:10px">Ali Pacheco</div><div class="bt"><div class="bf" style="width:6%;background:var(--white4)">$1.223</div></div><div class="ba">45 ev.</div></div>
+        <div class="br"><div class="bl" style="font-size:10px">J. Viamonte</div><div class="bt"><div class="bf" style="width:7%;background:var(--white4)">$1.355</div></div><div class="ba">21 ev.</div></div>
+      </div>
+      <table><thead><tr><th>Persona</th><th>Eventos trabajados</th><th>Honorarios totales</th><th>Promedio/ev.</th></tr></thead><tbody>
+        <tr><td>Gustavo Briceño</td><td>182</td><td style="color:var(--blue);font-weight:600">$19.184</td><td>$105.4</td></tr>
+        <tr><td>Eduardo Behrens</td><td>104</td><td style="color:var(--blue);font-weight:600">$11.709</td><td>$112.6</td></tr>
+        <tr><td>Luis García (Catire)</td><td>125</td><td style="color:var(--blue);font-weight:600">$8.690</td><td>$69.5</td></tr>
+        <tr><td>Luis Pacheco</td><td>148</td><td style="color:var(--blue);font-weight:600">$5.833</td><td>$39.4</td></tr>
+        <tr><td>Francisco Massari</td><td>51</td><td style="color:var(--blue);font-weight:600">$3.475</td><td>$68.1</td></tr>
+        <tr><td>Ali Pacheco</td><td>45</td><td style="color:var(--blue);font-weight:600">$1.223</td><td>$27.2</td></tr>
+        <tr><td>José Viamonte</td><td>21</td><td style="color:var(--blue);font-weight:600">$1.355</td><td>$64.5</td></tr>
+        <tr><td>Guillermo Sanglimbeni</td><td>17</td><td style="color:var(--blue);font-weight:600">$640</td><td>$37.6</td></tr>
+        <tr><td>Ronal Martínez</td><td>26</td><td style="color:var(--blue);font-weight:600">$1.015</td><td>$39.0</td></tr>
+      </tbody></table>
+    </div>
+  </div>
+
+  <!-- PANEL: Socios stat -->
+  <div id="sp-socios-stat" class="stat-panel">
+    <div class="card"><div class="ct">Ganancia total por socio (desde 2023)</div><table><thead><tr><th>Socio</th><th>Dividendos</th><th>Honorarios</th><th>Total</th><th>Prom./mes</th></tr></thead><tbody>
+      <tr><td>Eduardo Behrens (60%)</td><td>$21.515</td><td>$12.549</td><td style="color:var(--magenta);font-weight:600">$34.064</td><td>$932</td></tr>
+      <tr><td>Gustavo Briceño (30%)</td><td>$7.553</td><td>$20.574</td><td style="color:var(--blue);font-weight:600">$28.126</td><td>$671</td></tr>
+      <tr><td>Francisco Massari (10%)</td><td>$6.785</td><td>$3.635</td><td style="color:var(--orange);font-weight:600">$10.420</td><td>$252</td></tr>
+    </tbody></table></div>
+    <div class="two eq">
+      <div class="card"><div class="ct">Captación por socio (desde Aug 2025)</div>
+        <table><thead><tr><th>Socio</th><th>Eventos</th><th>Ingresos</th><th>Gastos</th><th>Utilidad prom.</th></tr></thead><tbody>
+          <tr><td>G. Briceño</td><td>33</td><td>$58.418</td><td>$37.038</td><td style="color:var(--blue)">$648/ev.</td></tr>
+          <tr><td>E. Behrens</td><td>32</td><td>$17.124</td><td>$11.903</td><td style="color:var(--magenta)">$163/ev.</td></tr>
+          <tr><td>F. Massari</td><td>12</td><td>$19.101</td><td>$12.870</td><td style="color:var(--orange)">$519/ev.</td></tr>
+        </tbody></table>
+      </div>
+      <div class="card"><div class="ct">Honorarios 2026 por socio</div>
+        <table><thead><tr><th>Socio</th><th>Honorarios</th><th>Dividendos</th><th>Total</th></tr></thead><tbody>
+          <tr><td>G. Briceño</td><td>$2.714</td><td>$780</td><td style="color:var(--blue);font-weight:600">$3.494</td></tr>
+          <tr><td>E. Behrens</td><td>—</td><td>$1.600</td><td style="color:var(--magenta);font-weight:600">$1.600</td></tr>
+          <tr><td>F. Massari</td><td>—</td><td>—</td><td style="color:var(--orange);font-weight:600">—</td></tr>
+        </tbody></table>
+      </div>
+    </div>
+  </div>
+</div>
+
+</main>
+</div>
+
+<!-- MODALES -->
+<div class="modal-bg" id="modal-evento">
+  <div class="modal">
+    <div class="modal-title">Nuevo evento</div>
+    <div class="fg" style="margin-bottom:12px">
+      <div class="fgrp"><label class="flabel">Cliente</label><input type="text" id="new-cliente" placeholder="Nombre del cliente"></div>
+      <div class="fgrp"><label class="flabel">Código</label><input type="text" id="new-codigo" placeholder="ej: 15072026-SM"></div>
+      <div class="fgrp"><label class="flabel">Fecha</label><input type="date" id="new-fecha"></div>
+      <div class="fgrp"><label class="flabel">Categoría</label><select id="new-categoria"><option>Privado</option><option>Corporativo</option><option>Institucional</option><option>Club</option></select></div>
+      <div class="fgrp"><label class="flabel">Referente</label><select id="new-referente"><option>Gustavo Briceño</option><option>Eduardo Behrens</option><option>Francisco Massari</option></select></div>
+      <div class="fgrp"><label class="flabel">Estado</label><select id="new-estado"><option>Por cobrar</option><option>Cobrado</option><option>Exonerado</option></select></div>
+      <div class="fgrp"><label class="flabel">Ingreso ($)</label><input type="number" id="new-ingreso" placeholder="0"></div>
+      <div class="fgrp"><label class="flabel">Gasto ($)</label><input type="number" id="new-gasto" placeholder="0"></div>
+    </div>
+    <div class="fgrp" style="margin-bottom:12px"><label class="flabel">Notas</label><textarea id="new-notas" rows="2" placeholder="Descripción del evento..."></textarea></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="document.getElementById('modal-evento').classList.remove('show')">Cancelar</button>
+      <button class="btn btn-blue" onclick="guardarEvento()">Guardar evento</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal-tx">
+  <div class="modal">
+    <div class="modal-title">Nueva transacción</div>
+    <div class="fg" style="margin-bottom:12px">
+      <div class="fgrp"><label class="flabel">Fecha evento</label><input type="date" id="tx-fecha-evento"></div>
+      <div class="fgrp"><label class="flabel">Fecha pago</label><input type="date" id="tx-fecha-pago"></div>
+      <div class="fgrp"><label class="flabel">Categoría</label><select id="tx-categoria"><option>Evento</option><option>Equipos</option><option>Dividendos</option><option>Cambio divisas</option><option>Reserva</option><option>Préstamo</option></select></div>
+      <div class="fgrp"><label class="flabel">Sub-categoría</label><input type="text" id="tx-subcategoria" placeholder="ej: Honorarios, DJ..."></div>
+      <div class="fgrp"><label class="flabel">Estado</label><select id="tx-estado"><option>Cobrado</option><option>Pagado</option><option>Exonerado</option></select></div>
+      <div class="fgrp"><label class="flabel">Código de evento</label><input type="text" id="tx-codigo" placeholder="ej: 15072026-SM"></div>
+      <div class="fgrp"><label class="flabel">Concepto / Persona</label><input type="text" id="tx-concepto" placeholder="Nombre o descripción"></div>
+      <div class="fgrp"><label class="flabel">Método de pago</label><select id="tx-metodo"><option>Efectivo $</option><option>Zelle</option><option>Bs</option><option>Euro</option></select></div>
+      <div class="fgrp"><label class="flabel">Responsable</label><select id="tx-responsable"><option>Gustavo Briceño</option><option>Eduardo Behrens</option><option>Francisco Massari</option></select></div>
+      <div class="fgrp"><label class="flabel">Monto ($)</label><input type="number" id="tx-monto" placeholder="0.00"></div>
+    </div>
+    <div class="fgrp" style="margin-bottom:12px"><label class="flabel">Descripción</label><textarea id="tx-descripcion" rows="2" placeholder="Descripción adicional..."></textarea></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="document.getElementById('modal-tx').classList.remove('show')">Cancelar</button>
+      <button class="btn btn-blue" onclick="guardarTransaccion()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── BASE DE DATOS DE PRECIOS ───
+const DB_PRECIOS = [
+  {concepto:"Controlador Traktor S3",categoria:"CDJ",costo:50,precio:50},
+  {concepto:"Controlador Pioneer XDJ-RX2",categoria:"CDJ",costo:100,precio:120},
+  {concepto:"Controlador Pioneer XDJ-RX3",categoria:"CDJ",costo:120,precio:150},
+  {concepto:"Controlador Pioneer XDJ-RR",categoria:"CDJ",costo:80,precio:110},
+  {concepto:"2 CDJ-3000 Pioneer, 1 DJM 900 nxs2",categoria:"CDJ",costo:200,precio:300},
+  {concepto:"3 CDJ 3000, mixer A9 y RMX1000",categoria:"CDJ",costo:550,precio:550},
+  {concepto:"2 CDJ 3000 mixer A9",categoria:"CDJ",costo:270,precio:300},
+  {concepto:"4 CDJ 3000 mixer A9",categoria:"CDJ",costo:400,precio:450},
+  {concepto:"Consola sencilla",categoria:"Consola",costo:0,precio:20},
+  {concepto:"Consola de sonido (8 Canales)",categoria:"Consola",costo:0,precio:40},
+  {concepto:"Consola de sonido (12 Canales)",categoria:"Consola",costo:0,precio:60},
+  {concepto:"Consola de sonido (16 Canales)",categoria:"Consola",costo:0,precio:80},
+  {concepto:"Máquina de Burbujas",categoria:"Efectos",costo:0,precio:40},
+  {concepto:"Jet de CO2",categoria:"Efectos",costo:200,precio:220},
+  {concepto:"Máquina de Humo Bajo",categoria:"Efectos",costo:400,precio:500},
+  {concepto:"2 cryojet de CO2",categoria:"Efectos",costo:450,precio:500},
+  {concepto:"Máquina de Confeti",categoria:"Efectos",costo:200,precio:220},
+  {concepto:"Planta Eléctrica (Alberto Dillon)",categoria:"Electricidad",costo:400,precio:600},
+  {concepto:"Planta Eléctrica 75kva (Andrés Machado)",categoria:"Electricidad",costo:350,precio:380},
+  {concepto:"Estructura de Truss (1m)",categoria:"Estructura",costo:0,precio:10},
+  {concepto:"Truss (1m) Gerardo",categoria:"Estructura",costo:6,precio:7},
+  {concepto:"Mesa X para DJ",categoria:"Estructura",costo:0,precio:10},
+  {concepto:"Mesa DJ",categoria:"Estructura",costo:0,precio:20},
+  {concepto:"Mesa de truss DJ 1x1",categoria:"Estructura",costo:0,precio:20},
+  {concepto:"Mesa de truss DJ 1x2",categoria:"Estructura",costo:0,precio:30},
+  {concepto:"Booth negro para mesa",categoria:"Estructura",costo:0,precio:30},
+  {concepto:"Escalera de tarima",categoria:"Estructura",costo:0,precio:20},
+  {concepto:"Baranda de piso (c/u)",categoria:"Estructura",costo:3,precio:5},
+  {concepto:"25 Barandas de 2m c/u",categoria:"Estructura",costo:195,precio:215},
+  {concepto:"Arco de truss (5x2.8m)",categoria:"Estructura",costo:0,precio:450},
+  {concepto:"Estructura de Anclaje",categoria:"Estructura",costo:200,precio:240},
+  {concepto:"Estructura para elevación de sonido",categoria:"Estructura",costo:0,precio:150},
+  {concepto:"Par Led",categoria:"Iluminación",costo:0,precio:10},
+  {concepto:"Luz robótica sencilla",categoria:"Iluminación",costo:0,precio:20},
+  {concepto:"Lámpara Beam 10R",categoria:"Iluminación",costo:0,precio:50},
+  {concepto:"Consola DMX",categoria:"Iluminación",costo:0,precio:50},
+  {concepto:"Retro Light",categoria:"Iluminación",costo:0,precio:50},
+  {concepto:"Lámpara Wash móvil",categoria:"Iluminación",costo:0,precio:50},
+  {concepto:"Láser",categoria:"Iluminación",costo:0,precio:40},
+  {concepto:"Máquina de humo",categoria:"Iluminación",costo:0,precio:50},
+  {concepto:"Módulos de Pantalla P3 (c/u)",categoria:"Pantallas",costo:11.67,precio:18.75},
+  {concepto:"Módulos de Pantalla P2 (c/u)",categoria:"Pantallas",costo:16,precio:25},
+  {concepto:"Módulos de pantalla (c/u)",categoria:"Pantallas",costo:20,precio:25},
+  {concepto:"Pantalla 3x2m P2 - Gerardo",categoria:"Pantallas",costo:400,precio:450},
+  {concepto:"Pantalla 3x2m P3 y TV 50''",categoria:"Pantallas",costo:250,precio:300},
+  {concepto:"Pantalla 4x3m P2",categoria:"Pantallas",costo:850,precio:1020},
+  {concepto:"Pantalla 2x1m",categoria:"Pantallas",costo:330,precio:350},
+  {concepto:"Pantalla 2x1 (Totem)",categoria:"Pantallas",costo:120,precio:160},
+  {concepto:"Opción 1 pantallas (36 módulos)",categoria:"Pantallas",costo:1100,precio:1210},
+  {concepto:"Opción 2 pantallas (48 módulos)",categoria:"Pantallas",costo:1300,precio:1430},
+  {concepto:"Opción 3 pantallas (59 módulos)",categoria:"Pantallas",costo:1600,precio:1760},
+  {concepto:"Pantalla (9 módulos P3) - Guillermo",categoria:"Pantallas",costo:180,precio:350},
+  {concepto:"Pantalla (12 módulos P3)",categoria:"Pantallas",costo:200,precio:400},
+  {concepto:"Pantalla (16 módulos P3) - Guillermo",categoria:"Pantallas",costo:250,precio:450},
+  {concepto:"Pantalla (24 módulos P3) - Guillermo",categoria:"Pantallas",costo:280,precio:390},
+  {concepto:"Arco de pantallas (40 módulos) - Gerardo",categoria:"Pantallas",costo:820,precio:1320},
+  {concepto:"Pantalla Principal 5x3m con tiras",categoria:"Pantallas",costo:1100,precio:1320},
+  {concepto:"Pantalla 6mx2.5m (60 módulos)",categoria:"Pantallas",costo:1200,precio:1650},
+  {concepto:"Operador de Sonido",categoria:"Personal",costo:100,precio:100},
+  {concepto:"Operador de Iluminación",categoria:"Personal",costo:100,precio:100},
+  {concepto:"Operador de Video / VJ",categoria:"Personal",costo:100,precio:100},
+  {concepto:"Operador de pantallas",categoria:"Personal",costo:150,precio:150},
+  {concepto:"Personal de montaje 1",categoria:"Personal",costo:30,precio:30},
+  {concepto:"Personal de montaje 2",categoria:"Personal",costo:40,precio:40},
+  {concepto:"Personal de montaje 3",categoria:"Personal",costo:50,precio:60},
+  {concepto:"Asistente de montaje",categoria:"Personal",costo:20,precio:20},
+  {concepto:"Coordinador de montaje",categoria:"Personal",costo:150,precio:150},
+  {concepto:"Stage Design",categoria:"Personal",costo:100,precio:100},
+  {concepto:"Viáticos",categoria:"Personal",costo:12,precio:12},
+  {concepto:"Tarima 3x3m",categoria:"Tarima",costo:200,precio:280},
+  {concepto:"Módulo de tarima 2x1m",categoria:"Tarima",costo:25,precio:30},
+  {concepto:"Tarima (módulo 2x1m)",categoria:"Tarima",costo:0,precio:50},
+  {concepto:"Tarima 5x3m",categoria:"Tarima",costo:180,precio:220},
+  {concepto:"Tarima 4x2m - Gerardo",categoria:"Tarima",costo:300,precio:400},
+  {concepto:"Tarima 4x2m - Iomar",categoria:"Tarima",costo:140,precio:230},
+  {concepto:"Tarima (6 módulos 2x1m) - Iomar",categoria:"Tarima",costo:157,precio:230},
+  {concepto:"Tarima (8 módulos 2x1m) - Iomar",categoria:"Tarima",costo:181,precio:250},
+  {concepto:"Tarima (12 módulos 3x8m)",categoria:"Tarima",costo:229,precio:300},
+  {concepto:"Toldo 6x12m",categoria:"Toldo",costo:210,precio:350},
+  {concepto:"4 toldos negros drapeados 6x12m",categoria:"Toldo",costo:1870,precio:1870},
+  {concepto:"Transporte 1",categoria:"Transporte",costo:30,precio:30},
+  {concepto:"Transporte 2",categoria:"Transporte",costo:60,precio:60},
+  {concepto:"Transporte 3",categoria:"Transporte",costo:60,precio:120},
+  {concepto:"Transporte (Fuera de Caracas)",categoria:"Transporte",costo:100,precio:100},
+  {concepto:"Transporte material y equipos",categoria:"Transporte",costo:150,precio:200},
+  {concepto:"Mini bus ida y vuelta",categoria:"Transporte",costo:95,precio:150},
+  {concepto:"Corneta JBL PRX",categoria:"Sonido",costo:0,precio:50},
+  {concepto:"Monitor JBL PRX",categoria:"Sonido",costo:0,precio:40},
+  {concepto:"Bajo JBL PRX",categoria:"Sonido",costo:0,precio:70},
+  {concepto:"Bajo JBL SRX918",categoria:"Sonido",costo:0,precio:140},
+  {concepto:"Corneta JBL SRX",categoria:"Sonido",costo:0,precio:120},
+  {concepto:"Corneta (Array) JBL VRX",categoria:"Sonido",costo:0,precio:100},
+  {concepto:"Bajo JBL VRX",categoria:"Sonido",costo:0,precio:120},
+  {concepto:"Bose L1 Portable Line Array",categoria:"Sonido",costo:0,precio:100},
+  {concepto:"Micrófono Sennheiser inalámbrico ew300 G3",categoria:"Sonido",costo:0,precio:40},
+  {concepto:"Micrófono Sennheiser e835 alámbrico",categoria:"Sonido",costo:0,precio:20},
+  {concepto:"Headset Sennheiser XS Wireless 2",categoria:"Sonido",costo:0,precio:40},
+  {concepto:"Dj Massari (Set 2 horas)",categoria:"Talento",costo:200,precio:200},
+  {concepto:"Dj Massari (6 horas)",categoria:"Talento",costo:400,precio:400},
+  {concepto:"Hora Extra Dj Massari",categoria:"Talento",costo:80,precio:80},
+  {concepto:"Dj Massari (Matrimonio 5h)",categoria:"Talento",costo:750,precio:750},
+  {concepto:"Dj Roberto Carlos (Por hora)",categoria:"Talento",costo:75,precio:75},
+  {concepto:"Dj Patrick",categoria:"Talento",costo:350,precio:350},
+  {concepto:"Dj Skinny Lopez",categoria:"Talento",costo:400,precio:400},
+  {concepto:"Dj Guillermo (Por hora)",categoria:"Talento",costo:30,precio:35},
+  {concepto:"Dj Guillermo 5 horas",categoria:"Talento",costo:150,precio:180},
+  {concepto:"Dj Bam Bam (Por hora)",categoria:"Talento",costo:30,precio:40},
+  {concepto:"Dj Moniz",categoria:"Talento",costo:180,precio:190},
+  {concepto:"DJ Aleex Prezer (Matrimonio)",categoria:"Talento",costo:100,precio:120},
+  {concepto:"DJ Aleex Prezer (Privado)",categoria:"Talento",costo:50,precio:60},
+  {concepto:"Música de ambiente (Por hora)",categoria:"Talento",costo:20,precio:20},
+  {concepto:"2 DJs de 4pm a 9pm",categoria:"Talento",costo:0,precio:700},
+];
+
+// ─── FECHAS DE DEMO (más cercanas a hoy 02-Jun-2026) ───
+const EVENTOS_DEMO = [
+  {fecha:"2026-07-11",cliente:"Gabriela Urdaneta",tipo:"Privado",monto:5930,referente:"G. Briceño",estado:"Por cobrar"},
+  {fecha:"2026-05-30",cliente:"MG Campamento",tipo:"Corporativo",monto:3700,referente:"E. Behrens",estado:"Cobrado"},
+  {fecha:"2026-05-23",cliente:"Sebastián Moniz",tipo:"Privado",monto:700,referente:"G. Briceño",estado:"Cobrado"},
+  {fecha:"2026-05-22",cliente:"Sebastián Moniz",tipo:"Privado",monto:2537,referente:"G. Briceño",estado:"Cobrado"},
+  {fecha:"2026-05-16",cliente:"Rebeca Aguilar",tipo:"Privado",monto:3350,referente:"F. Massari",estado:"Cobrado"},
+];
+
+// ─── NAV ───
+function sv(id,btn){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('on'));
+  document.querySelectorAll('.ni').forEach(b=>b.classList.remove('on'));
+  document.getElementById('v-'+id).classList.add('on');
+  btn.classList.add('on');
+  if(id==='eventos')     cargarTablaEventos();
+  if(id==='registro')    cargarTransacciones();
+  if(id==='proveedores') cargarProveedores();
+  if(id==='dashboard')   cargarUltimosEventos();
+}
+
+// ─── CERRAR MODALES ───
+document.querySelectorAll('.modal-bg').forEach(bg=>{
+  bg.addEventListener('click',e=>{if(e.target===bg)bg.classList.remove('show');});
+});
+
+// ─── BCV RATES (via allorigins proxy → BCV) ───
+async function loadBCV(){
+  try{
+    const pill = document.getElementById('tasa-pill');
+    pill.classList.add('loading');
+    // Use a CORS proxy to fetch BCV XML
+    const proxyUrl = 'https://api.allorigins.win/get?url=' + encodeURIComponent('https://www.bcv.org.ve/');
+    const r = await fetch(proxyUrl, {signal: AbortSignal.timeout(8000)});
+    const data = await r.json();
+    const html = data.contents;
+    // Parse USD rate
+    const usdMatch = html.match(/id="dolar"[\s\S]*?<strong>([\d,.]+)<\/strong>/);
+    const eurMatch = html.match(/id="euro"[\s\S]*?<strong>([\d,.]+)<\/strong>/);
+    if(usdMatch && eurMatch){
+      const usd = usdMatch[1].replace(',','.');
+      const eur = eurMatch[1].replace(',','.');
+      document.getElementById('t-usd').textContent = parseFloat(usd).toFixed(2);
+      document.getElementById('t-eur').textContent = parseFloat(eur).toFixed(2);
+      document.getElementById('dash-bcv').textContent = parseFloat(usd).toFixed(2) + ' Bs/$';
+      document.getElementById('dash-eur').textContent = 'Euro: ' + parseFloat(eur).toFixed(2) + ' Bs';
+      document.getElementById('cot-bcv').textContent = parseFloat(usd).toFixed(2);
+      const now = new Date();
+      document.getElementById('t-date').textContent = now.toLocaleDateString('es-VE',{day:'2-digit',month:'short'});
+      pill.classList.remove('loading');
+    } else {
+      throw new Error('Parse failed');
+    }
+  } catch(e){
+    // Fallback: show last known rates with indicator
+    document.getElementById('t-usd').textContent = '—';
+    document.getElementById('t-eur').textContent = '—';
+    document.getElementById('dash-bcv').textContent = 'Sin conexión';
+    document.getElementById('t-date').textContent = 'Sin conexión';
+    document.getElementById('tasa-pill').classList.remove('loading');
+  }
+}
+
+// ─── FECHA HOY ───
+function initDashboard(){
+  const now = new Date();
+  document.getElementById('dash-date').textContent =
+    'Al ' + now.toLocaleDateString('es-VE',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+
+  // Últimos 5 eventos más cercanos a hoy
+  const today = now.toISOString().split('T')[0];
+  const sorted = [...EVENTOS_DEMO].sort((a,b)=>{
+    const da = Math.abs(new Date(a.fecha) - now);
+    const db = Math.abs(new Date(b.fecha) - now);
+    return da - db;
+  }).slice(0,5);
+
+  const tbody = document.getElementById('ultimos-eventos');
+  tbody.innerHTML = sorted.map(e=>{
+    const d = new Date(e.fecha + 'T12:00:00');
+    const fStr = d.toLocaleDateString('es-VE',{day:'2-digit',month:'short',year:'2-digit'});
+    const isFuture = new Date(e.fecha) > now;
+    const badge = e.estado === 'Cobrado'
+      ? '<span class="badge b-green">Cobrado</span>'
+      : '<span class="badge b-orange">Por cobrar</span>';
+    const futureTag = isFuture ? '<span style="font-size:9px;color:var(--blue);margin-left:4px">PRÓXIMO</span>' : '';
+    return `<tr>
+      <td>${fStr}${futureTag}</td>
+      <td>${e.cliente}</td>
+      <td>${e.tipo}</td>
+      <td style="font-weight:600">$${e.monto.toLocaleString()}</td>
+      <td style="color:var(--white4)">${e.referente}</td>
+      <td>${badge}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ─── STATS TABS ───
+function showStat(id,btn){
+  document.querySelectorAll('.stat-panel').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.stab').forEach(b=>b.classList.remove('on'));
+  document.getElementById('sp-'+id).classList.add('on');
+  btn.classList.add('on');
+}
+
+// ─── COTIZACIÓN: CÓDIGO ───
+function uc(){
+  const f=document.getElementById('cdate').value;
+  const c=document.getElementById('cc').value;
+  if(f&&c){
+    const d=new Date(f+'T12:00:00');
+    const dd=String(d.getDate()).padStart(2,'0');
+    const mm=String(d.getMonth()+1).padStart(2,'0');
+    const yy=String(d.getFullYear()).slice(-2);
+    const ini=c.trim().split(/\s+/).map(w=>w[0]).slice(0,2).join('').toUpperCase();
+    document.getElementById('ccode').textContent='COT '+dd+mm+yy+'-'+ini;
+  }
+}
+
+// ─── COTIZACIÓN: AÑADIR ÍTEM ───
+let rowIdx = 0;
+function addRow(){
+  const c=document.getElementById('citems');
+  const id='row'+rowIdx++;
+  const div=document.createElement('div');
+  div.className='cir';
+  div.id=id;
+  div.innerHTML=`
+    <div class="cir-wrap" style="position:relative">
+      <input type="text" class="xcon" placeholder="Escribe para buscar..." autocomplete="off"
+        oninput="searchItems(this,'${id}')" onfocus="searchItems(this,'${id}')">
+      <div class="dd-list" id="dd-${id}"></div>
+    </div>
+    <div class="xcat" style="font-size:11px;color:var(--blue);padding:4px 8px;font-weight:600">—</div>
+    <input type="number" class="xqty" value="1" min="1" oninput="calcT()">
+    <input type="number" class="xpri" placeholder="0" oninput="calcT()" style="color:var(--blue);font-weight:600">
+    <div class="xsub">—</div>
+    <button class="btn btn-ghost btn-sm" onclick="remRow(this)" style="padding:4px 6px"><i class="ti ti-trash"></i></button>`;
+  c.appendChild(div);
+  // close other dropdowns on click outside
+  document.addEventListener('click', function handler(e){
+    if(!div.contains(e.target)){
+      const dd=document.getElementById('dd-'+id);
+      if(dd)dd.classList.remove('show');
+    }
+  });
+}
+
+function searchItems(input, rowId){
+  const q=input.value.toLowerCase();
+  const dd=document.getElementById('dd-'+rowId);
+  const results=DB_PRECIOS.filter(p=>p.concepto.toLowerCase().includes(q)).slice(0,10);
+  if(!results.length||!q){dd.classList.remove('show');return;}
+  dd.innerHTML=results.map(p=>`
+    <div class="dd-item" onclick="selectItem('${rowId}','${p.concepto.replace(/'/g,"\'")}',${p.precio},${p.costo},'${p.categoria}')">
+      ${p.concepto}
+      <span class="dd-price">$${p.precio}</span>
+      <div class="dd-cat">${p.categoria}</div>
+    </div>`).join('');
+  dd.classList.add('show');
+}
+
+function selectItem(rowId, concepto, precio, costo, categoria){
+  const row=document.getElementById(rowId);
+  row.querySelector('.xcon').value=concepto;
+  row.querySelector('.xcat').textContent=categoria;
+  row.querySelector('.xpri').value=precio;
+  row.querySelector('.xpri').dataset.costo=costo;
+  document.getElementById('dd-'+rowId).classList.remove('show');
+  calcT();
+}
+
+function remRow(btn){
+  if(document.querySelectorAll('.cir').length>1)btn.closest('.cir').remove();
+  calcT();
+}
+
+function calcT(){
+  let sub=0,costoTotal=0;
+  document.querySelectorAll('.cir').forEach(r=>{
+    const q=parseFloat(r.querySelector('.xqty').value)||0;
+    const p=parseFloat(r.querySelector('.xpri').value)||0;
+    const costo=parseFloat(r.querySelector('.xpri').dataset.costo||0);
+    const t=q*p;
+    const c2=q*costo;
+    const sub_el=r.querySelector('.xsub');
+    if(sub_el)sub_el.textContent=t>0?'$'+t.toFixed(0):'—';
+    sub+=t;costoTotal+=c2;
+  });
+  const d=parseFloat(document.getElementById('cdesc').value)||0;
+  const iv=document.getElementById('civa').checked;
+  const ad=sub*(1-d/100);
+  const tot=iv?ad*1.16:ad;
+  document.getElementById('csub').textContent='$'+sub.toFixed(0);
+  document.getElementById('ctotal').textContent='$'+Math.round(tot).toLocaleString();
+  document.getElementById('ccosto').textContent='$'+costoTotal.toFixed(0)+' (costo estimado)';
+}
+
+// ─── IA ───
+async function genIA(){
+  const c=document.getElementById('cc').value||'el cliente';
+  const t=document.getElementById('ctype').value;
+  const l=document.getElementById('cplace').value||'por definir';
+  const f=document.getElementById('cdate').value;
+  const h=document.getElementById('ctime').value;
+  const inv=document.getElementById('cguests').value;
+  const tot=document.getElementById('ctotal').textContent;
+  const items=[];
+  document.querySelectorAll('.cir').forEach(r=>{
+    const con=r.querySelector('.xcon').value;
+    const cat=r.querySelector('.xcat').textContent;
+    const q=r.querySelector('.xqty').value;
+    const p=r.querySelector('.xpri').value;
+    if(con&&p&&cat!=='—')items.push(`• ${cat}: ${con} (x${q}) – $${p} c/u`);
+  });
+  const box=document.getElementById('aiout');
+  box.innerHTML='<span style="color:var(--white4);font-style:italic">Generando descripción...</span>';
+  try{
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',max_tokens:1000,
+        messages:[{role:'user',content:`Eres el asistente de Blast ProSound, empresa profesional de sonido e iluminación en Caracas. Redacta una descripción de cotización en español, cálida y profesional, para enviar al cliente. Destaca calidad de equipos y experiencia. Termina indicando que se requiere el 50% de abono para confirmar. Sin asteriscos ni markdown. Máximo 150 palabras.
+
+Cliente: ${c} | Tipo: ${t} | Lugar: ${l} | Fecha: ${f||'por confirmar'} | Horario: ${h||'por confirmar'} | Invitados: ${inv||'n/d'} | Total: ${tot}
+
+Servicios:
+${items.join('\n')||'• Sonido profesional e iluminación'}`}]
+      })
+    });
+    const data=await resp.json();
+    box.textContent=data.content?.map(x=>x.text||'').join('')||'No se pudo generar.';
+  }catch(e){
+    box.textContent='Error al conectar. Verifica tu conexión.';
+  }
+}
+
+// ─── EXPORTAR PDF ───
+function exportPDF(){
+  let hasItems = false;
+  document.querySelectorAll('.cir').forEach(function(r){
+    if(r.querySelector('.xcon').value && r.querySelector('.xpri').value && r.querySelector('.xcat').textContent !== '—') hasItems = true;
+  });
+  if(!hasItems){ alert('Agrega al menos un ítem antes de exportar.'); return; }
+
+  const { cliente, codigo, html } = buildPDFHTML();
+  const w = window.open('', '_blank');
+  if(!w){ alert('Permite ventanas emergentes en Chrome para exportar el PDF.'); return; }
+  w.document.open();
+  w.document.write(html);
+  w.document.close();
+}
+
+
+
+
+
+function copiarCot(){
+  const d=document.getElementById('aiout').textContent;
+  if(d&&!d.includes('aparecerá')){
+    navigator.clipboard.writeText(d).then(()=>alert('Copiado al portapapeles'));
+  }else{alert('Primero genera la descripción.')}
+}
+
+// ─── GOOGLE DRIVE INTEGRATION ───
+const DRIVE_CLIENT_ID = '801348976015-paip3hh1efdeddtkhq6qdouhpftd1d9k.apps.googleusercontent.com';
+const DRIVE_SCOPE     = 'https://www.googleapis.com/auth/drive.file';
+const VENTAS_FOLDER_ID = '1I0gS1SLxkKAi7tjQyTIWmprq04tWqvBJ';
+const MESES_ES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+let driveToken = null;
+
+function getDriveToken(callback){
+  if(driveToken){ callback(driveToken); return; }
+  const client = google.accounts.oauth2.initTokenClient({
+    client_id: DRIVE_CLIENT_ID,
+    scope: DRIVE_SCOPE,
+    callback: function(resp){
+      if(resp.error){ showDriveStatus('Error de autenticación', 'err'); return; }
+      driveToken = resp.access_token;
+      callback(driveToken);
+    }
+  });
+  client.requestAccessToken();
+}
+
+async function findFolder(token, name, parentId){
+  const q = "mimeType='application/vnd.google-apps.folder'"
+    + " and name='" + name.replace(/'/g, "\'") + "'"
+    + " and '" + parentId + "' in parents"
+    + " and trashed=false";
+  const r = await fetch(
+    'https://www.googleapis.com/drive/v3/files?q=' + encodeURIComponent(q) + '&fields=files(id,name)',
+    { headers: { 'Authorization': 'Bearer ' + token } }
+  );
+  const data = await r.json();
+  if(data.files && data.files.length > 0) return data.files[0].id;
+  return null;
+}
+
+async function createFolder(token, name, parentId){
+  const body = { name: name, mimeType: 'application/vnd.google-apps.folder', parents: [parentId] };
+  const r = await fetch('https://www.googleapis.com/drive/v3/files', {
+    method: 'POST',
+    headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+  const data = await r.json();
+  return data.id;
+}
+
+async function getOrCreateFolder(token, name, parentId){
+  const existing = await findFolder(token, name, parentId);
+  if(existing) return existing;
+  return await createFolder(token, name, parentId);
+}
+
+async function getTargetFolder(token){
+  // Structure: Ventas > Cotizaciones > [YYYY] > [M. Mes]
+  const now      = new Date();
+  const year     = now.getFullYear().toString();
+  const monthNum = now.getMonth() + 1;
+  const monthName = monthNum + '. ' + MESES_ES[now.getMonth()];
+
+  // 1. Find "Cotizaciones" inside Ventas
+  showDriveStatus('Buscando carpeta Cotizaciones...', 'loading');
+  const cotId = await getOrCreateFolder(token, 'Cotizaciones', VENTAS_FOLDER_ID);
+
+  // 2. Find or create year folder
+  showDriveStatus('Verificando carpeta ' + year + '...', 'loading');
+  const yearId = await getOrCreateFolder(token, year, cotId);
+
+  // 3. Find or create month folder (format: "6. Junio")
+  showDriveStatus('Verificando carpeta ' + monthName + '...', 'loading');
+  const monthId = await getOrCreateFolder(token, monthName, yearId);
+
+  return { monthId, path: 'Ventas/Cotizaciones/' + year + '/' + monthName };
+}
+
+function buildPDFHTML(){
+  const cliente   = document.getElementById('cc').value || 'Cliente';
+  const codigo    = document.getElementById('ccode').textContent;
+  const tipo      = document.getElementById('ctype').value;
+  const fecha     = document.getElementById('cdate').value;
+  const lugar     = document.getElementById('cplace').value || 'Por confirmar';
+  const horario   = document.getElementById('ctime').value || 'Por confirmar';
+  const invitados = document.getElementById('cguests').value || '—';
+  const total     = document.getElementById('ctotal').textContent;
+  const sub       = document.getElementById('csub').textContent;
+  const descPct   = parseFloat(document.getElementById('cdesc').value) || 0;
+  const ivaCheck  = document.getElementById('civa').checked;
+  const aiText    = document.getElementById('aiout').textContent;
+  const showAI    = aiText && aiText.length > 10 && !aiText.includes('aparecerá');
+
+  let fechaStr = 'Por confirmar';
+  if(fecha){ const d=new Date(fecha+'T12:00:00'); fechaStr=d.toLocaleDateString('es-VE',{day:'2-digit',month:'long',year:'numeric'}); }
+  const hoy = new Date().toLocaleDateString('es-VE');
+
+  // Build items + subtotal for discount/iva calc
+  let itemsRows = ''; let i = 0; let subtotalNum = 0;
+  document.querySelectorAll('.cir').forEach(function(r){
+    const con=r.querySelector('.xcon').value, cat=r.querySelector('.xcat').textContent;
+    const qty=r.querySelector('.xqty').value, pri=r.querySelector('.xpri').value;
+    const tot2=(parseFloat(qty)||0)*(parseFloat(pri)||0);
+    if(con&&pri&&cat!=='—'){
+      subtotalNum += tot2;
+      const bg=i%2===0?'#ffffff':'#f9f9f9';
+      itemsRows+='<tr style="background:'+bg+'">'
+        +'<td style="padding:8px 12px;border-bottom:1px solid #eee;font-size:12px;color:#333">'+cat+'</td>'
+        +'<td style="padding:8px 12px;border-bottom:1px solid #eee;font-size:12px;color:#333">'+con+'</td>'
+        +'<td style="padding:8px 12px;border-bottom:1px solid #eee;font-size:12px;color:#333;text-align:center">'+qty+'</td>'
+        +'<td style="padding:8px 12px;border-bottom:1px solid #eee;font-size:12px;color:#333;text-align:right">$'+parseFloat(pri).toFixed(0)+'</td>'
+        +'<td style="padding:8px 12px;border-bottom:1px solid #eee;font-size:12px;color:#111;text-align:right;font-weight:bold">$'+tot2.toFixed(0)+'</td>'
+        +'</tr>';
+      i++;
+    }
+  });
+
+  // Build totals rows
+  const descAmount   = subtotalNum * (descPct/100);
+  const afterDisc    = subtotalNum - descAmount;
+  const ivaAmount    = ivaCheck ? afterDisc * 0.16 : 0;
+  const totalFinal   = afterDisc + ivaAmount;
+
+  let totalsRows = '<tr><td style="font-size:12px;color:#666;padding:3px 0">Sub total</td>'
+    +'<td style="font-size:12px;color:#666;text-align:right;padding:3px 0">$'+subtotalNum.toFixed(0)+'</td></tr>';
+
+  if(descPct > 0){
+    totalsRows += '<tr><td style="font-size:12px;color:#e05555;padding:3px 0">Descuento ('+descPct+'%)</td>'
+      +'<td style="font-size:12px;color:#e05555;text-align:right;padding:3px 0">- $'+descAmount.toFixed(0)+'</td></tr>';
+    totalsRows += '<tr><td style="font-size:12px;color:#666;padding:3px 0">Sub total con descuento</td>'
+      +'<td style="font-size:12px;color:#666;text-align:right;padding:3px 0">$'+afterDisc.toFixed(0)+'</td></tr>';
+  }
+  if(ivaCheck){
+    totalsRows += '<tr><td style="font-size:12px;color:#666;padding:3px 0">IVA (16%)</td>'
+      +'<td style="font-size:12px;color:#666;text-align:right;padding:3px 0">$'+ivaAmount.toFixed(0)+'</td></tr>';
+  }
+
+  const aiBlock = showAI
+    ? '<div style="margin:0 0 16px;padding:14px 16px;background:#f0fbff;border-left:4px solid #43bded;font-size:12px;line-height:1.7;color:#444">'+aiText+'</div>'
+    : '';
+
+  const TERMINOS = "1. Validez del presupuesto: El presente presupuesto tiene una validez de cinco (5) días hábiles contados a partir de su emisión. Transcurrido este período sin confirmación, la disponibilidad de equipos y tarifas podrá estar sujeta a cambios. 2. Confirmación del servicio: Para garantizar la reserva de la fecha y disponibilidad del equipo, se requiere un abono del 50% del valor total cotizado. El saldo restante deberá estar cancelado en su totalidad con al menos 48 horas de anticipación al inicio del evento. 3. Cambios y cancelaciones: Cualquier modificación deberá notificarse con al menos 72 horas de antelación. En caso de cancelación con menos de 48 horas de anticipación, se retendrá el abono y cualquier otro monto pagado. Blast podrá ofrecer reprogramación del servicio para una nueva fecha sujeto a disponibilidad. 4. Montaje y acceso: El cliente deberá garantizar acceso al lugar en los horarios acordados. El montaje y desmontaje se realizará según cronograma del equipo técnico de Blast. 5. Cuidado de equipos: Los equipos deberán permanecer protegidos de lluvia, derrames y acceso del público. El manejo técnico será realizado exclusivamente por personal autorizado de Blast. 6. Responsabilidad: Blast no se hace responsable por interrupciones ocasionadas por factores externos como fallas eléctricas, cambios meteorológicos o condiciones inseguras del espacio. 7. Limitación de responsabilidad: Blast no será responsable por accidentes, daños personales o materiales ocurridos durante el evento. La empresa actúa únicamente como proveedora de servicios técnicos y/o de producción. 8. Aceptación: La aprobación de este presupuesto por escrito, correo electrónico o mensaje digital, implica la aceptación expresa de los términos y condiciones aquí establecidos.";
+
+  const html = '<!DOCTYPE html><html><head><meta charset="UTF-8">'
+    +'<title>'+codigo+' - '+cliente+'</title>'
+    +'<style>'
+    +'*{margin:0;padding:0;box-sizing:border-box}'
+    +'body{font-family:Arial,Helvetica,sans-serif;background:#fff;color:#222}'
+    +'-webkit-print-color-adjust:exact !important;'
+    +'print-color-adjust:exact !important;'
+    +'@media print{'
+    +'.no-print{display:none!important}'
+    +'@page{margin:8mm;size:A4}'
+    +'* {-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}'
+    +'}'
+    +'</style></head><body>'
+
+    // PRINT BUTTON BAR
+    +'<div class="no-print" style="background:#43bded;padding:12px 20px;text-align:right;position:sticky;top:0;z-index:100">'
+    +'<span style="color:#141414;font-family:Arial;font-size:12px;margin-right:14px;font-weight:bold">'+codigo+' · '+cliente+'</span>'
+    +'<button onclick="window.print()" style="background:#141414;color:#fff;border:none;padding:9px 22px;font-size:13px;font-weight:bold;cursor:pointer;border-radius:4px;letter-spacing:1px">⬇ IMPRIMIR / GUARDAR PDF</button>'
+    +'</div>'
+
+    +'<div style="max-width:760px;margin:0 auto">'
+
+    // HEADER — black bg with color forced
+    +'<table width="100%" cellpadding="0" cellspacing="0" bgcolor="#141414" style="background-color:#141414"><tr>'
+    +'<td bgcolor="#141414" style="background-color:#141414;padding:24px 28px;vertical-align:middle">'
+    +'<div style="font-family:Arial,Helvetica,sans-serif;font-size:26px;font-weight:900;letter-spacing:5px;color:#ffffff">BLAST</div>'
+    +'<div style="font-family:Arial,Helvetica,sans-serif;font-size:9px;letter-spacing:6px;color:#43bded;margin-top:4px">PROSOUND</div>'
+    +'</td>'
+    +'<td bgcolor="#141414" style="background-color:#141414;padding:24px 28px;text-align:right;vertical-align:middle">'
+    +'<div style="font-size:16px;font-weight:700;color:#43bded;letter-spacing:2px">'+codigo+'</div>'
+    +'<div style="font-size:10px;color:#aaaaaa;margin-top:6px">blast.prosound@gmail.com</div>'
+    +'<div style="font-size:10px;color:#aaaaaa">@blast.sonido</div>'
+    +'</td>'
+    +'</tr></table>'
+
+    // BLUE ACCENT BAR
+    +'<div style="height:4px;background-color:#43bded;background:#43bded"></div>'
+
+    // EVENT INFO
+    +'<table width="100%" cellpadding="0" cellspacing="0" bgcolor="#f7f7f7" style="background-color:#f7f7f7;border-bottom:2px solid #e0e0e0"><tr>'
+    +'<td width="50%" bgcolor="#f7f7f7" style="background-color:#f7f7f7;padding:18px 28px;vertical-align:top">'
+    +'<div style="font-size:9px;color:#888888;letter-spacing:1.5px;text-transform:uppercase;font-weight:bold;margin-bottom:3px">Cliente</div>'
+    +'<div style="font-size:16px;font-weight:bold;margin-bottom:12px;color:#111111">'+cliente+'</div>'
+    +'<div style="font-size:9px;color:#888888;letter-spacing:1.5px;text-transform:uppercase;font-weight:bold;margin-bottom:3px">Tipo de evento</div>'
+    +'<div style="font-size:13px;margin-bottom:12px;color:#333">'+tipo+'</div>'
+    +'<div style="font-size:9px;color:#888888;letter-spacing:1.5px;text-transform:uppercase;font-weight:bold;margin-bottom:3px">Lugar</div>'
+    +'<div style="font-size:13px;color:#333">'+lugar+'</div>'
+    +'</td>'
+    +'<td width="50%" bgcolor="#f7f7f7" style="background-color:#f7f7f7;padding:18px 28px;vertical-align:top">'
+    +'<div style="font-size:9px;color:#888888;letter-spacing:1.5px;text-transform:uppercase;font-weight:bold;margin-bottom:3px">Fecha</div>'
+    +'<div style="font-size:13px;margin-bottom:12px;color:#333">'+fechaStr+'</div>'
+    +'<div style="font-size:9px;color:#888888;letter-spacing:1.5px;text-transform:uppercase;font-weight:bold;margin-bottom:3px">Horario</div>'
+    +'<div style="font-size:13px;margin-bottom:12px;color:#333">'+horario+'</div>'
+    +'<div style="font-size:9px;color:#888888;letter-spacing:1.5px;text-transform:uppercase;font-weight:bold;margin-bottom:3px">Invitados aprox.</div>'
+    +'<div style="font-size:13px;color:#333">'+invitados+'</div>'
+    +'</td></tr></table>'
+
+    // SERVICES SECTION
+    +'<div style="padding:18px 28px 0">'
+    +'<div style="font-size:9px;color:#888;letter-spacing:2px;text-transform:uppercase;font-weight:bold;padding-bottom:6px;border-bottom:1px solid #dddddd;margin-bottom:0">Servicios incluidos</div>'
+    +'<table width="100%" cellpadding="0" cellspacing="0">'
+    +'<thead><tr bgcolor="#141414" style="background-color:#141414">'
+    +'<th bgcolor="#141414" style="background-color:#141414;padding:8px 12px;text-align:left;font-size:9px;color:#ffffff;letter-spacing:1px">CATEGORÍA</th>'
+    +'<th bgcolor="#141414" style="background-color:#141414;padding:8px 12px;text-align:left;font-size:9px;color:#ffffff;letter-spacing:1px">CONCEPTO</th>'
+    +'<th bgcolor="#141414" style="background-color:#141414;padding:8px 12px;text-align:center;font-size:9px;color:#ffffff;letter-spacing:1px">CANT.</th>'
+    +'<th bgcolor="#141414" style="background-color:#141414;padding:8px 12px;text-align:right;font-size:9px;color:#ffffff;letter-spacing:1px">P. UNITARIO</th>'
+    +'<th bgcolor="#141414" style="background-color:#141414;padding:8px 12px;text-align:right;font-size:9px;color:#ffffff;letter-spacing:1px">TOTAL</th>'
+    +'</tr></thead>'
+    +'<tbody>'+itemsRows+'</tbody>'
+    +'</table></div>'
+
+    // TOTALS
+    +'<div style="margin:16px 28px 0;padding:14px 18px;background-color:#f5f5f5;background:#f5f5f5;border-radius:4px">'
+    +'<table width="100%" cellpadding="0" cellspacing="0">'
+    + totalsRows
+    +'<tr><td colspan="2" style="padding:8px 0 0"><div style="height:2px;background-color:#43bded;background:#43bded"></div></td></tr>'
+    +'<tr><td style="font-size:20px;font-weight:900;color:#141414;padding-top:8px">TOTAL</td>'
+    +'<td style="font-size:20px;font-weight:900;color:#43bded;text-align:right;padding-top:8px">$'+totalFinal.toFixed(0)+'</td></tr>'
+    +'</table></div>'
+
+    // AI DESCRIPTION
+    +(showAI?'<div style="margin:16px 28px 0">'+aiBlock+'</div>':'')
+
+    // TERMS — full official terms
+    +'<div style="margin:16px 28px 0;padding:14px 16px;border:1px solid #eeeeee;border-radius:4px;background:#fafafa">'
+    +'<div style="font-size:10px;font-weight:bold;color:#444;margin-bottom:6px;letter-spacing:1px;text-transform:uppercase">Términos y condiciones</div>'
+    +'<p style="font-size:9px;color:#888;line-height:1.7;margin:0">'+TERMINOS+'</p>'
+    +'</div>'
+
+    // FOOTER
+    +'<table width="100%" cellpadding="0" cellspacing="0" style="margin:14px 0 0;padding:10px 28px;border-top:1px solid #eeeeee"><tr>'
+    +'<td style="font-size:9px;color:#bbbbbb">Blast ProSound · Caracas, Venezuela · blast.prosound@gmail.com</td>'
+    +'<td style="font-size:9px;color:#bbbbbb;text-align:right">Generado el '+hoy+'</td>'
+    +'</tr></table>'
+
+    +'</div>
+<!-- MODAL PROVEEDOR -->
+<div class="modal-bg" id="modal-prov">
+  <div class="modal">
+    <div class="modal-title">Nuevo proveedor</div>
+    <div class="fg" style="margin-bottom:12px">
+      <div class="fgrp"><label class="flabel">Nombre</label><input type="text" id="prov-nombre" placeholder="Nombre del proveedor"></div>
+      <div class="fgrp"><label class="flabel">Tipo</label><input type="text" id="prov-tipo" placeholder="ej: Pantallas, Tarima..."></div>
+      <div class="fgrp"><label class="flabel">Teléfono</label><input type="text" id="prov-telefono" placeholder="+58..."></div>
+      <div class="fgrp"><label class="flabel">Método de pago</label><select id="prov-metodo"><option>Efectivo $</option><option>Zelle</option><option>Bs</option><option>Euro</option></select></div>
+    </div>
+    <div class="fgrp" style="margin-bottom:12px"><label class="flabel">Notas</label><textarea id="prov-notas" rows="2" placeholder="Notas adicionales..."></textarea></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="document.getElementById('modal-prov').classList.remove('show')">Cancelar</button>
+      <button class="btn btn-blue" onclick="guardarProveedor()">Guardar</button>
+    </div>
+  </div>
+</div>
+</body></html>';
+
+  return { cliente, codigo, html };
+}
+
+
+function showDriveStatus(msg, type){
+  const el = document.getElementById('drive-status');
+  el.textContent = msg;
+  el.className = 'drive-status ' + type;
+  el.style.display = 'inline-block';
+  if(type === 'ok') setTimeout(function(){ el.style.display = 'none'; }, 6000);
+}
+
+async function exportarADrive(){
+  const btn = document.getElementById('btn-drive');
+
+  // Validate items
+  let hasItems = false;
+  document.querySelectorAll('.cir').forEach(function(r){
+    if(r.querySelector('.xcon').value && r.querySelector('.xpri').value && r.querySelector('.xcat').textContent !== '—')
+      hasItems = true;
+  });
+  if(!hasItems){ alert('Agrega al menos un ítem antes de exportar.'); return; }
+
+  btn.disabled = true;
+  showDriveStatus('Conectando con Google Drive...', 'loading');
+
+  getDriveToken(async function(token){
+    try{
+      // Navigate to correct folder: Ventas > Cotizaciones > YYYY > M. Mes
+      const { monthId, path } = await getTargetFolder(token);
+
+      // Build filename: COT_DDMMYY-XX_Cliente.html
+      const { cliente, codigo, html } = buildPDFHTML();
+      const safeCode   = codigo.replace(/[^a-zA-Z0-9]/g, '_');
+      const safeClient = cliente.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '');
+      const filename   = safeCode + '_' + safeClient + '.html';
+
+      showDriveStatus('Subiendo ' + filename + '...', 'loading');
+
+      const blob     = new Blob([html], { type: 'text/html' });
+      const metadata = { name: filename, parents: [monthId], mimeType: 'text/html' };
+      const form     = new FormData();
+      form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+      form.append('file', blob);
+
+      const up = await fetch(
+        'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name,webViewLink',
+        { method: 'POST', headers: { 'Authorization': 'Bearer ' + token }, body: form }
+      );
+      const file = await up.json();
+
+      if(file.id){
+        showDriveStatus('✓ Guardado en ' + path, 'ok');
+        setTimeout(function(){ window.open(file.webViewLink, '_blank'); }, 400);
+      } else {
+        throw new Error(file.error ? file.error.message : JSON.stringify(file));
+      }
+    } catch(e){
+      console.error(e);
+      showDriveStatus('Error: ' + e.message, 'err');
+    }
+    btn.disabled = false;
+  });
+}
+
+// ─── SUPABASE CONFIG ───
+const SUPA_URL = 'https://bfnjiobiymexguqhltft.supabase.co';
+const SUPA_KEY = 'sb_publishable_st_DvrbnUNe4ZmRbeQtMwQ_SK0rWDgT';
+const supa = supabase.createClient(SUPA_URL, SUPA_KEY);
+
+// ─── DATA LAYER ───
+
+// Cargar eventos y mostrar últimos 5 en dashboard
+async function cargarUltimosEventos(){
+  const { data, error } = await supa
+    .from('eventos')
+    .select('*')
+    .order('fecha', { ascending: false })
+    .limit(50);
+  if(error){ console.error('Error cargando eventos:', error); return; }
+
+  // Ordenar por proximidad a hoy
+  const hoy = new Date();
+  const sorted = (data||[]).sort((a,b) => {
+    return Math.abs(new Date(a.fecha) - hoy) - Math.abs(new Date(b.fecha) - hoy);
+  }).slice(0,5);
+
+  const tbody = document.getElementById('ultimos-eventos');
+  if(!sorted.length){
+    tbody.innerHTML = '<tr><td colspan="6" style="color:var(--white4);text-align:center;padding:20px">No hay eventos registrados aún</td></tr>';
+    return;
+  }
+  tbody.innerHTML = sorted.map(e => {
+    const d = new Date(e.fecha + 'T12:00:00');
+    const fStr = d.toLocaleDateString('es-VE',{day:'2-digit',month:'short',year:'2-digit'});
+    const isFuture = new Date(e.fecha) > hoy;
+    const badge = e.estado === 'Cobrado'
+      ? '<span class="badge b-green">Cobrado</span>'
+      : e.estado === 'Exonerado'
+      ? '<span class="badge b-white">Exonerado</span>'
+      : '<span class="badge b-orange">Por cobrar</span>';
+    const tag = isFuture ? '<span style="font-size:9px;color:var(--blue);margin-left:4px">PRÓXIMO</span>' : '';
+    return `<tr>
+      <td>${fStr}${tag}</td>
+      <td>${e.cliente_nombre}</td>
+      <td>${e.categoria||'—'}</td>
+      <td style="font-weight:600">$${parseFloat(e.ingreso||0).toLocaleString()}</td>
+      <td style="color:var(--white4)">${e.referente||'—'}</td>
+      <td>${badge}</td>
+    </tr>`;
+  }).join('');
+}
+
+// Cargar todos los eventos en la tabla
+async function cargarTablaEventos(){
+  const { data, error } = await supa
+    .from('eventos')
+    .select('*')
+    .order('fecha', { ascending: false });
+  if(error){ console.error(error); return; }
+
+  const tbody = document.querySelector('#v-eventos tbody');
+  if(!data||!data.length){
+    tbody.innerHTML = '<tr><td colspan="10" style="color:var(--white4);text-align:center;padding:20px">No hay eventos. Agrega el primero.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = data.map(e => {
+    const utilidad = (parseFloat(e.ingreso)||0) - (parseFloat(e.gasto)||0);
+    const margen   = e.ingreso > 0 ? ((utilidad/e.ingreso)*100).toFixed(1)+'%' : '—';
+    const badge    = e.estado==='Cobrado' ? 'b-green' : e.estado==='Exonerado' ? 'b-white' : 'b-orange';
+    const catBadge = e.categoria==='Privado' ? 'b-blue' : e.categoria==='Corporativo' ? 'b-magenta' : 'b-orange';
+    return `<tr>
+      <td class="mono">${e.codigo}</td>
+      <td>${new Date(e.fecha+'T12:00:00').toLocaleDateString('es-VE',{day:'2-digit',month:'short',year:'2-digit'})}</td>
+      <td>${e.cliente_nombre}</td>
+      <td><span class="badge ${catBadge}">${e.categoria||'—'}</span></td>
+      <td>${e.referente||'—'}</td>
+      <td>$${parseFloat(e.ingreso||0).toLocaleString()}</td>
+      <td>$${parseFloat(e.gasto||0).toLocaleString()}</td>
+      <td style="color:#3dca6e;font-weight:600">$${utilidad.toLocaleString()}</td>
+      <td style="color:var(--white4)">${margen}</td>
+      <td><span class="badge ${badge}">${e.estado}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+// Cargar transacciones
+async function cargarTransacciones(){
+  const { data, error } = await supa
+    .from('transacciones')
+    .select('*')
+    .order('fecha_pago', { ascending: false })
+    .limit(100);
+  if(error){ console.error(error); return; }
+
+  const tbody = document.querySelector('#v-registro tbody');
+  if(!data||!data.length){
+    tbody.innerHTML = '<tr><td colspan="11" style="color:var(--white4);text-align:center;padding:20px">No hay transacciones registradas aún</td></tr>';
+    return;
+  }
+  tbody.innerHTML = data.map(t => {
+    const badgeClass = t.estado==='Cobrado' ? 'b-green' : 'b-magenta';
+    const fEvento = t.fecha_evento ? new Date(t.fecha_evento+'T12:00:00').toLocaleDateString('es-VE',{day:'2-digit',month:'short',year:'2-digit'}) : '—';
+    const fPago   = t.fecha_pago   ? new Date(t.fecha_pago  +'T12:00:00').toLocaleDateString('es-VE',{day:'2-digit',month:'short',year:'2-digit'}) : '—';
+    const ingreso = t.ingreso > 0 ? `<td style="color:#3dca6e;font-weight:600">$${parseFloat(t.ingreso).toLocaleString()}</td>` : '<td>—</td>';
+    const egreso  = t.egreso  > 0 ? `<td style="color:#e05555;font-weight:600">$${parseFloat(t.egreso ).toLocaleString()}</td>` : '<td>—</td>';
+    return `<tr>
+      <td>${fEvento}</td><td>${fPago}</td>
+      <td>${t.categoria||'—'}</td><td>${t.subcategoria||'—'}</td>
+      <td>${t.concepto}</td>
+      <td class="mono">${t.codigo_evento||'—'}</td>
+      <td>${t.metodo_pago||'—'}</td>
+      <td>${t.responsable||'—'}</td>
+      ${ingreso}${egreso}
+      <td><span class="badge ${badgeClass}">${t.estado}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+// Cargar cotizaciones historial
+async function cargarCotizaciones(){
+  const { data, error } = await supa
+    .from('cotizaciones')
+    .select('*')
+    .order('created_at', { ascending: false })
+    .limit(50);
+  if(error){ console.error(error); return; }
+  return data || [];
+}
+
+// Cargar proveedores
+async function cargarProveedores(){
+  const { data, error } = await supa
+    .from('proveedores')
+    .select('*')
+    .order('nombre');
+  if(error){ console.error(error); return; }
+
+  const tbody = document.querySelector('#v-proveedores tbody');
+  if(!data||!data.length){
+    tbody.innerHTML = '<tr><td colspan="5" style="color:var(--white4);text-align:center;padding:20px">No hay proveedores registrados aún</td></tr>';
+    return;
+  }
+  tbody.innerHTML = data.map(p => `<tr>
+    <td>${p.nombre}</td>
+    <td>${p.tipo||'—'}</td>
+    <td>${p.telefono||'—'}</td>
+    <td>${p.metodo_pago||'—'}</td>
+    <td style="color:var(--white4)">${p.notas||'—'}</td>
+  </tr>`).join('');
+}
+
+// GUARDAR EVENTO
+async function guardarEvento(){
+  const codigo        = document.getElementById('new-codigo').value.trim();
+  const fecha         = document.getElementById('new-fecha').value;
+  const cliente_nombre= document.getElementById('new-cliente').value.trim();
+  const categoria     = document.getElementById('new-categoria').value;
+  const referente     = document.getElementById('new-referente').value;
+  const estado        = document.getElementById('new-estado').value;
+  const ingreso       = parseFloat(document.getElementById('new-ingreso').value)||0;
+  const gasto         = parseFloat(document.getElementById('new-gasto').value)||0;
+  const notas         = document.getElementById('new-notas').value;
+
+  if(!codigo||!fecha||!cliente_nombre){ alert('Completa código, fecha y cliente.'); return; }
+
+  const { error } = await supa.from('eventos').insert({
+    codigo, fecha, cliente_nombre, categoria, referente, estado, ingreso, gasto, notas
+  });
+
+  if(error){ alert('Error: ' + error.message); return; }
+  document.getElementById('modal-evento').classList.remove('show');
+  // Reset form
+  ['new-codigo','new-fecha','new-cliente','new-ingreso','new-gasto','new-notas'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  await cargarTablaEventos();
+  await cargarUltimosEventos();
+  alert('✓ Evento guardado');
+}
+
+// GUARDAR TRANSACCIÓN
+async function guardarTransaccion(){
+  const concepto     = document.getElementById('tx-concepto').value.trim();
+  const fecha_evento = document.getElementById('tx-fecha-evento').value;
+  const fecha_pago   = document.getElementById('tx-fecha-pago').value;
+  const categoria    = document.getElementById('tx-categoria').value;
+  const subcategoria = document.getElementById('tx-subcategoria').value.trim();
+  const estado       = document.getElementById('tx-estado').value;
+  const codigo_evento= document.getElementById('tx-codigo').value.trim();
+  const metodo_pago  = document.getElementById('tx-metodo').value;
+  const responsable  = document.getElementById('tx-responsable').value;
+  const monto        = parseFloat(document.getElementById('tx-monto').value)||0;
+  const descripcion  = document.getElementById('tx-descripcion').value;
+
+  if(!concepto){ alert('El concepto es obligatorio.'); return; }
+
+  const ingreso = estado === 'Cobrado' ? monto : 0;
+  const egreso  = estado === 'Pagado'  ? monto : 0;
+
+  const { error } = await supa.from('transacciones').insert({
+    concepto, fecha_evento: fecha_evento||null, fecha_pago: fecha_pago||null,
+    categoria, subcategoria, estado, codigo_evento: codigo_evento||null,
+    metodo_pago, responsable, ingreso, egreso, descripcion
+  });
+
+  if(error){ alert('Error: ' + error.message); return; }
+  document.getElementById('modal-tx').classList.remove('show');
+  await cargarTransacciones();
+  alert('✓ Transacción guardada');
+}
+
+// GUARDAR COTIZACIÓN en Supabase
+async function guardarCotizacionDB(){
+  const codigo    = document.getElementById('ccode').textContent;
+  const cliente   = document.getElementById('cc').value;
+  const tipo      = document.getElementById('ctype').value;
+  const fecha     = document.getElementById('cdate').value;
+  const lugar     = document.getElementById('cplace').value;
+  const horario   = document.getElementById('ctime').value;
+  const invitados = parseInt(document.getElementById('cguests').value)||null;
+  const responsable = document.getElementById('cresp').value;
+  const descuento = parseFloat(document.getElementById('cdesc').value)||0;
+  const iva       = document.getElementById('civa').checked;
+  const total     = parseFloat(document.getElementById('ctotal').textContent.replace('$','').replace(',',''))||0;
+  const subtotal  = parseFloat(document.getElementById('csub').textContent.replace('$',''))||0;
+  const desc_ia   = document.getElementById('aiout').textContent;
+
+  const items = [];
+  document.querySelectorAll('.cir').forEach(r => {
+    const con = r.querySelector('.xcon').value;
+    const cat = r.querySelector('.xcat').textContent;
+    const qty = parseFloat(r.querySelector('.xqty').value)||0;
+    const pri = parseFloat(r.querySelector('.xpri').value)||0;
+    if(con && pri && cat !== '—') items.push({ concepto:con, categoria:cat, cantidad:qty, precio:pri, total:qty*pri });
+  });
+
+  if(!cliente || items.length === 0){ return; }
+
+  const { error } = await supa.from('cotizaciones').upsert({
+    codigo, cliente, tipo_evento: tipo,
+    fecha_evento: fecha||null, lugar, horario,
+    invitados, responsable, subtotal, descuento, iva, total,
+    descripcion_ia: desc_ia.includes('aparecerá') ? null : desc_ia,
+    items: items
+  }, { onConflict: 'codigo' });
+
+  if(error) console.error('Error guardando cotización:', error);
+}
+
+// GUARDAR PROVEEDOR
+async function guardarProveedor(){
+  const nombre      = document.getElementById('prov-nombre').value.trim();
+  const tipo        = document.getElementById('prov-tipo').value.trim();
+  const telefono    = document.getElementById('prov-telefono').value.trim();
+  const metodo_pago = document.getElementById('prov-metodo').value;
+  const notas       = document.getElementById('prov-notas').value.trim();
+
+  if(!nombre){ alert('El nombre es obligatorio.'); return; }
+
+  const { error } = await supa.from('proveedores').insert({ nombre, tipo, telefono, metodo_pago, notas });
+  if(error){ alert('Error: ' + error.message); return; }
+  document.getElementById('modal-prov').classList.remove('show');
+  await cargarProveedores();
+  alert('✓ Proveedor guardado');
+}
+
+// ─── INIT ───
+async function init(){
+  initDashboard();
+  loadBCV();
+  addRow();
+  await cargarUltimosEventos();
+  await cargarTablaEventos();
+  await cargarTransacciones();
+  await cargarProveedores();
+}
+init();
+
+// Auto-save cotización al exportar a Drive
+const origExportarADrive = exportarADrive;
+exportarADrive = async function(){
+  await guardarCotizacionDB();
+  await origExportarADrive();
+};
+</script>
+</body></html>
