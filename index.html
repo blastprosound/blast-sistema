@@ -232,17 +232,11 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
     <div>
       <div class="card">
         <div class="ct">Ingresos por categoría (total histórico)</div>
-        <div class="bc">
-          <div class="br"><div class="bl">Privado</div><div class="bt"><div class="bf" style="width:82%;background:var(--blue)">$129k</div></div></div>
-          <div class="br"><div class="bl">Corporativo</div><div class="bt"><div class="bf" style="width:30%;background:var(--magenta)">$39k</div></div></div>
-          <div class="br"><div class="bl">Institucional</div><div class="bt"><div class="bf" style="width:21%;background:var(--orange)">$27k</div></div></div>
-          <div class="br"><div class="bl">Club</div><div class="bt"><div class="bf" style="width:4%;background:var(--white4)">$4k</div></div></div>
-        </div>
+        <div class="bc" id="cat-bars"><div style="color:var(--white4);font-size:12px">Cargando...</div></div>
       </div>
       <div class="card">
         <div class="ct">Top 3 clientes</div>
-        <div style="display:flex;flex-direction:column;gap:7px;font-size:12px">
-          <div style="display:flex;justify-content:space-between"><span style="color:var(--white3)">Sebastián Moniz</span><span style="color:var(--blue);font-weight:600">$44.679 <span style="color:var(--white4);font-weight:300">· 21 ev.</span></span></div>
+        <div id="top-clientes-list" style="display:flex;flex-direction:column;gap:7px;font-size:12px"><div style="color:var(--white4)">Cargando...</div></div>
           <div style="display:flex;justify-content:space-between"><span style="color:var(--white3)">Colegio San Ignacio</span><span style="color:var(--blue);font-weight:600">$9.964 <span style="color:var(--white4);font-weight:300">· 23 ev.</span></span></div>
           <div style="display:flex;justify-content:space-between"><span style="color:var(--white3)">Inst. Cumbres</span><span style="color:var(--blue);font-weight:600">$7.261 <span style="color:var(--white4);font-weight:300">· 13 ev.</span></span></div>
         </div>
@@ -377,12 +371,16 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
     <div><div class="accent-line"></div><div class="ph-title">Socios</div><div class="ph-sub">Balance individual y participación histórica</div></div>
   </div>
   <div class="sg3">
-    <div class="soc-card"><div class="soc-top" style="background:var(--blue)"></div><div class="sav" style="background:rgba(67,189,237,0.1);color:var(--blue)">GB</div><div class="sn">Gustavo Briceño</div><div class="sa">Fukity · 30% participación</div><div class="sst"><div><span class="ssv">$28.126</span><span class="ssl">Total recibido</span></div><div><span class="ssv">182</span><span class="ssl">Eventos</span></div></div></div>
-    <div class="soc-card"><div class="soc-top" style="background:var(--magenta)"></div><div class="sav" style="background:rgba(234,95,242,0.1);color:var(--magenta)">EB</div><div class="sn">Eduardo Behrens</div><div class="sa">Nene · 60% participación</div><div class="sst"><div><span class="ssv" style="color:var(--magenta)">$34.064</span><span class="ssl">Total recibido</span></div><div><span class="ssv" style="color:var(--magenta)">104</span><span class="ssl">Eventos</span></div></div></div>
-    <div class="soc-card"><div class="soc-top" style="background:var(--orange)"></div><div class="sav" style="background:rgba(244,169,61,0.1);color:var(--orange)">FM</div><div class="sn">Francisco Massari</div><div class="sa">Fran · 10% participación</div><div class="sst"><div><span class="ssv" style="color:var(--orange)">$10.420</span><span class="ssl">Total recibido</span></div><div><span class="ssv" style="color:var(--orange)">51</span><span class="ssl">Eventos</span></div></div></div>
+    <div class="soc-card" id="soc-gb"><div class="soc-top" style="background:var(--blue)"></div><div class="sav" style="background:rgba(67,189,237,0.1);color:var(--blue)">GB</div><div class="sn">Gustavo Briceño</div><div class="sa">Fukity · 30% participación</div><div class="sst"><div><span class="ssv">$—</span><span class="ssl">Balance</span></div><div><span class="ssv">—</span><span class="ssl">Eventos</span></div></div></div>
+    <div class="soc-card" id="soc-eb"><div class="soc-top" style="background:var(--magenta)"></div><div class="sav" style="background:rgba(234,95,242,0.1);color:var(--magenta)">EB</div><div class="sn">Eduardo Behrens</div><div class="sa">Nene · 60% participación</div><div class="sst"><div><span class="ssv" style="color:var(--magenta)">$—</span><span class="ssl">Balance</span></div><div><span class="ssv" style="color:var(--magenta)">—</span><span class="ssl">Eventos</span></div></div></div>
+    <div class="soc-card" id="soc-fm"><div class="soc-top" style="background:var(--orange)"></div><div class="sav" style="background:rgba(244,169,61,0.1);color:var(--orange)">FM</div><div class="sn">Francisco Massari</div><div class="sa">Fran · 10% participación</div><div class="sst"><div><span class="ssv" style="color:var(--orange)">$—</span><span class="ssl">Balance</span></div><div><span class="ssv" style="color:var(--orange)">—</span><span class="ssl">Eventos</span></div></div></div>
   </div>
   <div class="two eq">
-    <div class="card"><div class="ct">Distribución histórica</div><table><thead><tr><th>Socio</th><th>Part.</th><th>Dividendos</th><th>Honorarios</th><th>Total P/P</th></tr></thead><tbody><tr><td>Eduardo Behrens</td><td>60%</td><td>$21.515</td><td>$12.549</td><td style="color:var(--blue);font-weight:600">$34.064</td></tr><tr><td>Gustavo Briceño</td><td>30%</td><td>$7.553</td><td>$20.574</td><td style="color:var(--blue);font-weight:600">$28.126</td></tr><tr><td>Francisco Massari</td><td>10%</td><td>$6.785</td><td>$3.635</td><td style="color:var(--blue);font-weight:600">$10.420</td></tr></tbody></table></div>
+    <div class="card"><div class="ct">Distribución histórica</div><table><thead><tr><th>Socio</th><th>Part.</th><th>Agarro</th><th>Entregó</th><th>Balance</th></tr></thead><tbody>
+        <tr><td>Eduardo Behrens</td><td>60%</td><td id="soc-agarro-eb">—</td><td id="soc-entrego-eb">—</td><td id="soc-balance-eb" style="font-weight:600">—</td></tr>
+        <tr><td>Gustavo Briceño</td><td>30%</td><td id="soc-agarro-gb">—</td><td id="soc-entrego-gb">—</td><td id="soc-balance-gb" style="font-weight:600">—</td></tr>
+        <tr><td>Francisco Massari</td><td>10%</td><td id="soc-agarro-fm">—</td><td id="soc-entrego-fm">—</td><td id="soc-balance-fm" style="font-weight:600">—</td></tr>
+      </tbody></table></div>
     <div class="card"><div class="ct">Captación por socio (desde Aug 2025)</div><div class="bc"><div class="br"><div class="bl">G. Briceño</div><div class="bt"><div class="bf" style="width:43%;background:var(--blue)">33 ev.</div></div><div class="ba">$58.418</div></div><div class="br"><div class="bl">E. Behrens</div><div class="bt"><div class="bf" style="width:40%;background:var(--magenta)">32 ev.</div></div><div class="ba">$17.124</div></div><div class="br"><div class="bl">F. Massari</div><div class="bt"><div class="bf" style="width:15%;background:var(--orange)">12 ev.</div></div><div class="ba">$19.101</div></div></div></div>
   </div>
 </div>
@@ -408,163 +406,35 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
 <!-- ═══ ESTADÍSTICAS ═══ -->
 <div id="v-estadisticas" class="view">
   <div class="ph">
-    <div><div class="accent-line"></div><div class="ph-title">Estadísticas</div><div class="ph-sub">Informe empresarial · Al 1 de Junio 2026</div></div>
+    <div><div class="accent-line"></div><div class="ph-title">Estadísticas</div><div class="ph-sub">Calculado en tiempo real desde el Registro</div></div>
   </div>
-
-  <!-- TABS -->
-  <div class="stats-tabs">
-    <button class="stab on" onclick="showStat('resumen',this)">Resumen general</button>
-    <button class="stab" onclick="showStat('anual',this)">Ingresos anuales</button>
-    <button class="stab" onclick="showStat('trimestral',this)">Trimestral</button>
-    <button class="stab" onclick="showStat('categoria',this)">Por categoría</button>
-    <button class="stab" onclick="showStat('clientes',this)">Top clientes</button>
-    <button class="stab" onclick="showStat('honorarios',this)">Honorarios</button>
-    <button class="stab" onclick="showStat('socios-stat',this)">Por socio</button>
+  <div class="sg">
+    <div class="sc"><div class="sc-top" style="background:var(--blue)"></div><div class="sl">Total eventos</div><div class="sv blue" id="est-total-ev">—</div><div class="ss">Histórico</div></div>
+    <div class="sc"><div class="sc-top" style="background:#3dca6e"></div><div class="sl">Ingresos totales</div><div class="sv green" id="est-total-ing">—</div></div>
+    <div class="sc"><div class="sc-top" style="background:var(--magenta)"></div><div class="sl">Promedio/evento</div><div class="sv magenta" id="est-prom-ev">—</div></div>
+    <div class="sc"><div class="sc-top" style="background:var(--orange)"></div><div class="sl">Utilidad total</div><div class="sv orange" id="est-total-util">—</div></div>
   </div>
-
-  <!-- PANEL: Resumen -->
-  <div id="sp-resumen" class="stat-panel on">
-    <div class="sg">
-      <div class="sc"><div class="sc-top" style="background:var(--blue)"></div><div class="sl">Total eventos</div><div class="sv blue">317</div><div class="ss">2023–2026</div></div>
-      <div class="sc"><div class="sc-top" style="background:#3dca6e"></div><div class="sl">Ingresos totales</div><div class="sv green">$216k</div></div>
-      <div class="sc"><div class="sc-top" style="background:var(--magenta)"></div><div class="sl">Promedio/evento</div><div class="sv magenta">$698</div><div class="ss">Media: $235</div></div>
-      <div class="sc"><div class="sc-top" style="background:var(--orange)"></div><div class="sl">Eventos/semana</div><div class="sv orange">2.2</div><div class="ss">Histórico</div></div>
+  <div class="two eq">
+    <div class="card">
+      <div class="ct">Ingresos y utilidad por año</div>
+      <div class="twrap"><table><thead><tr><th>Año</th><th>Eventos</th><th>Ingresos</th><th>Egresos</th><th>Utilidad</th><th>Margen</th></tr></thead>
+      <tbody id="est-anual-tbody"><tr><td colspan="6" style="color:var(--white4);text-align:center;padding:16px">Cargando...</td></tr></tbody></table></div>
     </div>
-    <div class="two eq">
-      <div class="card"><div class="ct">Crecimiento anual</div><div class="bc">
-        <div class="br"><div class="bl">2023</div><div class="bt"><div class="bf" style="width:7%;background:var(--white4)">$15k</div></div><div class="ba">44 ev.</div></div>
-        <div class="br"><div class="bl">2024</div><div class="bt"><div class="bf" style="width:27%;background:var(--blue)">$59k</div></div><div class="ba">121 ev.</div></div>
-        <div class="br"><div class="bl">2025</div><div class="bt"><div class="bf" style="width:49%;background:var(--magenta)">$106k</div></div><div class="ba">118 ev.</div></div>
-        <div class="br"><div class="bl">2026</div><div class="bt"><div class="bf" style="width:17%;background:var(--orange)">$36k</div></div><div class="ba">34 ev.</div></div>
-      </div></div>
-      <div class="card"><div class="ct">Metas 2026</div>
-        <div style="font-size:12px;display:flex;flex-direction:column;gap:8px">
-          <div><div style="color:var(--white4);font-size:10px;letter-spacing:1px;text-transform:uppercase;margin-bottom:3px">Meta semestral (15% sobre 2025 H1)</div><div style="color:var(--blue);font-weight:600;font-size:16px">$32.375</div><div style="color:var(--white4);font-size:10px">Actual: $30.131 · Faltan $2.244</div></div>
-          <div style="height:1px;background:var(--border)"></div>
-          <div><div style="color:var(--white4);font-size:10px;letter-spacing:1px;text-transform:uppercase;margin-bottom:3px">Mejor trimestre</div><div style="color:var(--magenta);font-weight:600;font-size:16px">Q4 2025</div><div style="color:var(--white4);font-size:10px">$45.084 en ingresos · 34 eventos</div></div>
-        </div>
-      </div>
+    <div class="card">
+      <div class="ct">Evaluación trimestral</div>
+      <div class="twrap"><table><thead><tr><th>Trimestre</th><th>Eventos</th><th>Ingresos</th><th>Egresos</th><th>Utilidad</th><th>Margen</th></tr></thead>
+      <tbody id="est-trim-tbody"><tr><td colspan="6" style="color:var(--white4);text-align:center;padding:16px">Cargando...</td></tr></tbody></table></div>
     </div>
   </div>
-
-  <!-- PANEL: Anual -->
-  <div id="sp-anual" class="stat-panel">
-    <div class="two eq">
-      <div class="card"><div class="ct">Ingresos vs Egresos por año</div><table><thead><tr><th>Año</th><th>Eventos</th><th>Ingresos</th><th>Egresos</th><th>Utilidad</th><th>%</th></tr></thead><tbody>
-        <tr><td>2023</td><td>44</td><td>$15.344</td><td>$8.483</td><td style="color:#3dca6e;font-weight:600">$6.861</td><td style="color:var(--white4)">44.7%</td></tr>
-        <tr><td>2024</td><td>121</td><td>$58.966</td><td>$34.732</td><td style="color:#3dca6e;font-weight:600">$24.233</td><td style="color:var(--white4)">41.1%</td></tr>
-        <tr><td>2025</td><td>118</td><td>$105.739</td><td>$71.516</td><td style="color:#3dca6e;font-weight:600">$34.223</td><td style="color:var(--white4)">32.4%</td></tr>
-        <tr><td>2026</td><td>34</td><td>$36.061</td><td>$19.612</td><td style="color:#3dca6e;font-weight:600">$16.449</td><td style="color:var(--white4)">45.6%</td></tr>
-      </tbody></table></div>
-      <div class="card"><div class="ct">Dividendos pagados por año</div><table><thead><tr><th>Año</th><th>Total dividendos</th></tr></thead><tbody>
-        <tr><td>2023</td><td>$6.518</td></tr>
-        <tr><td>2024</td><td>$14.186</td></tr>
-        <tr><td>2025</td><td>$12.549</td></tr>
-        <tr><td>2026</td><td>$2.600</td></tr>
-      </tbody></table></div>
+  <div class="two eq" style="margin-top:0">
+    <div class="card">
+      <div class="ct">Honorarios pagados por persona</div>
+      <div class="bc" id="est-honor-bars"><div style="color:var(--white4);font-size:12px;padding:8px 0">Cargando...</div></div>
     </div>
-  </div>
-
-  <!-- PANEL: Trimestral -->
-  <div id="sp-trimestral" class="stat-panel">
-    <div class="card"><div class="ct">Evaluación trimestral completa</div><table><thead><tr><th>Trimestre</th><th>Eventos</th><th>Ingresos</th><th>Egresos</th><th>Utilidad</th><th>Margen</th></tr></thead><tbody>
-      <tr><td>Q3 2023</td><td>12</td><td>$8.005</td><td>$5.178</td><td style="color:#3dca6e;font-weight:600">$2.827</td><td style="color:var(--white4)">35.3%</td></tr>
-      <tr><td>Q4 2023</td><td>28</td><td>$6.209</td><td>$2.635</td><td style="color:#3dca6e;font-weight:600">$3.574</td><td style="color:var(--white4)">57.6%</td></tr>
-      <tr><td>Q1 2024</td><td>19</td><td>$9.305</td><td>$4.523</td><td style="color:#3dca6e;font-weight:600">$4.782</td><td style="color:var(--white4)">51.4%</td></tr>
-      <tr><td>Q2 2024</td><td>43</td><td>$15.030</td><td>$8.289</td><td style="color:#3dca6e;font-weight:600">$6.741</td><td style="color:var(--white4)">44.9%</td></tr>
-      <tr><td>Q3 2024</td><td>17</td><td>$5.928</td><td>$3.565</td><td style="color:#3dca6e;font-weight:600">$2.363</td><td style="color:var(--white4)">39.9%</td></tr>
-      <tr><td>Q4 2024</td><td>42</td><td>$28.703</td><td>$18.356</td><td style="color:#3dca6e;font-weight:600">$10.347</td><td style="color:var(--white4)">36.1%</td></tr>
-      <tr><td>Q1 2025</td><td>14</td><td>$10.403</td><td>$6.223</td><td style="color:#3dca6e;font-weight:600">$4.180</td><td style="color:var(--white4)">40.2%</td></tr>
-      <tr><td>Q2 2025</td><td>38</td><td>$17.749</td><td>$11.105</td><td style="color:#3dca6e;font-weight:600">$6.644</td><td style="color:var(--white4)">37.4%</td></tr>
-      <tr><td>Q3 2025</td><td>32</td><td>$32.502</td><td>$21.924</td><td style="color:#3dca6e;font-weight:600">$10.578</td><td style="color:var(--white4)">32.5%</td></tr>
-      <tr><td>Q4 2025</td><td>34</td><td>$45.084</td><td>$32.263</td><td style="color:#3dca6e;font-weight:600">$12.821</td><td style="color:var(--white4)">28.4%</td></tr>
-      <tr><td>Q1 2026</td><td>17</td><td>$13.128</td><td>$8.509</td><td style="color:#3dca6e;font-weight:600">$4.619</td><td style="color:var(--white4)">35.2%</td></tr>
-      <tr><td>Q2 2026</td><td>16</td><td>$17.003</td><td>$11.103</td><td style="color:#3dca6e;font-weight:600">$5.900</td><td style="color:var(--white4)">34.7%</td></tr>
-    </tbody></table></div>
-  </div>
-
-  <!-- PANEL: Categoría -->
-  <div id="sp-categoria" class="stat-panel">
-    <div class="card"><div class="ct">Ingresos por categoría (histórico 2023–2026)</div>
-      <div class="bc" style="margin-bottom:16px">
-        <div class="br"><div class="bl">Privado</div><div class="bt"><div class="bf" style="width:82%;background:var(--blue)">$129.959</div></div><div class="ba">121 ev.</div></div>
-        <div class="br"><div class="bl">Corporativo</div><div class="bt"><div class="bf" style="width:25%;background:var(--magenta)">$39.424</div></div><div class="ba">82 ev.</div></div>
-        <div class="br"><div class="bl">Institucional</div><div class="bt"><div class="bf" style="width:17%;background:var(--orange)">$27.361</div></div><div class="ba">58 ev.</div></div>
-        <div class="br"><div class="bl">Club</div><div class="bt"><div class="bf" style="width:3%;background:var(--white4)">$4.022</div></div><div class="ba">11 ev.</div></div>
-      </div>
-      <table><thead><tr><th>Categoría</th><th>Eventos</th><th>Ingresos</th><th>Promedio</th><th>Utilidad prom.</th></tr></thead><tbody>
-        <tr><td>Privado</td><td>121</td><td>$129.959</td><td>$1.074</td><td style="color:#3dca6e">$480</td></tr>
-        <tr><td>Corporativo</td><td>82</td><td>$39.424</td><td>$481</td><td style="color:#3dca6e">$220</td></tr>
-        <tr><td>Institucional</td><td>58</td><td>$27.361</td><td>$472</td><td style="color:#3dca6e">$190</td></tr>
-        <tr><td>Club</td><td>11</td><td>$4.022</td><td>$366</td><td style="color:#3dca6e">$150</td></tr>
-      </tbody></table>
-    </div>
-  </div>
-
-  <!-- PANEL: Top clientes -->
-  <div id="sp-clientes" class="stat-panel">
-    <div class="card"><div class="ct">Clientes con mayor facturación</div><table><thead><tr><th>Cliente</th><th>Eventos</th><th>Total facturado</th><th>Promedio/ev.</th></tr></thead><tbody>
-      <tr><td>Sebastián Moniz</td><td>21</td><td style="color:var(--blue);font-weight:600">$44.679</td><td>$2.128</td></tr>
-      <tr><td>Colegio San Ignacio</td><td>23</td><td style="color:var(--blue);font-weight:600">$9.964</td><td>$433</td></tr>
-      <tr><td>Inst. Cumbres de Caracas</td><td>13</td><td style="color:var(--blue);font-weight:600">$7.261</td><td>$559</td></tr>
-      <tr><td>Calox</td><td>5</td><td style="color:var(--blue);font-weight:600">$5.961</td><td>$1.192</td></tr>
-      <tr><td>Avanti</td><td>9</td><td style="color:var(--blue);font-weight:600">$3.984</td><td>$443</td></tr>
-      <tr><td>Academia Washington</td><td>13</td><td style="color:var(--blue);font-weight:600">$4.020</td><td>$309</td></tr>
-      <tr><td>MG Campamento</td><td>9</td><td style="color:var(--blue);font-weight:600">$5.250</td><td>$583</td></tr>
-      <tr><td>Dj Patrick</td><td>7</td><td style="color:var(--blue);font-weight:600">$2.220</td><td>$317</td></tr>
-      <tr><td>Broz Sessions</td><td>11</td><td style="color:var(--blue);font-weight:600">$2.599</td><td>$236</td></tr>
-      <tr><td>Empresas Polar</td><td>5</td><td style="color:var(--blue);font-weight:600">$1.300</td><td>$260</td></tr>
-    </tbody></table></div>
-  </div>
-
-  <!-- PANEL: Honorarios -->
-  <div id="sp-honorarios" class="stat-panel">
-    <div class="card"><div class="ct">Honorarios Blast por persona (histórico)</div>
-      <div class="bc" style="margin-bottom:16px">
-        <div class="br"><div class="bl" style="font-size:10px">G. Briceño</div><div class="bt"><div class="bf" style="width:100%;background:var(--blue)">$19.184</div></div><div class="ba">182 ev.</div></div>
-        <div class="br"><div class="bl" style="font-size:10px">E. Behrens</div><div class="bt"><div class="bf" style="width:61%;background:var(--magenta)">$11.709</div></div><div class="ba">104 ev.</div></div>
-        <div class="br"><div class="bl" style="font-size:10px">Catire</div><div class="bt"><div class="bf" style="width:45%;background:var(--orange)">$8.690</div></div><div class="ba">125 ev.</div></div>
-        <div class="br"><div class="bl" style="font-size:10px">L. Pacheco</div><div class="bt"><div class="bf" style="width:30%;background:var(--white4)">$5.833</div></div><div class="ba">148 ev.</div></div>
-        <div class="br"><div class="bl" style="font-size:10px">F. Massari</div><div class="bt"><div class="bf" style="width:18%;background:var(--white4)">$3.475</div></div><div class="ba">51 ev.</div></div>
-        <div class="br"><div class="bl" style="font-size:10px">Ali Pacheco</div><div class="bt"><div class="bf" style="width:6%;background:var(--white4)">$1.223</div></div><div class="ba">45 ev.</div></div>
-        <div class="br"><div class="bl" style="font-size:10px">J. Viamonte</div><div class="bt"><div class="bf" style="width:7%;background:var(--white4)">$1.355</div></div><div class="ba">21 ev.</div></div>
-      </div>
-      <table><thead><tr><th>Persona</th><th>Eventos trabajados</th><th>Honorarios totales</th><th>Promedio/ev.</th></tr></thead><tbody>
-        <tr><td>Gustavo Briceño</td><td>182</td><td style="color:var(--blue);font-weight:600">$19.184</td><td>$105.4</td></tr>
-        <tr><td>Eduardo Behrens</td><td>104</td><td style="color:var(--blue);font-weight:600">$11.709</td><td>$112.6</td></tr>
-        <tr><td>Luis García (Catire)</td><td>125</td><td style="color:var(--blue);font-weight:600">$8.690</td><td>$69.5</td></tr>
-        <tr><td>Luis Pacheco</td><td>148</td><td style="color:var(--blue);font-weight:600">$5.833</td><td>$39.4</td></tr>
-        <tr><td>Francisco Massari</td><td>51</td><td style="color:var(--blue);font-weight:600">$3.475</td><td>$68.1</td></tr>
-        <tr><td>Ali Pacheco</td><td>45</td><td style="color:var(--blue);font-weight:600">$1.223</td><td>$27.2</td></tr>
-        <tr><td>José Viamonte</td><td>21</td><td style="color:var(--blue);font-weight:600">$1.355</td><td>$64.5</td></tr>
-        <tr><td>Guillermo Sanglimbeni</td><td>17</td><td style="color:var(--blue);font-weight:600">$640</td><td>$37.6</td></tr>
-        <tr><td>Ronal Martínez</td><td>26</td><td style="color:var(--blue);font-weight:600">$1.015</td><td>$39.0</td></tr>
-      </tbody></table>
-    </div>
-  </div>
-
-  <!-- PANEL: Socios stat -->
-  <div id="sp-socios-stat" class="stat-panel">
-    <div class="card"><div class="ct">Ganancia total por socio (desde 2023)</div><table><thead><tr><th>Socio</th><th>Dividendos</th><th>Honorarios</th><th>Total</th><th>Prom./mes</th></tr></thead><tbody>
-      <tr><td>Eduardo Behrens (60%)</td><td>$21.515</td><td>$12.549</td><td style="color:var(--magenta);font-weight:600">$34.064</td><td>$932</td></tr>
-      <tr><td>Gustavo Briceño (30%)</td><td>$7.553</td><td>$20.574</td><td style="color:var(--blue);font-weight:600">$28.126</td><td>$671</td></tr>
-      <tr><td>Francisco Massari (10%)</td><td>$6.785</td><td>$3.635</td><td style="color:var(--orange);font-weight:600">$10.420</td><td>$252</td></tr>
-    </tbody></table></div>
-    <div class="two eq">
-      <div class="card"><div class="ct">Captación por socio (desde Aug 2025)</div>
-        <table><thead><tr><th>Socio</th><th>Eventos</th><th>Ingresos</th><th>Gastos</th><th>Utilidad prom.</th></tr></thead><tbody>
-          <tr><td>G. Briceño</td><td>33</td><td>$58.418</td><td>$37.038</td><td style="color:var(--blue)">$648/ev.</td></tr>
-          <tr><td>E. Behrens</td><td>32</td><td>$17.124</td><td>$11.903</td><td style="color:var(--magenta)">$163/ev.</td></tr>
-          <tr><td>F. Massari</td><td>12</td><td>$19.101</td><td>$12.870</td><td style="color:var(--orange)">$519/ev.</td></tr>
-        </tbody></table>
-      </div>
-      <div class="card"><div class="ct">Honorarios 2026 por socio</div>
-        <table><thead><tr><th>Socio</th><th>Honorarios</th><th>Dividendos</th><th>Total</th></tr></thead><tbody>
-          <tr><td>G. Briceño</td><td>$2.714</td><td>$780</td><td style="color:var(--blue);font-weight:600">$3.494</td></tr>
-          <tr><td>E. Behrens</td><td>—</td><td>$1.600</td><td style="color:var(--magenta);font-weight:600">$1.600</td></tr>
-          <tr><td>F. Massari</td><td>—</td><td>—</td><td style="color:var(--orange);font-weight:600">—</td></tr>
-        </tbody></table>
-      </div>
+    <div class="card">
+      <div class="ct">Detalle honorarios</div>
+      <div class="twrap"><table><thead><tr><th>Persona</th><th>Eventos</th><th>Total</th><th>Prom./ev.</th></tr></thead>
+      <tbody id="est-honor-tbody"><tr><td colspan="4" style="color:var(--white4);text-align:center;padding:16px">Cargando...</td></tr></tbody></table></div>
     </div>
   </div>
 </div>
@@ -614,49 +484,36 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
 <!-- ═══ BALANCE ═══ -->
 <div id="v-balance" class="view">
   <div class="ph">
-    <div><div class="accent-line"></div><div class="ph-title">Balance</div><div class="ph-sub">Dinero disponible en la empresa por socio</div></div>
+    <div><div class="accent-line"></div><div class="ph-title">Balance</div><div class="ph-sub">Dinero disponible por socio · calculado desde Registro</div></div>
   </div>
-  <div class="sg" style="grid-template-columns:repeat(3,1fr);margin-bottom:20px">
-    <div class="sc" id="bal-gb">
-      <div class="sc-top" style="background:var(--blue)"></div>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px">
+    <div class="sc"><div class="sc-top" style="background:var(--blue)"></div>
       <div class="sl">Gustavo Briceño</div>
-      <div class="sv blue" id="bal-gb-total">$0</div>
-      <div class="ss" id="bal-gb-detail">Agarro $0 · Entregó $0</div>
+      <div class="sv blue" id="bal-gb-total">$—</div>
+      <div class="ss" id="bal-gb-detail">Agarro $— · Entregó $—</div>
     </div>
-    <div class="sc" id="bal-eb">
-      <div class="sc-top" style="background:var(--magenta)"></div>
+    <div class="sc"><div class="sc-top" style="background:var(--magenta)"></div>
       <div class="sl">Eduardo Behrens</div>
-      <div class="sv magenta" id="bal-eb-total">$0</div>
-      <div class="ss" id="bal-eb-detail">Agarro $0 · Entregó $0</div>
+      <div class="sv magenta" id="bal-eb-total">$—</div>
+      <div class="ss" id="bal-eb-detail">Agarro $— · Entregó $—</div>
     </div>
-    <div class="sc" id="bal-fm">
-      <div class="sc-top" style="background:var(--orange)"></div>
+    <div class="sc"><div class="sc-top" style="background:var(--orange)"></div>
       <div class="sl">Francisco Massari</div>
-      <div class="sv orange" id="bal-fm-total">$0</div>
-      <div class="ss" id="bal-fm-detail">Agarro $0 · Entregó $0</div>
+      <div class="sv orange" id="bal-fm-total">$—</div>
+      <div class="ss" id="bal-fm-detail">Agarro $— · Entregó $—</div>
     </div>
   </div>
-  <div class="card" style="text-align:center;padding:24px">
+  <div class="card" style="text-align:center;padding:24px;margin-bottom:14px">
     <div class="ct">Total disponible en Blast ProSound</div>
-    <div style="font-size:36px;font-weight:700;color:var(--blue);letter-spacing:-1px" id="bal-total">$0</div>
-    <div style="font-size:12px;color:var(--white4);margin-top:6px">Suma del balance de los 3 socios</div>
+    <div style="font-size:38px;font-weight:700;color:var(--blue);letter-spacing:-1px" id="bal-total">$—</div>
+    <div style="font-size:12px;color:var(--white4);margin-top:6px">Suma del balance de los 3 socios (Agarro − Entregó)</div>
   </div>
-  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:4px">
-    <div class="card" id="bal-detail-gb">
-      <div class="ct">Gustavo Briceño</div>
-      <div id="bal-rows-gb"></div>
-    </div>
-    <div class="card" id="bal-detail-eb">
-      <div class="ct">Eduardo Behrens</div>
-      <div id="bal-rows-eb"></div>
-    </div>
-    <div class="card" id="bal-detail-fm">
-      <div class="ct">Francisco Massari</div>
-      <div id="bal-rows-fm"></div>
-    </div>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px">
+    <div class="card"><div class="ct">Gustavo Briceño · Detalle</div><div id="bal-rows-gb"><div style="color:var(--white4);font-size:12px">Cargando...</div></div></div>
+    <div class="card"><div class="ct">Eduardo Behrens · Detalle</div><div id="bal-rows-eb"><div style="color:var(--white4);font-size:12px">Cargando...</div></div></div>
+    <div class="card"><div class="ct">Francisco Massari · Detalle</div><div id="bal-rows-fm"><div style="color:var(--white4);font-size:12px">Cargando...</div></div></div>
   </div>
 </div>
-
 </main>
 </div>
 
@@ -837,7 +694,7 @@ function sv(id,btn){
   document.querySelectorAll('.ni').forEach(b=>b.classList.remove('on'));
   document.getElementById('v-'+id).classList.add('on');
   btn.classList.add('on');
-  if(id==='eventos')    cargarTablaEventos();
+  if(id==='eventos'){if(_allTransacciones.length) calcularEventosDesdeRegistro(); else cargarTablaEventos();}
   if(id==='registro')   cargarTransacciones();
   if(id==='proveedores') cargarProveedores();
   if(id==='dashboard')  cargarUltimosEventos();
@@ -1400,19 +1257,42 @@ async function cargarUltimosEventos(){
 }
 
 async function cargarTablaEventos(){
-  // Fetch all events with pagination
-  let data = [];
-  let from = 0;
-  while(true){
-    const { data: page, error } = await supa.from('eventos').select('*').order('fecha',{ascending:false}).range(from, from+499);
-    if(error){ console.error(error); break; }
-    if(!page||page.length===0) break;
-    data = data.concat(page);
-    if(page.length < 500) break;
-    from += 500;
+  if(!_allTransacciones.length){
+    await cargarTransacciones();
   }
-  _allEventos = data;
-  renderEventos(data);
+  calcularEventosDesdeRegistro();
+}
+
+function calcularEventosDesdeRegistro(){
+  const map = {};
+  _allTransacciones.forEach(t => {
+    const cod = (t.codigo_evento || '').trim();
+    if(!cod) return;
+    if(!map[cod]){
+      map[cod] = { codigo:cod, fecha:t.fecha_evento, cliente_nombre:'', categoria:'Privado', referente:'', ingreso:0, gasto:0, estado:'Cobrado' };
+    }
+    const e = map[cod];
+    if(t.fecha_evento && (!e.fecha || t.fecha_evento < e.fecha)) e.fecha = t.fecha_evento;
+    // Ingresos
+    if(t.ingreso > 0){
+      e.ingreso += parseFloat(t.ingreso)||0;
+      if(!e.cliente_nombre && t.concepto) e.cliente_nombre = t.concepto;
+      if(!e.referente && t.responsable) e.referente = t.responsable;
+      if(t.estado === 'Por cobrar') e.estado = 'Por cobrar';
+    }
+    // Egresos
+    if(t.egreso > 0) e.gasto += parseFloat(t.egreso)||0;
+    // Categoria
+    const cats = {Privado:1,Corporativo:1,Institucional:1,Club:1};
+    if(cats[t.subcategoria]) e.categoria = t.subcategoria;
+  });
+
+  _allEventos = Object.values(map).sort((a,b) => {
+    if(!a.fecha) return 1;
+    if(!b.fecha) return -1;
+    return b.fecha.localeCompare(a.fecha);
+  });
+  renderEventos(_allEventos);
 }
 
 async function cargarTransacciones(){
@@ -1494,6 +1374,8 @@ async function guardarTransaccion(){
   if(error){ alert('Error: '+error.message); return; }
   document.getElementById('modal-tx').classList.remove('show');
   await cargarTransacciones();
+  calcularEventosDesdeRegistro();
+  renderPendientes();
   alert('✓ Transacción guardada');
 }
 
@@ -1743,8 +1625,9 @@ async function guardarEdicion(){
   if(error){ alert('Error guardando: '+error.message); return; }
   document.getElementById('modal-editar').classList.remove('show');
   await cargarTransacciones();
-  if(typeof renderPendientes === 'function') renderPendientes();
-  if(typeof renderBalance    === 'function') renderBalance();
+  calcularEventosDesdeRegistro();
+  renderPendientes();
+  renderBalance();
 }
 
 async function duplicarRow(id){
@@ -1831,14 +1714,238 @@ function showDriveStatus(msg, type){
   if(type === 'ok') setTimeout(function(){ el.style.display = 'none'; }, 6000);
 }
 
+
+// ─── DASHBOARD STATS DINÁMICOS ───
+function calcularStatsDashboard(){
+  if(!_allTransacciones.length) return;
+
+  const hoy = new Date();
+  const anioActual = hoy.getFullYear().toString();
+
+  // Ingresos año actual
+  const txAnio = _allTransacciones.filter(t => t.fecha_evento && t.fecha_evento.startsWith(anioActual));
+  const ingresosAnio = txAnio.reduce((s,t) => s + (parseFloat(t.ingreso)||0), 0);
+  const gastosAnio   = txAnio.reduce((s,t) => s + (parseFloat(t.egreso)||0),  0);
+  const utilidadAnio = ingresosAnio - gastosAnio;
+  const margen = ingresosAnio > 0 ? ((utilidadAnio/ingresosAnio)*100).toFixed(1) : 0;
+
+  // Contar eventos únicos del año
+  const codsAnio = new Set(txAnio.filter(t=>t.codigo_evento).map(t=>t.codigo_evento));
+  const numEventos = codsAnio.size;
+
+  // Por cobrar
+  const porCobrar = _allTransacciones.filter(t => t.estado === 'Por cobrar');
+  const totalPorCobrar = porCobrar.reduce((s,t) => s + (parseFloat(t.ingreso)||0), 0);
+  const numPorCobrar = new Set(porCobrar.filter(t=>t.codigo_evento).map(t=>t.codigo_evento)).size;
+
+  // Update DOM
+  const fmt = n => '$'+Math.round(n).toLocaleString('es-VE');
+  const el = id => document.getElementById(id);
+
+  // Stat cards
+  const cards = document.querySelectorAll('#v-dashboard .sg .sc');
+  if(cards[0]){
+    cards[0].querySelector('.sv').textContent = fmt(ingresosAnio);
+    cards[0].querySelector('.ss').textContent = numEventos + ' eventos registrados';
+  }
+  if(cards[1]){
+    cards[1].querySelector('.sv').textContent = fmt(utilidadAnio);
+    cards[1].querySelector('.ss').textContent = 'Margen del ' + margen + '%';
+  }
+  if(cards[2]){
+    cards[2].querySelector('.sv').textContent = fmt(totalPorCobrar);
+    cards[2].querySelector('.ss').textContent = (numPorCobrar||porCobrar.length) + ' pendientes';
+  }
+
+  // Update date subtitle
+  const sub = document.getElementById('dash-date');
+  if(sub) sub.textContent = 'Al ' + hoy.toLocaleDateString('es-VE',{day:'numeric',month:'long',year:'numeric'});
+
+  // Top clientes
+  const clienteMap = {};
+  _allTransacciones.forEach(t => {
+    if(t.ingreso > 0 && t.concepto){
+      if(!clienteMap[t.concepto]) clienteMap[t.concepto] = {total:0, eventos:new Set()};
+      clienteMap[t.concepto].total += parseFloat(t.ingreso)||0;
+      if(t.codigo_evento) clienteMap[t.concepto].eventos.add(t.codigo_evento);
+    }
+  });
+  const topClientes = Object.entries(clienteMap)
+    .map(([nombre,v]) => ({nombre, total:v.total, eventos:v.eventos.size}))
+    .sort((a,b) => b.total - a.total)
+    .slice(0,4);
+
+  const topEl = document.getElementById('top-clientes-list');
+  if(topEl){
+    topEl.innerHTML = topClientes.map(c =>
+      '<div style="display:flex;justify-content:space-between;align-items:center">'
+      +'<span style="color:var(--white3)">'+c.nombre+'</span>'
+      +'<span style="color:var(--blue);font-weight:600">'+fmt(c.total)+' <span style="color:var(--white4);font-weight:300">· '+c.eventos+' ev.</span></span>'
+      +'</div>'
+    ).join('');
+  }
+
+  // Bar chart por categoria
+  const catMap = {Privado:0, Corporativo:0, Institucional:0, Club:0};
+  _allTransacciones.forEach(t => {
+    if(t.ingreso > 0 && catMap[t.subcategoria] !== undefined){
+      catMap[t.subcategoria] += parseFloat(t.ingreso)||0;
+    }
+  });
+  const maxCat = Math.max(...Object.values(catMap), 1);
+  const catBars = document.getElementById('cat-bars');
+  if(catBars){
+    const colors = {Privado:'var(--blue)', Corporativo:'var(--magenta)', Institucional:'var(--orange)', Club:'var(--white4)'};
+    catBars.innerHTML = Object.entries(catMap).map(([cat,val]) =>
+      '<div class="br"><div class="bl">'+cat+'</div>'
+      +'<div class="bt"><div class="bf" style="width:'+Math.round((val/maxCat)*100)+'%;background:'+colors[cat]+'">'+fmt(val)+'</div></div></div>'
+    ).join('');
+  }
+}
+
+// ─── SOCIOS DINÁMICO ───
+function renderSocios(){
+  if(!_allTransacciones.length){ setTimeout(renderSocios, 500); return; }
+
+  const socios = [
+    {nombre:'Gustavo Briceño',  alias:'Fukity', part:'30%', idPref:'gb', color:'var(--blue)'},
+    {nombre:'Eduardo Behrens',  alias:'Nene',   part:'60%', idPref:'eb', color:'var(--magenta)'},
+    {nombre:'Francisco Massari',alias:'Fran',   part:'10%', idPref:'fm', color:'var(--orange)'},
+  ];
+
+  socios.forEach(s => {
+    const rows = _allTransacciones.filter(t => t.responsable === s.nombre);
+    const agarro  = rows.reduce((sum,t) => sum + (parseFloat(t.ingreso)||0), 0);
+    const entrego = rows.reduce((sum,t) => sum + (parseFloat(t.egreso)||0),  0);
+    const balance = agarro - entrego;
+    const eventos = new Set(rows.filter(t=>t.codigo_evento).map(t=>t.codigo_evento)).size;
+    const fmt = n => '$'+Math.round(n).toLocaleString('es-VE');
+
+    const card = document.getElementById('soc-'+s.idPref);
+    if(card){
+      const svEl = card.querySelector('.ssv');
+      const slEl = card.querySelectorAll('.ssv');
+      if(slEl[0]) { slEl[0].textContent = fmt(balance); slEl[0].style.color = s.color; }
+      if(slEl[1]) { slEl[1].textContent = eventos; slEl[1].style.color = s.color; }
+    }
+
+    // Update distribution table
+    const tdAgarro  = document.getElementById('soc-agarro-'+s.idPref);
+    const tdEntrego = document.getElementById('soc-entrego-'+s.idPref);
+    const tdBalance = document.getElementById('soc-balance-'+s.idPref);
+    if(tdAgarro)  tdAgarro.textContent  = fmt(agarro);
+    if(tdEntrego) tdEntrego.textContent = fmt(entrego);
+    if(tdBalance){ tdBalance.textContent = fmt(balance); tdBalance.style.color = balance >= 0 ? s.color : '#e05555'; }
+  });
+}
+
+// ─── ESTADÍSTICAS DINÁMICAS ───
+function renderEstadisticas(){
+  if(!_allTransacciones.length){ setTimeout(renderEstadisticas, 500); return; }
+
+  const fmt = n => '$'+Math.round(n).toLocaleString('es-VE');
+
+  // Total general
+  const totalIng  = _allTransacciones.reduce((s,t) => s + (parseFloat(t.ingreso)||0), 0);
+  const totalGasto = _allTransacciones.reduce((s,t) => s + (parseFloat(t.egreso)||0),  0);
+  const totalUtil  = totalIng - totalGasto;
+  const totalEvs   = new Set(_allTransacciones.filter(t=>t.codigo_evento).map(t=>t.codigo_evento)).size;
+  const promEvento = totalEvs > 0 ? totalIng / totalEvs : 0;
+
+  // By year
+  const byYear = {};
+  _allTransacciones.forEach(t => {
+    if(!t.fecha_evento) return;
+    const yr = t.fecha_evento.substring(0,4);
+    if(!byYear[yr]) byYear[yr] = {ing:0, gasto:0, evs:new Set()};
+    byYear[yr].ing   += parseFloat(t.ingreso)||0;
+    byYear[yr].gasto += parseFloat(t.egreso)||0;
+    if(t.codigo_evento) byYear[yr].evs.add(t.codigo_evento);
+  });
+
+  // By quarter
+  const byQ = {};
+  _allTransacciones.forEach(t => {
+    if(!t.fecha_evento) return;
+    const d = new Date(t.fecha_evento+'T12:00:00');
+    const yr = d.getFullYear();
+    const q  = Math.ceil((d.getMonth()+1)/3);
+    const key = 'Q'+q+' '+yr;
+    if(!byQ[key]) byQ[key] = {ing:0, gasto:0, evs:new Set(), yr, q};
+    byQ[key].ing   += parseFloat(t.ingreso)||0;
+    byQ[key].gasto += parseFloat(t.egreso)||0;
+    if(t.codigo_evento) byQ[key].evs.add(t.codigo_evento);
+  });
+
+  // Update stat cards in estadisticas
+  const eEl = id => document.getElementById(id);
+  if(eEl('est-total-ev'))   eEl('est-total-ev').textContent   = totalEvs.toLocaleString();
+  if(eEl('est-total-ing'))  eEl('est-total-ing').textContent  = fmt(totalIng);
+  if(eEl('est-prom-ev'))    eEl('est-prom-ev').textContent    = fmt(promEvento);
+  if(eEl('est-total-util')) eEl('est-total-util').textContent = fmt(totalUtil);
+
+  // Annual table
+  const anualTbody = document.getElementById('est-anual-tbody');
+  if(anualTbody){
+    anualTbody.innerHTML = Object.entries(byYear).sort((a,b)=>b[0].localeCompare(a[0])).map(([yr,v]) => {
+      const util = v.ing - v.gasto;
+      const mrg  = v.ing > 0 ? ((util/v.ing)*100).toFixed(1)+'%' : '—';
+      return '<tr><td>'+yr+'</td><td>'+v.evs.size+'</td><td>'+fmt(v.ing)+'</td><td>'+fmt(v.gasto)+'</td>'
+        +'<td style="color:#3dca6e;font-weight:600">'+fmt(util)+'</td><td style="color:var(--white4)">'+mrg+'</td></tr>';
+    }).join('');
+  }
+
+  // Quarterly table
+  const trimTbody = document.getElementById('est-trim-tbody');
+  if(trimTbody){
+    trimTbody.innerHTML = Object.entries(byQ)
+      .sort((a,b) => { if(b[1].yr !== a[1].yr) return b[1].yr - a[1].yr; return b[1].q - a[1].q; })
+      .map(([key,v]) => {
+        const util = v.ing - v.gasto;
+        const mrg  = v.ing > 0 ? ((util/v.ing)*100).toFixed(1)+'%' : '—';
+        return '<tr><td>'+key+'</td><td>'+v.evs.size+'</td><td>'+fmt(v.ing)+'</td><td>'+fmt(v.gasto)+'</td>'
+          +'<td style="color:#3dca6e;font-weight:600">'+fmt(util)+'</td><td style="color:var(--white4)">'+mrg+'</td></tr>';
+      }).join('');
+  }
+
+  // Honorarios por persona
+  const honorMap = {};
+  _allTransacciones.filter(t => t.subcategoria === 'Honorarios' && t.egreso > 0).forEach(t => {
+    const p = t.concepto || 'Desconocido';
+    if(!honorMap[p]) honorMap[p] = {total:0, evs:new Set()};
+    honorMap[p].total += parseFloat(t.egreso)||0;
+    if(t.codigo_evento) honorMap[p].evs.add(t.codigo_evento);
+  });
+  const honorTbody = document.getElementById('est-honor-tbody');
+  const honorBars  = document.getElementById('est-honor-bars');
+  if(honorTbody || honorBars){
+    const sorted = Object.entries(honorMap).sort((a,b)=>b[1].total-a[1].total).slice(0,10);
+    const maxH = sorted[0] ? sorted[0][1].total : 1;
+    if(honorTbody){
+      honorTbody.innerHTML = sorted.map(([p,v]) =>
+        '<tr><td>'+p+'</td><td>'+v.evs.size+'</td><td style="color:var(--blue);font-weight:600">'+fmt(v.total)+'</td><td style="color:var(--white4)">'+fmt(v.total/Math.max(v.evs.size,1))+'/ev.</td></tr>'
+      ).join('');
+    }
+    if(honorBars){
+      const colors = ['var(--blue)','var(--magenta)','var(--orange)','var(--white4)','var(--white4)'];
+      honorBars.innerHTML = sorted.map(([p,v],i) =>
+        '<div class="br"><div class="bl" style="font-size:10px;width:100px">'+p.split(' ')[0]+' '+( p.split(' ')[1]||'')+'</div>'
+        +'<div class="bt"><div class="bf" style="width:'+Math.round((v.total/maxH)*100)+'%;background:'+colors[Math.min(i,4)]+'">'+fmt(v.total)+'</div></div>'
+        +'<div class="ba">'+v.evs.size+' ev.</div></div>'
+      ).join('');
+    }
+  }
+}
+
 // ─── INIT ───
 async function init(){
   initDashboard();
   loadBCV();
   addRow();
-  await cargarUltimosEventos();
-  await cargarTablaEventos();
   await cargarTransacciones();
+  calcularEventosDesdeRegistro();
+  calcularStatsDashboard();
+  await cargarUltimosEventos();
   await cargarProveedores();
 }
 init();
