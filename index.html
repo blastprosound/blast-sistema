@@ -1374,66 +1374,8 @@ function buildPDFHTML(){
 </body></html>';
 
 
-function showDriveStatus(msg, type){
-  const el = document.getElementById('drive-status');
-  el.textContent = msg;
-  el.className = 'drive-status ' + type;
-  el.style.display = 'inline-block';
-  if(type === 'ok') setTimeout(function(){ el.style.display = 'none'; }, 6000);
-}
 
-async function exportarADrive(){
-  const btn = document.getElementById('btn-drive');
 
-  // Validate items
-  let hasItems = false;
-  document.querySelectorAll('.cir').forEach(function(r){
-    if(r.querySelector('.xcon').value && r.querySelector('.xpri').value && r.querySelector('.xcat').textContent !== '—')
-      hasItems = true;
-  });
-  if(!hasItems){ alert('Agrega al menos un ítem antes de exportar.'); return; }
-
-  btn.disabled = true;
-  showDriveStatus('Conectando con Google Drive...', 'loading');
-
-  getDriveToken(async function(token){
-    try{
-      // Navigate to correct folder: Ventas > Cotizaciones > YYYY > M. Mes
-      const { monthId, path } = await getTargetFolder(token);
-
-      // Build filename: COT_DDMMYY-XX_Cliente.html
-      const { cliente, codigo, html } = buildPDFHTML();
-      const safeCode   = codigo.replace(/[^a-zA-Z0-9]/g, '_');
-      const safeClient = cliente.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '');
-      const filename   = safeCode + '_' + safeClient + '.html';
-
-      showDriveStatus('Subiendo ' + filename + '...', 'loading');
-
-      const blob     = new Blob([html], { type: 'text/html' });
-      const metadata = { name: filename, parents: [monthId], mimeType: 'text/html' };
-      const form     = new FormData();
-      form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
-      form.append('file', blob);
-
-      const up = await fetch(
-        'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name,webViewLink',
-        { method: 'POST', headers: { 'Authorization': 'Bearer ' + token }, body: form }
-      );
-      const file = await up.json();
-
-      if(file.id){
-        showDriveStatus('✓ Guardado en ' + path, 'ok');
-        setTimeout(function(){ window.open(file.webViewLink, '_blank'); }, 400);
-      } else {
-        throw new Error(file.error ? file.error.message : JSON.stringify(file));
-      }
-    } catch(e){
-      console.error(e);
-      showDriveStatus('Error: ' + e.message, 'err');
-    }
-    btn.disabled = false;
-  });
-}
 
 <script>
 // ─── SUPABASE ───
@@ -1674,141 +1616,6 @@ function renderTransacciones(data){
   }).join('');
 }
 
-// ─── EDIT ROW INLINE ───
-function editRow(btn){
-  const tr = btn.closest('tr');
-  if(tr.dataset.editing === 'true'){
-    saveRow(btn, tr);
-    return;
-  }
-  tr.dataset.editing = 'true';
-  tr.dataset.id = tr.dataset.id;
-  const cells = tr.querySelectorAll('td');
-  const vals = Array.from(cells).map(c => c.innerText.trim());
-  
-  // fecha_evento, fecha_pago, categoria, subcategoria, concepto, codigo, metodo, responsable, ingreso, egreso, estado
-  const cats = ['Evento','Equipos','Dividendos','Cambio divisas','Reserva','Préstamo'];
-  const estados = ['Cobrado','Pagado','Por cobrar','Por pagar','Exonerado'];
-  const metodos = ['Efectivo $','Zelle','Bs','Euro',''];
-  const resps = ['Gustavo Briceño','Eduardo Behrens','Francisco Massari'];
-
-  cells[0].innerHTML = '<input style="width:90px;padding:2px 4px;font-size:11px" value="'+vals[0]+'">';
-  cells[1].innerHTML = '<input style="width:90px;padding:2px 4px;font-size:11px" value="'+vals[1]+'">';
-  cells[2].innerHTML = selOpts(cats, vals[2]);
-  cells[3].innerHTML = '<input style="width:80px;padding:2px 4px;font-size:11px" value="'+vals[3]+'">';
-  cells[4].innerHTML = '<input style="width:120px;padding:2px 4px;font-size:11px" value="'+vals[4]+'">';
-  cells[5].innerHTML = '<input style="width:90px;padding:2px 4px;font-size:11px" value="'+vals[5]+'">';
-  cells[6].innerHTML = selOpts(metodos, vals[6]);
-  cells[7].innerHTML = selOpts(resps, vals[7]);
-  cells[8].innerHTML = '<input type="number" style="width:70px;padding:2px 4px;font-size:11px" value="'+vals[8].replace('$','').replace(',','')+'">';
-  cells[9].innerHTML = '<input type="number" style="width:70px;padding:2px 4px;font-size:11px" value="'+vals[9].replace('$','').replace(',','')+'">';
-  cells[10].innerHTML = selOpts(estados, vals[10]);
-  cells[11].innerHTML = '<div style="display:flex;gap:4px"><button class="btn btn-blue" style="padding:3px 8px;font-size:10px" onclick="saveRow(this,this.closest('tr'))">✓</button><button class="btn btn-ghost" style="padding:3px 8px;font-size:10px" onclick="cancelEdit(this)">✕</button></div>';
-}
-
-function selOpts(opts, current){
-  return '<select style="padding:2px 4px;font-size:11px">'+opts.map(o=>'<option'+(o===current?' selected':'')+'>'+o+'</option>').join('')+'</select>';
-}
-
-function cancelEdit(btn){
-  cargarTransacciones();
-}
-
-async function saveRow(btn, tr){
-  const id = tr.dataset.id;
-  const cells = tr.querySelectorAll('td');
-  const getVal = i => cells[i].querySelector('input,select') ? cells[i].querySelector('input,select').value : cells[i].innerText.trim();
-  
-  const parseDate = s => {
-    if(!s||s==='—') return null;
-    // Try dd/mm/yy or dd mes. yy
-    const parts = s.split(/[\s\.]+/);
-    if(parts.length >= 3){
-      const months = {ene:1,feb:2,mar:3,abr:4,may:5,jun:6,jul:7,ago:8,sep:9,oct:10,nov:11,dic:12};
-      const m = months[parts[1].toLowerCase().slice(0,3)];
-      if(m){
-        const y = parseInt(parts[2]) < 100 ? 2000+parseInt(parts[2]) : parseInt(parts[2]);
-        return y+'-'+String(m).padStart(2,'0')+'-'+String(parseInt(parts[0])).padStart(2,'0');
-      }
-    }
-    return null;
-  };
-
-  const updates = {
-    fecha_evento:  parseDate(getVal(0)),
-    fecha_pago:    parseDate(getVal(1)),
-    categoria:     getVal(2),
-    subcategoria:  getVal(3),
-    concepto:      getVal(4),
-    codigo_evento: getVal(5)||null,
-    metodo_pago:   getVal(6),
-    responsable:   getVal(7),
-    ingreso:       parseFloat(getVal(8))||0,
-    egreso:        parseFloat(getVal(9))||0,
-    estado:        getVal(10)
-  };
-
-  const {error} = await supa.from('transacciones').update(updates).eq('id', id);
-  if(error){ alert('Error: '+error.message); return; }
-  await cargarTransacciones();
-}
-
-function abrirEditar(id){
-  const t = _allTransacciones.find(x => x.id === id);
-  if(!t) return;
-  document.getElementById('edit-id').value = id;
-  document.getElementById('edit-fecha-evento').value = t.fecha_evento || '';
-  document.getElementById('edit-fecha-pago').value   = t.fecha_pago   || '';
-  document.getElementById('edit-categoria').value    = t.categoria    || 'Evento';
-  document.getElementById('edit-subcategoria').value = t.subcategoria || '';
-  document.getElementById('edit-estado').value       = t.estado       || 'Cobrado';
-  document.getElementById('edit-codigo').value       = t.codigo_evento|| '';
-  document.getElementById('edit-concepto').value     = t.concepto     || '';
-  document.getElementById('edit-metodo').value       = t.metodo_pago  || 'Efectivo $';
-  document.getElementById('edit-responsable').value  = t.responsable  || 'Gustavo Briceño';
-  document.getElementById('edit-ingreso').value      = t.ingreso      || 0;
-  document.getElementById('edit-egreso').value       = t.egreso       || 0;
-  document.getElementById('edit-descripcion').value  = t.descripcion  || '';
-  document.getElementById('modal-editar').classList.add('show');
-}
-
-async function guardarEdicion(){
-  const id = document.getElementById('edit-id').value;
-  const updates = {
-    fecha_evento:  document.getElementById('edit-fecha-evento').value || null,
-    fecha_pago:    document.getElementById('edit-fecha-pago').value   || null,
-    categoria:     document.getElementById('edit-categoria').value,
-    subcategoria:  document.getElementById('edit-subcategoria').value,
-    estado:        document.getElementById('edit-estado').value,
-    codigo_evento: document.getElementById('edit-codigo').value       || null,
-    concepto:      document.getElementById('edit-concepto').value,
-    metodo_pago:   document.getElementById('edit-metodo').value,
-    responsable:   document.getElementById('edit-responsable').value,
-    ingreso:       parseFloat(document.getElementById('edit-ingreso').value) || 0,
-    egreso:        parseFloat(document.getElementById('edit-egreso').value)  || 0,
-    descripcion:   document.getElementById('edit-descripcion').value
-  };
-  const {error} = await supa.from('transacciones').update(updates).eq('id', id);
-  if(error){ alert('Error: '+error.message); return; }
-  document.getElementById('modal-editar').classList.remove('show');
-  await cargarTransacciones();
-}
-
-async function duplicarRow(id){
-  const tx = _allTransacciones.find(t => t.id === id);
-  if(!tx) return;
-  const {id:_, created_at:__, ...data} = tx;
-  const {error} = await supa.from('transacciones').insert(data);
-  if(error){ alert('Error: '+error.message); return; }
-  await cargarTransacciones();
-}
-
-async function eliminarRow(id){
-  if(!confirm('¿Eliminar esta transacción?')) return;
-  const {error} = await supa.from('transacciones').delete().eq('id', id);
-  if(error){ alert('Error: '+error.message); return; }
-  await cargarTransacciones();
-}
 
 // ─── PENDIENTES ───
 function renderPendientes(){
@@ -1893,6 +1700,135 @@ function renderBalance(){
   const totalColor = totalEmpresa >= 0 ? 'var(--blue)' : '#e05555';
   document.getElementById('bal-total').textContent = '$'+totalEmpresa.toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2});
   document.getElementById('bal-total').style.color = totalColor;
+}
+
+
+// ─── EDITAR TRANSACCIÓN ───
+function abrirEditar(id){
+  const t = _allTransacciones.find(x => x.id === id);
+  if(!t){ alert('No se encontró la transacción'); return; }
+  document.getElementById('edit-id').value          = id;
+  document.getElementById('edit-fecha-evento').value = t.fecha_evento || '';
+  document.getElementById('edit-fecha-pago').value   = t.fecha_pago   || '';
+  document.getElementById('edit-categoria').value    = t.categoria    || 'Evento';
+  document.getElementById('edit-subcategoria').value = t.subcategoria || '';
+  document.getElementById('edit-estado').value       = t.estado       || 'Cobrado';
+  document.getElementById('edit-codigo').value       = t.codigo_evento|| '';
+  document.getElementById('edit-concepto').value     = t.concepto     || '';
+  document.getElementById('edit-metodo').value       = t.metodo_pago  || 'Efectivo $';
+  document.getElementById('edit-responsable').value  = t.responsable  || 'Gustavo Briceño';
+  document.getElementById('edit-ingreso').value      = t.ingreso      || 0;
+  document.getElementById('edit-egreso').value       = t.egreso       || 0;
+  document.getElementById('edit-descripcion').value  = t.descripcion  || '';
+  document.getElementById('modal-editar').classList.add('show');
+}
+
+async function guardarEdicion(){
+  const id = document.getElementById('edit-id').value;
+  const updates = {
+    fecha_evento:  document.getElementById('edit-fecha-evento').value || null,
+    fecha_pago:    document.getElementById('edit-fecha-pago').value   || null,
+    categoria:     document.getElementById('edit-categoria').value,
+    subcategoria:  document.getElementById('edit-subcategoria').value,
+    estado:        document.getElementById('edit-estado').value,
+    codigo_evento: document.getElementById('edit-codigo').value       || null,
+    concepto:      document.getElementById('edit-concepto').value,
+    metodo_pago:   document.getElementById('edit-metodo').value,
+    responsable:   document.getElementById('edit-responsable').value,
+    ingreso:       parseFloat(document.getElementById('edit-ingreso').value)  || 0,
+    egreso:        parseFloat(document.getElementById('edit-egreso').value)   || 0,
+    descripcion:   document.getElementById('edit-descripcion').value
+  };
+  const {error} = await supa.from('transacciones').update(updates).eq('id', id);
+  if(error){ alert('Error guardando: '+error.message); return; }
+  document.getElementById('modal-editar').classList.remove('show');
+  await cargarTransacciones();
+  if(typeof renderPendientes === 'function') renderPendientes();
+  if(typeof renderBalance    === 'function') renderBalance();
+}
+
+async function duplicarRow(id){
+  const t = _allTransacciones.find(x => x.id === id);
+  if(!t) return;
+  const {id: _, created_at: __, ...data} = t;
+  const {error} = await supa.from('transacciones').insert(data);
+  if(error){ alert('Error duplicando: '+error.message); return; }
+  await cargarTransacciones();
+}
+
+async function eliminarRow(id){
+  if(!confirm('¿Eliminar esta transacción? Esta acción no se puede deshacer.')) return;
+  const {error} = await supa.from('transacciones').delete().eq('id', id);
+  if(error){ alert('Error eliminando: '+error.message); return; }
+  await cargarTransacciones();
+}
+
+// ─── DRIVE CON GUARDADO ───
+async function exportarADriveConGuardado(){
+  await guardarCotizacionDB();
+  await exportarADrive();
+}
+
+async function exportarADrive(){
+  const btn = document.getElementById('btn-drive');
+
+  // Validate items
+  let hasItems = false;
+  document.querySelectorAll('.cir').forEach(function(r){
+    if(r.querySelector('.xcon').value && r.querySelector('.xpri').value && r.querySelector('.xcat').textContent !== '—')
+      hasItems = true;
+  });
+  if(!hasItems){ alert('Agrega al menos un ítem antes de exportar.'); return; }
+
+  btn.disabled = true;
+  showDriveStatus('Conectando con Google Drive...', 'loading');
+
+  getDriveToken(async function(token){
+    try{
+      // Navigate to correct folder: Ventas > Cotizaciones > YYYY > M. Mes
+      const { monthId, path } = await getTargetFolder(token);
+
+      // Build filename: COT_DDMMYY-XX_Cliente.html
+      const { cliente, codigo, html } = buildPDFHTML();
+      const safeCode   = codigo.replace(/[^a-zA-Z0-9]/g, '_');
+      const safeClient = cliente.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '');
+      const filename   = safeCode + '_' + safeClient + '.html';
+
+      showDriveStatus('Subiendo ' + filename + '...', 'loading');
+
+      const blob     = new Blob([html], { type: 'text/html' });
+      const metadata = { name: filename, parents: [monthId], mimeType: 'text/html' };
+      const form     = new FormData();
+      form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+      form.append('file', blob);
+
+      const up = await fetch(
+        'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name,webViewLink',
+        { method: 'POST', headers: { 'Authorization': 'Bearer ' + token }, body: form }
+      );
+      const file = await up.json();
+
+      if(file.id){
+        showDriveStatus('✓ Guardado en ' + path, 'ok');
+        setTimeout(function(){ window.open(file.webViewLink, '_blank'); }, 400);
+      } else {
+        throw new Error(file.error ? file.error.message : JSON.stringify(file));
+      }
+    } catch(e){
+      console.error(e);
+      showDriveStatus('Error: ' + e.message, 'err');
+    }
+    btn.disabled = false;
+  });
+}
+
+
+function showDriveStatus(msg, type){
+  const el = document.getElementById('drive-status');
+  el.textContent = msg;
+  el.className = 'drive-status ' + type;
+  el.style.display = 'inline-block';
+  if(type === 'ok') setTimeout(function(){ el.style.display = 'none'; }, 6000);
 }
 
 // ─── INIT ───
