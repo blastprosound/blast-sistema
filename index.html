@@ -274,7 +274,7 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
 <!-- ═══ REGISTRO ═══ -->
 <div id="v-registro" class="view">
   <div class="ph">
-    <div><div class="accent-line"></div><div class="ph-title">Registro</div><div class="ph-sub">Cada ingreso y egreso de la empresa</div></div>
+    <div><div class="accent-line"></div><div class="ph-title">Registro</div><div class="ph-sub" id="registro-sub">Cada ingreso y egreso de la empresa</div></div>
     <button class="btn btn-blue btn-sm" onclick="document.getElementById('modal-tx').classList.add('show')"><i class="ti ti-plus"></i>Nueva transacción</button>
   </div>
   <div class="btn-row" style="margin-bottom:14px">
@@ -286,7 +286,7 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
   <div class="card np">
     <div class="twrap"><table>
       <thead><tr><th>F.Evento</th><th>F.Pago</th><th>Categoría</th><th>Sub-Cat</th><th>Concepto</th><th>Código</th><th>Método</th><th>Resp.</th><th>Ingreso</th><th>Egreso</th><th>Estado</th><th></th></tr></thead>
-      <tbody>
+      <tbody id="registro-tbody">
         <tr><td>25 Jul 25</td><td>25 Jul 25</td><td>Evento</td><td>Privado</td><td>Manuela Sanglimbeni</td><td class="mono">25072025-MS</td><td>Efectivo $</td><td>G. Briceño</td><td style="color:#3dca6e;font-weight:600">$950</td><td>—</td><td><span class="badge b-green">Cobrado</span></td></tr>
         <tr><td>25 Jul 25</td><td>25 Jul 25</td><td>Evento</td><td>Locación</td><td>Qta Biloxi (1er abono)</td><td class="mono">25072025-MS</td><td>Efectivo $</td><td>F. Massari</td><td>—</td><td style="color:#e05555;font-weight:600">$900</td><td><span class="badge b-magenta">Pagado</span></td></tr>
         <tr><td>25 Jul 25</td><td>25 Jul 25</td><td>Evento</td><td>DJ</td><td>Francisco Massari</td><td class="mono">25072025-MS</td><td>Efectivo $</td><td>F. Massari</td><td>—</td><td style="color:#e05555;font-weight:600">$200</td><td><span class="badge b-magenta">Pagado</span></td></tr>
@@ -1296,8 +1296,8 @@ function calcularEventosDesdeRegistro(){
 }
 
 async function cargarTransacciones(){
-  const tbody = document.querySelector('#v-registro tbody');
-  const subEl = document.querySelector('#v-registro .ph-sub');
+  const tbody = document.getElementById('registro-tbody') || document.querySelector('#v-registro tbody');
+  const subEl = document.getElementById('registro-sub');
   tbody.innerHTML='<tr><td colspan="11" style="color:var(--white4);text-align:center;padding:20px">Cargando...</td></tr>';
 
   // Paginate to fetch ALL records regardless of count
@@ -1480,8 +1480,8 @@ function filtrarRegistro(){
 }
 
 function renderTransacciones(data){
-  const tbody = document.querySelector('#v-registro tbody');
-  const subEl = document.querySelector('#v-registro .ph-sub');
+  const tbody = document.getElementById('registro-tbody');
+  const subEl = document.getElementById('registro-sub');
   if(subEl) subEl.textContent = data.length.toLocaleString() + ' transacciones' + (data.length < _allTransacciones.length ? ' (filtradas de '+_allTransacciones.length+')' : '');
   if(!data.length){
     tbody.innerHTML='<tr><td colspan="12" style="color:var(--white4);text-align:center;padding:20px">No hay transacciones con esos filtros</td></tr>';
