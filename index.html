@@ -164,18 +164,49 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
 .drive-status.ok{background:rgba(52,168,83,.15);color:#2d7a3a}
 .drive-status.err{background:rgba(234,67,53,.15);color:#c62828}
 .drive-status.loading{background:rgba(67,189,237,.15);color:var(--blue)}
+
+/* ─── RESPONSIVE ─── */
+@media (max-width: 768px) {
+  .nav { display: none }
+  .nav.open { display: flex; position: fixed; left: 0; top: 52px; bottom: 0; z-index: 300; width: 220px; overflow-y: auto }
+  .menu-btn { display: flex !important }
+  .main { padding: 14px }
+  .sg { grid-template-columns: 1fr 1fr }
+  .sg3 { grid-template-columns: 1fr }
+  .sg2 { grid-template-columns: 1fr }
+  .two, .two.eq, .three { grid-template-columns: 1fr }
+  .cot-grid { grid-template-columns: 1fr }
+  .fg { grid-template-columns: 1fr }
+  .ph { flex-direction: column; align-items: flex-start; gap: 10px }
+  .btn-row { flex-wrap: wrap }
+  .topbar { padding: 0 12px }
+  .tasa-pill { font-size: 10px; padding: 3px 8px }
+  .twrap { -webkit-overflow-scrolling: touch }
+  .modal { width: 95vw; padding: 16px }
+  .dd-list { right: 0 }
+  .ptitle { font-size: 17px }
+}
+@media (max-width: 480px) {
+  .sg { grid-template-columns: 1fr }
+  .sval { font-size: 18px }
+  th, td { padding: 6px 8px; font-size: 11px }
+}
 </style>
 </head>
 <body>
 
 <div class="topbar">
-  <div class="brand">BLAST <span>PROSOUND</span></div>
+  <div style="display:flex;align-items:center;gap:10px">
+    <button class="menu-btn btn btn-ghost btn-sm" onclick="toggleNav()" style="display:none;padding:4px 8px" aria-label="Menú"><i class="ti ti-menu-2" style="font-size:18px"></i></button>
+    <div class="brand">BLAST <span>PROSOUND</span></div>
+  </div>
   <div class="topbar-right">
     <div class="tasa-pill" id="tasa-pill">BCV <b id="t-usd">—</b> Bs &nbsp;·&nbsp; Euro <b id="t-eur">—</b> Bs</div>
     <div class="user-chip"><div class="user-dot"></div><span>Gustavo Briceño</span></div>
   </div>
 </div>
 
+<div id="nav-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:299" onclick="toggleNav()"></div>
 <div class="layout">
 <nav class="nav">
   <div class="nlabel">Principal</div>
@@ -860,8 +891,8 @@ function renderBalance() {
   let totalEmpresa = 0;
   socios.forEach(s => {
     const rows   = TX.filter(t => t.responsable === s.nombre);
-    const agarro = rows.reduce((sum,t) => sum + (parseFloat(t.ingreso)||0), 0);
-    const entrego= rows.reduce((sum,t) => sum + (parseFloat(t.egreso) ||0), 0);
+    const agarro = rows.filter(t => t.estado === 'Cobrado').reduce((sum,t) => sum + (parseFloat(t.ingreso)||0), 0);
+    const entrego= rows.filter(t => t.estado === 'Pagado' ).reduce((sum,t) => sum + (parseFloat(t.egreso) ||0), 0);
     const bal    = agarro - entrego;
     totalEmpresa += bal;
     const balColor = bal >= 0 ? s.color : 'var(--red)';
@@ -902,8 +933,8 @@ function renderSocios() {
   const tableRows = [];
   socios.forEach(s => {
     const rows   = TX.filter(t => t.responsable === s.nombre);
-    const agarro = rows.reduce((sum,t) => sum + (parseFloat(t.ingreso)||0), 0);
-    const entrego= rows.reduce((sum,t) => sum + (parseFloat(t.egreso) ||0), 0);
+    const agarro = rows.filter(t => t.estado === 'Cobrado').reduce((sum,t) => sum + (parseFloat(t.ingreso)||0), 0);
+    const entrego= rows.filter(t => t.estado === 'Pagado' ).reduce((sum,t) => sum + (parseFloat(t.egreso) ||0), 0);
     const bal    = agarro - entrego;
     const evs    = new Set(rows.filter(t=>t.codigo_evento).map(t=>t.codigo_evento)).size;
     $(s.balId).textContent = fmtD(bal);
@@ -1302,6 +1333,25 @@ async function exportarADriveConGuardado(){
   await guardarCotizacionDB();
   await exportarADrive();
 }
+
+// ─── MOBILE NAV ───
+function toggleNav() {
+  const nav = document.querySelector('.nav');
+  const overlay = document.getElementById('nav-overlay');
+  const isOpen = nav.classList.toggle('open');
+  overlay.style.display = isOpen ? 'block' : 'none';
+}
+
+// Close nav when a menu item is clicked on mobile
+document.querySelectorAll('.ni').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const nav = document.querySelector('.nav');
+    if (nav.classList.contains('open')) {
+      nav.classList.remove('open');
+      document.getElementById('nav-overlay').style.display = 'none';
+    }
+  });
+});
 
 // ─── INIT ───
 async function init() {
