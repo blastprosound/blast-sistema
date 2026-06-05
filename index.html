@@ -191,9 +191,39 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
   .sval { font-size: 18px }
   th, td { padding: 6px 8px; font-size: 11px }
 }
+
+/* ─── LOGIN ─── */
+.login-screen{position:fixed;inset:0;background:var(--black);display:flex;align-items:center;justify-content:center;z-index:1000;flex-direction:column}
+.login-box{background:var(--black2);border:1px solid var(--border2);border-radius:14px;padding:36px 32px;width:360px;max-width:92vw}
+.login-logo{font-family:'Archivo',sans-serif;font-weight:900;font-size:28px;color:var(--white);letter-spacing:5px;text-align:center;margin-bottom:4px}
+.login-sub{font-size:10px;letter-spacing:5px;color:var(--blue);text-align:center;margin-bottom:28px}
+.login-error{background:rgba(224,85,85,.15);border:1px solid rgba(224,85,85,.3);border-radius:6px;padding:8px 12px;font-size:12px;color:#e05555;margin-bottom:12px;display:none}
+.login-btn{width:100%;background:var(--blue);color:var(--black);border:none;padding:11px;border-radius:7px;font-size:14px;font-weight:700;cursor:pointer;letter-spacing:1px;margin-top:8px;font-family:'Archivo',sans-serif}
+.login-btn:hover{background:var(--blue2)}
+.login-btn:disabled{opacity:.5;cursor:not-allowed}
 </style>
 </head>
 <body>
+
+
+<!-- LOGIN SCREEN -->
+<div class="login-screen" id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">BLAST</div>
+    <div class="login-sub">PROSOUND</div>
+    <div class="login-error" id="login-error">Email o contraseña incorrectos</div>
+    <div class="fgrp" style="margin-bottom:11px">
+      <label class="flabel">Email</label>
+      <input type="email" id="login-email" placeholder="tu@email.com" onkeydown="if(event.key==='Enter') doLogin()">
+    </div>
+    <div class="fgrp" style="margin-bottom:4px">
+      <label class="flabel">Contraseña</label>
+      <input type="password" id="login-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter') doLogin()">
+    </div>
+    <button class="login-btn" id="login-btn" onclick="doLogin()">Entrar</button>
+  </div>
+  <div style="margin-top:20px;font-size:10px;color:var(--w4)">Blast ProSound · Sistema interno</div>
+</div>
 
 <div class="topbar">
   <div style="display:flex;align-items:center;gap:10px">
@@ -202,7 +232,14 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
   </div>
   <div class="topbar-right">
     <div class="tasa-pill" id="tasa-pill">BCV <b id="t-usd">—</b> Bs &nbsp;·&nbsp; Euro <b id="t-eur">—</b> Bs</div>
-    <div class="user-chip"><div class="user-dot"></div><span>Gustavo Briceño</span></div>
+    <div class="user-chip" onclick="toggleUserMenu()" id="user-chip">
+    <div class="user-dot"></div>
+    <span id="user-name">—</span>
+    <i class="ti ti-chevron-down" style="font-size:11px;color:var(--w4)"></i>
+  </div>
+  <div id="user-menu" style="display:none;position:absolute;top:50px;right:16px;background:var(--black2);border:1px solid var(--border2);border-radius:8px;padding:6px;min-width:160px;z-index:300">
+    <button onclick="doLogout()" class="ni" style="width:100%;color:var(--red);font-size:12px"><i class="ti ti-logout"></i>Cerrar sesión</button>
+  </div>
   </div>
 </div>
 
@@ -543,25 +580,31 @@ document.addEventListener('click', function(e) {
   if (e.target.classList.contains('modal-bg')) e.target.classList.remove('show');
 });
 
-// ─── BCV RATES ───
+// ─── BCV RATES via DolarAPI ───
 async function loadBCV() {
   try {
-    const r = await fetch('https://api.allorigins.win/get?url=' + encodeURIComponent('https://www.bcv.org.ve/'), {signal: AbortSignal.timeout(8000)});
-    const d = await r.json();
-    const h = d.contents;
-    const usdM = h.match(/id="dolar"[\s\S]*?<strong>([\d,.]+)<\/strong>/);
-    const eurM = h.match(/id="euro"[\s\S]*?<strong>([\d,.]+)<\/strong>/);
-    if (usdM && eurM) {
-      const usd = parseFloat(usdM[1].replace(',','.'));
-      const eur = parseFloat(eurM[1].replace(',','.'));
+    const r = await fetch('https://ve.dolarapi.com/v1/dolares', {signal: AbortSignal.timeout(8000)});
+    const data = await r.json();
+    // Find BCV (official) rates
+    const usdObj = data.find(d => d.fuente === 'oficial' || d.nombre.toLowerCase().includes('oficial') || d.nombre.toLowerCase().includes('bcv'));
+    const eurObj = data.find(d => d.nombre.toLowerCase().includes('euro'));
+    if (usdObj) {
+      const usd = parseFloat(usdObj.promedio || usdObj.venta || usdObj.compra);
+      const fecha = usdObj.fechaActualizacion ? new Date(usdObj.fechaActualizacion).toLocaleDateString('es-VE',{day:'2-digit',month:'short'}) : '';
       $('t-usd').textContent = usd.toFixed(2);
-      $('t-eur').textContent = eur.toFixed(2);
       $('d-bcv').textContent = usd.toFixed(2) + ' Bs/$';
-      $('d-eur').textContent = 'Euro: ' + eur.toFixed(2) + ' Bs';
       $('cot-bcv').textContent = usd.toFixed(2);
+      if (fecha) $('tasa-pill').title = 'Actualizado: ' + fecha;
+    }
+    if (eurObj) {
+      const eur = parseFloat(eurObj.promedio || eurObj.venta || eurObj.compra);
+      $('t-eur').textContent = eur.toFixed(2);
+      $('d-eur').textContent = 'Euro: ' + eur.toFixed(2) + ' Bs';
     }
   } catch(e) {
+    console.warn('DolarAPI error:', e.message);
     $('t-usd').textContent = 'Sin conexión';
+    $('t-eur').textContent = '—';
   }
 }
 
@@ -1353,7 +1396,7 @@ document.querySelectorAll('.ni').forEach(btn => {
   });
 });
 
-// ─── INIT ───
+// ─── INIT (called after login) ───
 async function init() {
   const now = new Date();
   $('dash-date').textContent = 'Al ' + now.toLocaleDateString('es-VE', {day:'numeric', month:'long', year:'numeric'});
@@ -1362,7 +1405,73 @@ async function init() {
   await cargarTX();
 }
 
-init();
+
+// ─── AUTH ───
+const ALLOWED_EMAILS = {
+  'gustavobricenob@gmail.com':    'Gustavo Briceño',
+  'casadetejas@gmail.com':        'Eduardo Behrens',
+  'franciscomassari001@gmail.com':'Francisco Massari'
+};
+
+async function doLogin() {
+  const email = $('login-email').value.trim().toLowerCase();
+  const pass  = $('login-pass').value;
+  const btn   = $('login-btn');
+  const err   = $('login-error');
+  err.style.display = 'none';
+  if (!email || !pass) { err.textContent = 'Completa email y contraseña.'; err.style.display = 'block'; return; }
+  btn.disabled = true;
+  btn.textContent = 'Entrando...';
+  const {data, error} = await supa.auth.signInWithPassword({email, password: pass});
+  if (error) {
+    err.textContent = 'Email o contraseña incorrectos.';
+    err.style.display = 'block';
+    btn.disabled = false;
+    btn.textContent = 'Entrar';
+    return;
+  }
+  onLogin(data.user);
+}
+
+function onLogin(user) {
+  const nombre = ALLOWED_EMAILS[user.email.toLowerCase()] || user.email;
+  $('user-name').textContent = nombre;
+  $('login-screen').style.display = 'none';
+  // Update "Responsable" defaults to logged user
+  const respSelects = ['tx-resp', 'cresp'];
+  respSelects.forEach(id => { const el = $(id); if(el) el.value = nombre; });
+  init();
+}
+
+async function doLogout() {
+  await supa.auth.signOut();
+  location.reload();
+}
+
+function toggleUserMenu() {
+  const m = $('user-menu');
+  m.style.display = m.style.display === 'none' ? 'block' : 'none';
+}
+
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('#user-chip') && !e.target.closest('#user-menu')) {
+    const m = $('user-menu');
+    if (m) m.style.display = 'none';
+  }
+});
+
+// ─── CHECK SESSION ON LOAD ───
+async function checkSession() {
+  const {data: {session}} = await supa.auth.getSession();
+  if (session && session.user) {
+    onLogin(session.user);
+  }
+  // else: login screen stays visible
+}
+
+checkSession();
+
+
 </script>
 </body>
 </html>
