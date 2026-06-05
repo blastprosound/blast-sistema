@@ -232,7 +232,7 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
     <div class="brand">BLAST <span>PROSOUND</span></div>
   </div>
   <div class="topbar-right">
-    <div class="tasa-pill" id="tasa-pill">BCV <b id="t-usd">—</b> Bs &nbsp;·&nbsp; Euro <b id="t-eur">—</b> Bs</div>
+    <div class="tasa-pill" id="tasa-pill">Euro <b id="t-eur">—</b> Bs &nbsp;·&nbsp; BCV <b id="t-usd">—</b> Bs</div>
     <div class="user-chip" onclick="toggleUserMenu()" id="user-chip">
     <div class="user-dot"></div>
     <span id="user-name">—</span>
@@ -280,7 +280,7 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
     <div class="sc"><div class="sc-top" style="background:var(--blue)"></div><div class="slabel">Ingresos año actual</div><div class="sval" id="d-ing">—</div><div class="ssub" id="d-evs">— eventos</div></div>
     <div class="sc"><div class="sc-top" style="background:var(--green)"></div><div class="slabel">Utilidad neta</div><div class="sval" id="d-util">—</div><div class="ssub" id="d-margen">Margen —%</div></div>
     <div class="sc"><div class="sc-top" style="background:var(--orange)"></div><div class="slabel">Por cobrar</div><div class="sval" id="d-cobrar">—</div><div class="ssub" id="d-cobrar-n">— pendientes</div></div>
-    <div class="sc"><div class="sc-top" style="background:rgba(255,255,255,.2)"></div><div class="slabel">USD/Bs hoy</div><div class="sval" id="d-bcv" style="font-size:17px">—</div><div class="ssub" id="d-eur">Euro: —</div></div>
+    <div class="sc"><div class="sc-top" style="background:rgba(255,255,255,.2)"></div><div class="slabel">Euro/Bs hoy</div><div class="sval" id="d-eur" style="font-size:17px">—</div><div class="ssub" id="d-bcv">USD: —</div></div>
   </div>
   <div class="two">
     <div class="card np">
@@ -350,14 +350,42 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
     <div class="sc"><div class="sc-top" style="background:var(--blue)"></div><div class="slabel">Por cobrar</div><div class="sval" id="p-cobrar-total" style="color:var(--blue)">—</div><div class="ssub" id="p-cobrar-n">— registros</div></div>
     <div class="sc"><div class="sc-top" style="background:var(--magenta)"></div><div class="slabel">Por pagar</div><div class="sval" id="p-pagar-total" style="color:var(--magenta)">—</div><div class="ssub" id="p-pagar-n">— registros</div></div>
   </div>
+  <!-- Resumen de selección -->
+  <div id="pend-sel-summary" style="display:none;margin-bottom:13px;padding:12px 16px;background:var(--black3);border:1px solid var(--border2);border-radius:8px">
+    <div style="font-size:9px;color:var(--w4);letter-spacing:1.5px;text-transform:uppercase;font-weight:600;margin-bottom:10px">Resumen de filas seleccionadas</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
+      <div>
+        <div style="font-size:10px;color:var(--w4);margin-bottom:3px">Total en Euros (seleccionadas)</div>
+        <div style="font-size:18px;font-weight:700;color:var(--blue)" id="sel-total-eur">€0</div>
+        <div style="font-size:10px;color:var(--w4);margin-top:2px" id="sel-total-bs">= Bs 0</div>
+      </div>
+      <div>
+        <div style="font-size:10px;color:var(--w4);margin-bottom:3px">Total en USD (no seleccionadas)</div>
+        <div style="font-size:18px;font-weight:700;color:var(--green)" id="sel-total-usd">$0</div>
+        <div style="font-size:10px;color:var(--w4);margin-top:2px" id="sel-count">0 filas seleccionadas</div>
+      </div>
+      <div>
+        <div style="font-size:10px;color:var(--w4);margin-bottom:3px">Tasa Euro BCV</div>
+        <div style="font-size:18px;font-weight:700;color:var(--w2)" id="sel-tasa">— Bs/€</div>
+        <div style="font-size:10px;color:var(--w4);margin-top:2px">Actualizada automáticamente</div>
+      </div>
+    </div>
+  </div>
+
   <div class="card np" style="margin-bottom:13px">
-    <div style="padding:12px 17px 7px"><div class="ctitle">Por cobrar</div></div>
-    <div class="twrap"><table><thead><tr><th>F.Evento</th><th>Categoría</th><th>Sub-Cat</th><th>Concepto</th><th>Código</th><th>Responsable</th><th>Monto</th></tr></thead>
+    <div style="padding:12px 17px 7px;display:flex;align-items:center;justify-content:space-between">
+      <div class="ctitle" style="margin-bottom:0">Por cobrar</div>
+      <span style="font-size:10px;color:var(--w4)">Marca con check las filas a pagar en Euros</span>
+    </div>
+    <div class="twrap"><table><thead><tr><th style="width:32px"><input type="checkbox" id="check-all-cobrar" onchange="toggleAllPend(this,'cobrar')" style="accent-color:var(--blue)"></th><th>F.Evento</th><th>Categoría</th><th>Sub-Cat</th><th>Concepto</th><th>Código</th><th>Responsable</th><th>Monto</th></tr></thead>
     <tbody id="p-cobrar-tbody"></tbody></table></div>
   </div>
   <div class="card np">
-    <div style="padding:12px 17px 7px"><div class="ctitle">Por pagar</div></div>
-    <div class="twrap"><table><thead><tr><th>F.Evento</th><th>Categoría</th><th>Sub-Cat</th><th>Concepto</th><th>Código</th><th>Responsable</th><th>Monto</th></tr></thead>
+    <div style="padding:12px 17px 7px;display:flex;align-items:center;justify-content:space-between">
+      <div class="ctitle" style="margin-bottom:0">Por pagar</div>
+      <span style="font-size:10px;color:var(--w4)">Marca con check las filas a pagar en Euros</span>
+    </div>
+    <div class="twrap"><table><thead><tr><th style="width:32px"><input type="checkbox" id="check-all-pagar" onchange="toggleAllPend(this,'pagar')" style="accent-color:var(--blue)"></th><th>F.Evento</th><th>Categoría</th><th>Sub-Cat</th><th>Concepto</th><th>Código</th><th>Responsable</th><th>Monto</th></tr></thead>
     <tbody id="p-pagar-tbody"></tbody></table></div>
   </div>
 </div>
@@ -691,14 +719,16 @@ async function loadBCV() {
       const usd = parseFloat(usdObj.promedio || usdObj.venta || usdObj.compra);
       const fecha = usdObj.fechaActualizacion ? new Date(usdObj.fechaActualizacion).toLocaleDateString('es-VE',{day:'2-digit',month:'short'}) : '';
       $('t-usd').textContent = usd.toFixed(2);
-      $('d-bcv').textContent = usd.toFixed(2) + ' Bs/$';
+      $('d-bcv').textContent = 'USD: ' + usd.toFixed(2) + ' Bs';
       $('cot-bcv').textContent = usd.toFixed(2);
       if (fecha) $('tasa-pill').title = 'Actualizado: ' + fecha;
+      window._tasaUSD = usd;
     }
     if (eurObj) {
       const eur = parseFloat(eurObj.promedio || eurObj.venta || eurObj.compra);
       $('t-eur').textContent = eur.toFixed(2);
-      $('d-eur').textContent = 'Euro: ' + eur.toFixed(2) + ' Bs';
+      $('d-eur').textContent = eur.toFixed(2) + ' Bs/€';
+      window._tasaEUR = eur;
     }
   } catch(e) {
     console.warn('DolarAPI error:', e.message);
