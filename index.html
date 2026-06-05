@@ -255,6 +255,7 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
   <button class="ni" onclick="sv('balance',this)"><i class="ti ti-scale"></i>Balance</button>
   <div class="ndiv"></div>
   <div class="nlabel">Gestión</div>
+  <button class="ni" onclick="sv('estimador',this)"><i class="ti ti-brain"></i>Estimador</button>
   <button class="ni" onclick="sv('cotizacion',this)"><i class="ti ti-file-invoice"></i>Cotizaciones</button>
   <button class="ni" onclick="sv('socios',this)"><i class="ti ti-users"></i>Socios</button>
   <button class="ni" onclick="sv('proveedores',this)"><i class="ti ti-building-store"></i>Proveedores</button>
@@ -490,6 +491,89 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
   </div>
 </div>
 
+
+<!-- ESTIMADOR -->
+<div id="v-estimador" class="view">
+  <div class="ph">
+    <div><div class="aline"></div><div class="ptitle">Estimador</div><div class="psub">Precio aproximado basado en historial de eventos similares</div></div>
+  </div>
+
+  <div class="two">
+    <!-- LEFT: Input -->
+    <div>
+      <div class="card">
+        <div class="ctitle">Datos del evento</div>
+        <div style="display:flex;flex-direction:column;gap:11px">
+          <div class="fgrp">
+            <label class="flabel">Tipo de evento</label>
+            <select id="est-tipo" onchange="runEstimador()">
+              <option value="">Seleccionar...</option>
+              <option>Privado</option>
+              <option>Matrimonio</option>
+              <option>Corporativo</option>
+              <option>Institucional</option>
+              <option>Club</option>
+            </select>
+          </div>
+          <div class="fgrp">
+            <label class="flabel">Invitados aproximados</label>
+            <select id="est-inv" onchange="runEstimador()">
+              <option value="">Seleccionar...</option>
+              <option value="50">Hasta 50</option>
+              <option value="100">50 – 100</option>
+              <option value="200">100 – 200</option>
+              <option value="350">200 – 350</option>
+              <option value="500">350 – 500</option>
+              <option value="999">Más de 500</option>
+            </select>
+          </div>
+          <div class="fgrp">
+            <label class="flabel">Servicios requeridos</label>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:4px">
+              <label style="display:flex;align-items:center;gap:7px;font-size:12px;color:var(--w2);cursor:pointer"><input type="checkbox" class="est-srv" value="Sonido" onchange="runEstimador()"> Sonido</label>
+              <label style="display:flex;align-items:center;gap:7px;font-size:12px;color:var(--w2);cursor:pointer"><input type="checkbox" class="est-srv" value="Iluminación" onchange="runEstimador()"> Iluminación</label>
+              <label style="display:flex;align-items:center;gap:7px;font-size:12px;color:var(--w2);cursor:pointer"><input type="checkbox" class="est-srv" value="Pantallas" onchange="runEstimador()"> Pantallas LED</label>
+              <label style="display:flex;align-items:center;gap:7px;font-size:12px;color:var(--w2);cursor:pointer"><input type="checkbox" class="est-srv" value="Tarima" onchange="runEstimador()"> Tarima</label>
+              <label style="display:flex;align-items:center;gap:7px;font-size:12px;color:var(--w2);cursor:pointer"><input type="checkbox" class="est-srv" value="Estructura" onchange="runEstimador()"> Estructura/Truss</label>
+              <label style="display:flex;align-items:center;gap:7px;font-size:12px;color:var(--w2);cursor:pointer"><input type="checkbox" class="est-srv" value="DJ" onchange="runEstimador()"> DJ</label>
+              <label style="display:flex;align-items:center;gap:7px;font-size:12px;color:var(--w2);cursor:pointer"><input type="checkbox" class="est-srv" value="Efectos" onchange="runEstimador()"> Efectos (CO2/Confeti)</label>
+              <label style="display:flex;align-items:center;gap:7px;font-size:12px;color:var(--w2);cursor:pointer"><input type="checkbox" class="est-srv" value="Toldo" onchange="runEstimador()"> Toldo</label>
+            </div>
+          </div>
+          <div class="fgrp">
+            <label class="flabel">¿Fuera de Caracas?</label>
+            <select id="est-lugar" onchange="runEstimador()">
+              <option value="0">No</option>
+              <option value="1">Sí (La Guaira / cerca)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Results -->
+    <div>
+      <div class="card" id="est-result-card" style="min-height:200px">
+        <div class="ctitle">Estimación de precio</div>
+        <div id="est-result">
+          <div style="color:var(--w4);font-size:12px;text-align:center;padding:30px 0">
+            Selecciona tipo de evento y servicios para ver la estimación
+          </div>
+        </div>
+      </div>
+      <div class="card" id="est-eventos-card">
+        <div class="ctitle">Eventos similares usados como referencia</div>
+        <div id="est-eventos-ref" style="color:var(--w4);font-size:12px">—</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Servicios típicos sugeridos -->
+  <div class="card" id="est-items-card">
+    <div class="ctitle">Ítems típicos para este tipo de evento</div>
+    <div id="est-items-list" style="color:var(--w4);font-size:12px">Selecciona el tipo de evento para ver sugerencias</div>
+  </div>
+</div>
 </main>
 </div>
 
@@ -1533,6 +1617,162 @@ function exportarExcel() {
   const fecha = new Date().toISOString().split('T')[0];
   const filtro = estado || cat || resp || q ? '_filtrado' : '';
   XLSX.writeFile(wb, 'Blast_Registro_' + fecha + filtro + '.xlsx');
+}
+
+
+// ─── ESTIMADOR INTELIGENTE ───
+
+// Mapeo de servicios a subcategorías del registro
+const SRV_MAP = {
+  'Sonido':      ['sonido','consola','corneta','bajo','micróf','monitor','bose'],
+  'Iluminación': ['iluminaci','beam','wash','laser','par led','robótic','dmx','retro'],
+  'Pantallas':   ['pantalla','módulo','led','totem'],
+  'Tarima':      ['tarima','escenario'],
+  'Estructura':  ['truss','estructura','booth','arco','baranda'],
+  'DJ':          ['dj','controlador','cdj'],
+  'Efectos':     ['efecto','co2','confeti','burbuja','humo','cryojet'],
+  'Toldo':       ['toldo'],
+};
+
+// Rango de invitados por bucket
+const INV_RANGE = {
+  '50':  [0, 75],
+  '100': [51, 150],
+  '200': [101, 250],
+  '350': [201, 400],
+  '500': [301, 600],
+  '999': [400, 99999],
+};
+
+// Ítems típicos por tipo de evento (basado en experiencia)
+const ITEMS_TIPICOS = {
+  'Privado':       ['Sonido (4-6 cornetas JBL)', 'Iluminación (8-12 luces)', 'Consola', 'Tarima DJ', 'Operador de sonido'],
+  'Matrimonio':    ['Sonido completo', 'Iluminación detallada', 'Pantallas LED', 'Tarima', 'Estructura/Truss', 'DJ o música en vivo', 'Operador de video'],
+  'Corporativo':   ['Sonido (micrófonos + monitores)', 'Pantallas LED', 'Consola', 'Iluminación básica', 'Operador de sonido'],
+  'Institucional': ['Sonido (micrófonos)', 'Consola', 'Tarima', 'Iluminación básica'],
+  'Club':          ['Sonido completo', 'Iluminación', 'DJ setup', 'Efectos', 'Consola'],
+};
+
+function runEstimador() {
+  const tipo    = $('est-tipo').value;
+  const invBkt  = $('est-inv').value;
+  const fuera   = $('est-lugar').value === '1';
+  const srvSel  = Array.from(document.querySelectorAll('.est-srv:checked')).map(c => c.value);
+  const result  = $('est-result');
+  const refDiv  = $('est-eventos-ref');
+  const itemsDiv= $('est-items-list');
+
+  // Show typical items for selected event type
+  if (tipo && ITEMS_TIPICOS[tipo]) {
+    itemsDiv.innerHTML = ITEMS_TIPICOS[tipo].map(item =>
+      '<div style="display:flex;align-items:center;gap:7px;padding:4px 0;font-size:12px;border-bottom:1px solid rgba(255,255,255,.04)">'
+      + '<i class="ti ti-check" style="color:var(--blue);font-size:12px"></i>'
+      + '<span style="color:var(--w2)">' + item + '</span></div>'
+    ).join('');
+  } else {
+    itemsDiv.innerHTML = '<span style="color:var(--w4)">Selecciona el tipo de evento para ver sugerencias</span>';
+  }
+
+  if (!tipo || !invBkt) {
+    result.innerHTML = '<div style="color:var(--w4);font-size:12px;text-align:center;padding:30px 0">Selecciona tipo de evento e invitados para ver la estimación</div>';
+    refDiv.innerHTML = '—';
+    return;
+  }
+
+  // Find similar events from EVS
+  const invRange = INV_RANGE[invBkt];
+  let similares = EVS.filter(e => {
+    // Match tipo/categoria
+    const catMatch = tipo === 'Matrimonio'
+      ? e.cliente.toLowerCase().includes('matrimon') || e.categoria === 'Privado'
+      : e.categoria === tipo || (tipo === 'Privado' && e.categoria === 'Privado');
+    return catMatch && e.ingreso > 0;
+  });
+
+  // Score by services used in that event
+  if (srvSel.length > 0) {
+    similares = similares.map(e => {
+      // Get all subcategories used in this event from TX
+      const txEvento = TX.filter(t => t.codigo_evento === e.codigo);
+      const subcats  = txEvento.map(t => (t.subcategoria || '').toLowerCase() + ' ' + (t.concepto || '').toLowerCase()).join(' ');
+      let score = 0;
+      srvSel.forEach(srv => {
+        const keywords = SRV_MAP[srv] || [srv.toLowerCase()];
+        if (keywords.some(kw => subcats.includes(kw))) score++;
+      });
+      return { ...e, score };
+    }).filter(e => e.score > 0).sort((a,b) => b.score - a.score);
+  }
+
+  // Fallback: if not enough matches, use all events of that type
+  if (similares.length < 3) {
+    similares = EVS.filter(e => e.ingreso > 0 && (e.categoria === tipo || (tipo === 'Matrimonio' && e.categoria === 'Privado')));
+  }
+
+  // Apply transport surcharge
+  const transportExtra = fuera ? 100 : 0;
+
+  if (!similares.length) {
+    result.innerHTML = '<div style="color:var(--w4);font-size:12px;text-align:center;padding:20px">No hay suficientes eventos similares en el historial aún.</div>';
+    refDiv.innerHTML = '—';
+    return;
+  }
+
+  // Calculate stats from similar events
+  const ingresos = similares.map(e => e.ingreso + transportExtra).sort((a,b) => a-b);
+  const n        = ingresos.length;
+  const minVal   = ingresos[0];
+  const maxVal   = ingresos[n-1];
+  const mediana  = n % 2 === 0 ? (ingresos[n/2-1] + ingresos[n/2]) / 2 : ingresos[Math.floor(n/2)];
+  const promedio = ingresos.reduce((s,v) => s+v, 0) / n;
+
+  // Percentile 25 and 75 as range
+  const p25 = ingresos[Math.floor(n * 0.25)];
+  const p75 = ingresos[Math.floor(n * 0.75)];
+
+  // Avg margin
+  const avgMargen = similares.reduce((s,e) => {
+    const u = e.ingreso - e.gasto;
+    return s + (e.ingreso > 0 ? (u / e.ingreso) * 100 : 0);
+  }, 0) / similares.length;
+
+  // Top 5 most recent similar events for reference
+  const top5 = similares.slice(0, 5);
+
+  result.innerHTML =
+    '<div style="text-align:center;padding:10px 0 16px">'
+    + '<div style="font-size:11px;color:var(--w4);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px">Rango típico</div>'
+    + '<div style="font-size:28px;font-weight:700;color:var(--blue)">' + fmt(p25) + ' – ' + fmt(p75) + '</div>'
+    + '<div style="font-size:11px;color:var(--w4);margin-top:4px">Basado en ' + n + ' eventos similares</div>'
+    + '</div>'
+    + '<div style="height:1px;background:var(--border);margin:4px 0 12px"></div>'
+    + '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center">'
+    + '<div><div style="font-size:10px;color:var(--w4);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px">Mínimo</div><div style="font-size:14px;color:var(--w2);font-weight:600">' + fmt(minVal) + '</div></div>'
+    + '<div><div style="font-size:10px;color:var(--w4);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px">Promedio</div><div style="font-size:14px;color:var(--white);font-weight:600">' + fmt(promedio) + '</div></div>'
+    + '<div><div style="font-size:10px;color:var(--w4);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px">Máximo</div><div style="font-size:14px;color:var(--w2);font-weight:600">' + fmt(maxVal) + '</div></div>'
+    + '</div>'
+    + '<div style="height:1px;background:var(--border);margin:12px 0 8px"></div>'
+    + '<div style="display:flex;justify-content:space-between;font-size:12px;padding:3px 0">'
+    + '<span style="color:var(--w4)">Margen histórico promedio</span>'
+    + '<span style="color:var(--green);font-weight:600">' + avgMargen.toFixed(1) + '%</span>'
+    + '</div>'
+    + (fuera ? '<div style="display:flex;justify-content:space-between;font-size:12px;padding:3px 0"><span style="color:var(--w4)">+ transporte incluido</span><span style="color:var(--orange)">+$' + transportExtra + '</span></div>' : '')
+    + '<div style="margin-top:12px;padding:9px 11px;background:rgba(67,189,237,.07);border-radius:6px;border-left:3px solid var(--blue)">'
+    + '<div style="font-size:10px;color:var(--w4);margin-bottom:3px">💡 Sugerencia de precio</div>'
+    + '<div style="font-size:13px;color:var(--white);font-weight:600">' + fmt(mediana) + ' – ' + fmt(p75) + '</div>'
+    + '<div style="font-size:10px;color:var(--w4);margin-top:2px">Precio sugerido según eventos más similares</div>'
+    + '</div>';
+
+  // Reference events
+  refDiv.innerHTML = top5.length ? top5.map(e =>
+    '<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:12px">'
+    + '<div><span style="color:var(--w2)">' + esc(e.cliente) + '</span>'
+    + '<span style="color:var(--w4);font-size:10px;margin-left:8px">' + fDate(e.fecha) + '</span></div>'
+    + '<div style="text-align:right">'
+    + '<span style="color:var(--blue);font-weight:600">' + fmt(e.ingreso) + '</span>'
+    + '<span style="color:var(--w4);font-size:10px;margin-left:6px">' + (e.ingreso>0?((e.ingreso-e.gasto)/e.ingreso*100).toFixed(0)+'% margen':'') + '</span>'
+    + '</div></div>'
+  ).join('') : '<span style="color:var(--w4)">Sin eventos de referencia</span>';
 }
 
 // ─── MOBILE NAV ───
