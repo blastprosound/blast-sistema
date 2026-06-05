@@ -7,6 +7,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@300;400;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -316,9 +317,18 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
 <div id="v-registro" class="view">
   <div class="ph">
     <div><div class="aline"></div><div class="ptitle">Registro</div><div class="psub" id="reg-sub">Cargando...</div></div>
-    <button class="btn btn-blue btn-sm" onclick="abrirModalTx(null)"><i class="ti ti-plus"></i>Nueva transacción</button>
+    <div class="btn-row">
+      <button class="btn btn-ghost btn-sm" onclick="exportarExcel()"><i class="ti ti-file-spreadsheet"></i>Exportar Excel</button>
+      <button class="btn btn-blue btn-sm" onclick="abrirModalTx(null)"><i class="ti ti-plus"></i>Nueva transacción</button>
+    </div>
   </div>
-  <div class="btn-row" style="margin-bottom:13px">
+  <div id="reg-totals" style="display:flex;gap:16px;margin-bottom:8px;font-size:12px;font-family:'Archivo',sans-serif;padding:8px 12px;background:var(--black3);border-radius:6px;border:1px solid var(--border)">
+    <span style="color:var(--w4)">Mostrando: <b id="reg-count" style="color:var(--w2)">—</b></span>
+    <span style="color:var(--w4)">Total ingresos: <b id="reg-total-ing" style="color:var(--green)">$0</b></span>
+    <span style="color:var(--w4)">Total egresos: <b id="reg-total-egr" style="color:var(--red)">$0</b></span>
+    <span style="color:var(--w4)">Neto: <b id="reg-total-neto" style="color:var(--blue)">$0</b></span>
+  </div>
+  <div class="btn-row" style="margin-bottom:8px">
     <select id="f-tx-estado" style="width:auto;padding:5px 9px;font-size:12px" onchange="filtrarRegistro()"><option value="">Todos los estados</option><option>Cobrado</option><option>Pagado</option><option>Por cobrar</option><option>Por pagar</option><option>Exonerado</option></select>
     <select id="f-tx-cat" style="width:auto;padding:5px 9px;font-size:12px" onchange="filtrarRegistro()"><option value="">Todas las categorías</option><option>Evento</option><option>Equipos</option><option>Dividendos</option><option>Cambio divisas</option><option>Reserva</option><option>Préstamo</option></select>
     <select id="f-tx-resp" style="width:auto;padding:5px 9px;font-size:12px" onchange="filtrarRegistro()"><option value="">Todos los responsables</option><option>Gustavo Briceño</option><option>Eduardo Behrens</option><option>Francisco Massari</option></select>
@@ -769,31 +779,94 @@ function filtrarEventos() {
   renderEventos(result);
 }
 
+// ─── ORDEN DENTRO DE CADA GRUPO DE EVENTO ───
+function ordenSubcat(t) {
+  const sub = (t.subcategoria || '').toLowerCase();
+  const est = (t.estado || '').toLowerCase();
+  // Ingresos primero (cliente)
+  if (est === 'cobrado' || est === 'por cobrar' || est === 'exonerado') return 0;
+  // Luego proveedores (no honorarios, no viaticos, no comision)
+  const esHonorario = sub.includes('honorar');
+  const esViatico   = sub.includes('viático') || sub.includes('viatico');
+  const esComision  = sub.includes('comisi');
+  if (!esHonorario && !esViatico && !esComision) return 1;
+  if (esViatico)  return 2;
+  if (esHonorario) return 3;
+  if (esComision) return 4;
+  return 5;
+}
+
 // ─── RENDER REGISTRO ───
 function renderRegistro(data) {
   const sub = $('reg-sub');
   if (sub) sub.textContent = data.length.toLocaleString() + ' transacciones' + (data.length < TX.length ? ' (filtradas de ' + TX.length + ')' : ' registradas');
+
+  // Update totals
+  const totalIng  = data.reduce((s,t) => s + (parseFloat(t.ingreso)||0), 0);
+  const totalEgr  = data.reduce((s,t) => s + (parseFloat(t.egreso) ||0), 0);
+  const neto      = totalIng - totalEgr;
+  const regCount  = $('reg-count');
+  const regIng    = $('reg-total-ing');
+  const regEgr    = $('reg-total-egr');
+  const regNeto   = $('reg-total-neto');
+  if (regCount) regCount.textContent = data.length.toLocaleString();
+  if (regIng)   regIng.textContent   = fmt(totalIng);
+  if (regEgr)   regEgr.textContent   = fmt(totalEgr);
+  if (regNeto)  { regNeto.textContent = fmt(neto); regNeto.style.color = neto >= 0 ? 'var(--green)' : 'var(--red)'; }
+
   const tbody = $('reg-tbody');
   if (!data.length) {
     tbody.innerHTML = '<tr><td colspan="12" style="color:var(--w4);text-align:center;padding:18px">Sin transacciones con esos filtros</td></tr>';
     return;
   }
+
+  // Group by codigo_evento, then sort within each group
+  const grouped = {};
+  const sinCodigo = [];
+  data.forEach(t => {
+    const cod = (t.codigo_evento || '').trim();
+    if (cod) {
+      if (!grouped[cod]) grouped[cod] = [];
+      grouped[cod].push(t);
+    } else {
+      sinCodigo.push(t);
+    }
+  });
+
+  // Sort within each group
+  Object.keys(grouped).forEach(cod => {
+    grouped[cod].sort((a, b) => {
+      const oa = ordenSubcat(a), ob = ordenSubcat(b);
+      if (oa !== ob) return oa - ob;
+      return (a.fecha_evento||'').localeCompare(b.fecha_evento||'');
+    });
+  });
+
+  // Sort groups by fecha of first tx (most recent first)
+  const sortedCodes = Object.keys(grouped).sort((a, b) => {
+    const fa = grouped[a][0].fecha_evento || '';
+    const fb = grouped[b][0].fecha_evento || '';
+    return fb.localeCompare(fa);
+  });
+
+  // Build rows
   const rows = [];
-  for (let i = 0; i < data.length; i++) {
-    const t = data[i];
+  const renderRow = (t, isFirst, groupSize) => {
     const bc  = t.estado === 'Cobrado' ? 'b-green' : t.estado === 'Por cobrar' ? 'b-blue' : t.estado === 'Por pagar' ? 'b-orange' : 'b-magenta';
     const fe  = fDate(t.fecha_evento);
     const fp  = fDate(t.fecha_pago);
     const ing = t.ingreso > 0 ? '<td style="color:var(--green);font-weight:600">' + fmt(t.ingreso) + '</td>' : '<td style="color:var(--w4)">—</td>';
     const egr = t.egreso  > 0 ? '<td style="color:var(--red);font-weight:600">'   + fmt(t.egreso)  + '</td>' : '<td style="color:var(--w4)">—</td>';
     const id  = t.id || '';
-    rows.push('<tr data-id="' + id + '">'
+    // Visual grouping: top border on first row of group
+    const style = isFirst && groupSize > 1 ? ' style="border-top:2px solid rgba(67,189,237,0.2)"' : '';
+    return '<tr data-id="' + id + '"' + style + '>'
       + '<td>' + fe + '</td>'
       + '<td>' + fp + '</td>'
       + '<td>' + esc(t.categoria) + '</td>'
       + '<td>' + esc(t.subcategoria) + '</td>'
       + '<td>' + esc(t.concepto) + '</td>'
-      + '<td class="mono">' + esc(t.codigo_evento) + '</td>'
+      + '<td class="mono" style="font-size:10px;color:var(--w4)">' + esc(t.codigo_evento) + '</td>'
       + '<td>' + esc(t.metodo_pago) + '</td>'
       + '<td>' + esc(t.responsable) + '</td>'
       + ing + egr
@@ -803,8 +876,18 @@ function renderRegistro(data) {
       + '<button class="btn btn-ghost btn-sm tx-btn-dup"  data-id="' + id + '" style="padding:3px 5px;font-size:10px"><i class="ti ti-copy"></i></button>'
       + '<button class="btn btn-ghost btn-sm tx-btn-del"  data-id="' + id + '" style="padding:3px 5px;font-size:10px;color:var(--red2)"><i class="ti ti-trash"></i></button>'
       + '</div></td>'
-      + '</tr>');
-  }
+      + '</tr>';
+  };
+
+  // Add grouped events
+  sortedCodes.forEach(cod => {
+    const group = grouped[cod];
+    group.forEach((t, i) => rows.push(renderRow(t, i === 0, group.length)));
+  });
+
+  // Add rows without code at the end
+  sinCodigo.forEach(t => rows.push(renderRow(t, false, 1)));
+
   tbody.innerHTML = rows.join('');
 }
 
@@ -1209,45 +1292,64 @@ async function genIA() {
   const lugar     = $('cplace').value || 'por definir';
   const fecha     = $('cdate').value;
   const horario   = $('ctime').value;
-  const invitados = $('cguests').value;
   const total     = $('c-total').textContent;
   const items = [];
   document.querySelectorAll('.cir').forEach(r => {
     const con = r.querySelector('.xcon').value;
-    const cat = r.dataset.cat || '—';
+    const cat = r.dataset.cat || '';
     const qty = r.querySelector('.xqty').value;
     const pri = r.querySelector('.xpri').value;
-    if (con && pri) items.push('• ' + cat + ': ' + con + ' (x' + qty + ') – $' + pri + ' c/u');
+    if (con && pri) items.push((cat?cat+': ':'')+con+' x'+qty+' ($'+pri+')');
   });
+
   const box = $('ai-out');
   box.textContent = 'Generando descripción...';
   box.className   = 'ai-box ai-dim';
+
+  const prompt = 'Eres asistente de Blast ProSound, empresa de sonido en Caracas. '
+    + 'Escribe una descripción de cotización en español, 3-4 líneas máximo, cálida y profesional. '
+    + 'Menciona brevemente los servicios y al final indica que se requiere 50% de abono. Sin markdown.\n\n'
+    + 'Cliente: '+cliente+' | Evento: '+tipo+' | Lugar: '+lugar+' | Fecha: '+(fecha||'por confirmar')
+    +' | Horario: '+(horario||'por confirmar')+' | Total: '+total+'\n'
+    +'Servicios: '+items.join(', ');
+
   try {
-    const res  = await fetch('https://api.anthropic.com/v1/messages', {
+    // Use CORS proxy to call Anthropic API from GitHub Pages
+    const payload = {
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 300,
+      messages: [{role:'user', content: prompt}]
+    };
+    const proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent('https://api.anthropic.com/v1/messages');
+    const res = await fetch(proxyUrl, {
       method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1000,
-        messages: [{role:'user', content:
-          'Eres el asistente de Blast ProSound, empresa de sonido e iluminación en Caracas. '
-          + 'Redacta una descripción de cotización en español, cálida y profesional, para enviar al cliente. '
-          + 'Destaca calidad de equipos y experiencia. Al final indica que se requiere el 50% de abono para confirmar. '
-          + 'Sin asteriscos ni markdown. Máximo 150 palabras.\n\n'
-          + 'Cliente: ' + cliente + ' | Tipo: ' + tipo + ' | Lugar: ' + lugar
-          + ' | Fecha: ' + (fecha || 'por confirmar') + ' | Horario: ' + (horario || 'por confirmar')
-          + ' | Invitados: ' + (invitados || 'n/d') + ' | Total: ' + total + '\n\n'
-          + 'Servicios:\n' + (items.join('\n') || '• Sonido profesional e iluminación')
-        }]
-      })
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': 'ANTHROPIC_KEY_PLACEHOLDER',
+        'anthropic-version': '2023-06-01'
+      },
+      body: JSON.stringify(payload)
     });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
     const data = await res.json();
-    box.textContent = data.content ? data.content.map(x => x.text || '').join('') : 'No se pudo generar.';
-    box.className   = 'ai-box';
+    box.textContent = data.content ? data.content.map(x => x.text||'').join('') : 'No se pudo generar.';
+    box.className = 'ai-box';
   } catch(e) {
-    box.textContent = 'Error al conectar con la IA.';
-    box.className   = 'ai-box';
+    // Fallback: generate locally without API
+    box.textContent = generarDescripcionLocal(cliente, tipo, lugar, fecha, horario, total, items);
+    box.className = 'ai-box';
   }
+}
+
+function generarDescripcionLocal(cliente, tipo, lugar, fecha, horario, total, items) {
+  const fechaStr = fecha ? new Date(fecha+'T12:00:00').toLocaleDateString('es-VE',{day:'2-digit',month:'long',year:'numeric'}) : 'por confirmar';
+  const servicios = items.length > 0 ? items.slice(0,4).join(', ') + (items.length>4?' y más':'') : 'sonido profesional e iluminación';
+  return 'Estimado/a '+cliente+', es un placer presentarle la cotización para su '+tipo.toLowerCase()
+    +' en '+lugar+' el '+fechaStr+(horario?' de '+horario:'')+'. '
+    +'El servicio incluye: '+servicios+'. '
+    +'En Blast ProSound garantizamos equipos de alta calidad y un equipo técnico con amplia experiencia. '
+    +'El monto total es de '+total+'. Para confirmar la reserva se requiere un abono del 50%. '
+    +'Quedamos a su disposición para cualquier consulta.';
 }
 
 function buildPDFHTML() {
@@ -1375,6 +1477,62 @@ async function guardarCotizacionDB(){
 async function exportarADriveConGuardado(){
   await guardarCotizacionDB();
   await exportarADrive();
+}
+
+// ─── EXPORTAR EXCEL ───
+function exportarExcel() {
+  // Use current filtered data or all TX
+  const estado = $('f-tx-estado').value;
+  const cat    = $('f-tx-cat').value;
+  const resp   = $('f-tx-resp').value;
+  const q      = $('f-tx-q').value.toLowerCase().trim();
+  const data   = TX.filter(t => {
+    if (estado && t.estado !== estado) return false;
+    if (cat    && t.categoria !== cat) return false;
+    if (resp   && t.responsable !== resp) return false;
+    if (q && !String(t.concepto||'').toLowerCase().includes(q) && !String(t.codigo_evento||'').toLowerCase().includes(q)) return false;
+    return true;
+  });
+
+  if (!data.length) { alert('No hay datos para exportar.'); return; }
+
+  // Build worksheet data
+  const headers = ['Fecha Evento','Fecha Pago','Categoría','Sub-Categoría','Concepto','Código','Método Pago','Responsable','Ingreso','Egreso','Estado','Descripción'];
+  const rows = data.map(t => [
+    t.fecha_evento  || '',
+    t.fecha_pago    || '',
+    t.categoria     || '',
+    t.subcategoria  || '',
+    t.concepto      || '',
+    t.codigo_evento || '',
+    t.metodo_pago   || '',
+    t.responsable   || '',
+    parseFloat(t.ingreso) || 0,
+    parseFloat(t.egreso)  || 0,
+    t.estado        || '',
+    t.descripcion   || ''
+  ]);
+
+  // Add totals row
+  const totIng = data.reduce((s,t) => s+(parseFloat(t.ingreso)||0), 0);
+  const totEgr = data.reduce((s,t) => s+(parseFloat(t.egreso) ||0), 0);
+  rows.push([]);
+  rows.push(['','','','','','','','TOTALES', totIng, totEgr, '', '']);
+
+  const ws   = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+  const wb   = XLSX.utils.book_new();
+
+  // Style column widths
+  ws['!cols'] = [
+    {wch:12},{wch:12},{wch:14},{wch:16},{wch:30},{wch:16},
+    {wch:12},{wch:18},{wch:10},{wch:10},{wch:12},{wch:30}
+  ];
+
+  XLSX.utils.book_append_sheet(wb, ws, 'Registro');
+
+  const fecha = new Date().toISOString().split('T')[0];
+  const filtro = estado || cat || resp || q ? '_filtrado' : '';
+  XLSX.writeFile(wb, 'Blast_Registro_' + fecha + filtro + '.xlsx');
 }
 
 // ─── MOBILE NAV ───
