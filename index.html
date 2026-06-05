@@ -390,9 +390,13 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
     <div class="cot-grid">
       <div class="fg">
         <div class="fgrp"><label class="flabel">Cliente</label><input type="text" id="cc" placeholder="Nombre del cliente" oninput="updateCotCode()"></div>
-        <div class="fgrp"><label class="flabel">Tipo de evento</label><select id="ctype"><option>Fiesta / After</option><option>Matrimonio</option><option>Corporativo</option><option>Graduación</option><option>Conferencia</option><option>Institucional</option><option>Concierto</option></select></div>
+        <div class="fgrp"><label class="flabel">Tipo de evento</label><select id="ctype" onchange="checkOtroTipo()"><option>Fiesta</option><option>Matrimonio</option><option>Corporativo</option><option>Graduación</option><option>Conferencia</option><option>Institucional</option><option>Concierto</option><option>Otro</option></select>
+        <input type="text" id="ctype-otro" placeholder="Especifica el tipo de evento..." style="display:none;margin-top:5px" oninput="agregarTipoPersonalizado()"></div>
         <div class="fgrp"><label class="flabel">Fecha</label><input type="date" id="cdate" oninput="updateCotCode()"></div>
-        <div class="fgrp"><label class="flabel">Horario</label><input type="text" id="ctime" placeholder="7:00pm – 2:00am"></div>
+        <div class="fgrp"><label class="flabel">Hora inicio</label><input type="time" id="ctime-start" oninput="calcDuracion()"></div>
+        <div class="fgrp"><label class="flabel">Hora fin</label><input type="time" id="ctime-end" oninput="calcDuracion()"></div>
+        <input type="hidden" id="ctime" value="">
+        <input type="hidden" id="ctime-duracion" value="">
         <div class="fgrp"><label class="flabel">Lugar</label><input type="text" id="cplace" placeholder="Nombre del recinto"></div>
         <div class="fgrp"><label class="flabel">Invitados aprox.</label><input type="number" id="cguests" placeholder="300"></div>
       </div>
@@ -401,7 +405,8 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
         <div class="cot-code" id="ccode">COT ——</div>
         <div class="fgrp" style="margin-bottom:9px"><label class="flabel">Responsable</label><select id="cresp"><option>Gustavo Briceño</option><option>Eduardo Behrens</option><option>Francisco Massari</option></select></div>
         <div class="fgrp"><label class="flabel">Moneda</label><select id="ccurr"><option>USD ($)</option><option>Euros (€)</option></select></div>
-        <div style="margin-top:10px;padding-top:9px;border-top:1px solid var(--border);font-size:10px;color:var(--w4)">Tasa BCV: <b id="cot-bcv" style="color:var(--blue)">—</b> Bs/$</div>
+        <div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border);font-size:10px;color:var(--w4)">Duración: <b id="cot-duracion" style="color:var(--blue)">—</b></div>
+        <div style="margin-top:5px;font-size:10px;color:var(--w4)">Tasa BCV: <b id="cot-bcv" style="color:var(--blue)">—</b> Bs/$</div>
       </div>
     </div>
   </div>
@@ -1298,6 +1303,101 @@ const DB_PRECIOS = [
   {c:"Música de ambiente (Por hora)",cat:"Talento",p:20},
 ];
 
+// ─── TIPO EVENTO PERSONALIZADO ───
+const tiposPersonalizados = [];
+
+function checkOtroTipo() {
+  const sel    = $('ctype').value;
+  const input  = $('ctype-otro');
+  if (sel === 'Otro') {
+    input.style.display = 'block';
+    input.focus();
+  } else {
+    input.style.display = 'none';
+  }
+}
+
+function agregarTipoPersonalizado() {
+  const val = $('ctype-otro').value.trim();
+  if (!val) return;
+  // Add to select if not exists
+  const sel = $('ctype');
+  const exists = Array.from(sel.options).some(o => o.value === val);
+  if (!exists && val.length > 2) {
+    const opt = document.createElement('option');
+    opt.value = val; opt.textContent = val;
+    // Insert before "Otro"
+    const otroIdx = Array.from(sel.options).findIndex(o => o.value === 'Otro');
+    sel.insertBefore(opt, sel.options[otroIdx]);
+    sel.value = val;
+    $('ctype-otro').style.display = 'none';
+    tiposPersonalizados.push(val);
+    // Update estimador options too
+    updateEstimadorTipos();
+  }
+}
+
+function updateEstimadorTipos() {
+  const estSel = $('est-tipo');
+  if (!estSel) return;
+  tiposPersonalizados.forEach(tipo => {
+    const exists = Array.from(estSel.options).some(o => o.value === tipo);
+    if (!exists) {
+      const opt = document.createElement('option');
+      opt.value = tipo; opt.textContent = tipo;
+      estSel.appendChild(opt);
+    }
+  });
+}
+
+// ─── CALCULAR DURACIÓN ───
+function calcDuracion() {
+  const start = $('ctime-start').value;
+  const end   = $('ctime-end').value;
+  const timeEl = $('ctime');
+  const durEl  = $('ctime-duracion');
+  const dispEl = $('cot-duracion');
+
+  if (start) {
+    const horarioStr = end ? formatTime12(start) + ' – ' + formatTime12(end) : formatTime12(start);
+    if (timeEl) timeEl.value = horarioStr;
+  }
+
+  if (start && end) {
+    let [sh, sm] = start.split(':').map(Number);
+    let [eh, em] = end.split(':').map(Number);
+    // Handle overnight events (end < start means next day)
+    let totalMin = (eh * 60 + em) - (sh * 60 + sm);
+    if (totalMin < 0) totalMin += 24 * 60;
+    const horas = Math.floor(totalMin / 60);
+    const mins  = totalMin % 60;
+    const durStr = horas + 'h' + (mins > 0 ? ' ' + mins + 'min' : '');
+    if (durEl)  durEl.value   = durStr;
+    if (dispEl) { dispEl.textContent = durStr; dispEl.style.color = 'var(--blue)'; }
+  } else {
+    if (durEl)  durEl.value   = '';
+    if (dispEl) dispEl.textContent = '—';
+  }
+}
+
+function formatTime12(t) {
+  if (!t) return '';
+  let [h, m] = t.split(':').map(Number);
+  const ampm = h >= 12 ? 'pm' : 'am';
+  h = h % 12 || 12;
+  return h + (m > 0 ? ':' + String(m).padStart(2,'0') : '') + ampm;
+}
+
+function getCotHorario() {
+  const t = $('ctime');
+  return t ? t.value : '';
+}
+
+function getCotDuracion() {
+  const t = $('ctime-duracion');
+  return t ? t.value : '';
+}
+
 function updateCotCode() {
   const f = $('cdate').value, cl = $('cc').value;
   if (f && cl) {
@@ -1375,7 +1475,7 @@ async function genIA() {
   const tipo      = $('ctype').value;
   const lugar     = $('cplace').value || 'por definir';
   const fecha     = $('cdate').value;
-  const horario   = $('ctime').value;
+  const horario   = getCotHorario();
   const total     = $('c-total').textContent;
   const items = [];
   document.querySelectorAll('.cir').forEach(r => {
@@ -1439,7 +1539,7 @@ function generarDescripcionLocal(cliente, tipo, lugar, fecha, horario, total, it
 function buildPDFHTML() {
   const cliente = $('cc').value||'Cliente', codigo=$('ccode').textContent;
   const tipo=$('ctype').value, fecha=$('cdate').value, lugar=$('cplace').value||'Por confirmar';
-  const horario=$('ctime').value||'Por confirmar', invitados=$('cguests').value||'—';
+  const horario=getCotHorario()||'Por confirmar', invitados=$('cguests').value||'—';
   const total=$('c-total').textContent, sub=$('c-sub').textContent;
   const descPct=parseFloat($('c-desc').value)||0, ivaOn=$('c-iva').checked;
   const aiText=$('ai-out').textContent, showAI=aiText&&aiText.length>10&&!aiText.includes('aparecerá');
@@ -1548,7 +1648,7 @@ async function guardarCotizacionDB(){
   });
   await supa.from('cotizaciones').upsert({
     codigo,cliente,tipo_evento:$('ctype').value,
-    fecha_evento:$('cdate').value||null,lugar:$('cplace').value,horario:$('ctime').value,
+    fecha_evento:$('cdate').value||null,lugar:$('cplace').value,horario:getCotHorario(),duracion:getCotDuracion(),
     invitados:parseInt($('cguests').value)||null,responsable:$('cresp').value,
     subtotal:parseFloat($('c-sub').textContent.replace(/[$,]/g,''))||0,
     descuento:parseFloat($('c-desc').value)||0,iva:$('c-iva').checked,
