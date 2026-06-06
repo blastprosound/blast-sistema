@@ -258,6 +258,7 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
   <button class="ni" onclick="sv('estimador',this)"><i class="ti ti-brain"></i>Estimador</button>
   <button class="ni" onclick="sv('cotizacion',this)"><i class="ti ti-file-invoice"></i>Cotizaciones</button>
   <button class="ni" onclick="sv('socios',this)"><i class="ti ti-users"></i>Socios</button>
+  <button class="ni" onclick="sv('clientes',this)"><i class="ti ti-address-book"></i>Clientes</button>
   <button class="ni" onclick="sv('proveedores',this)"><i class="ti ti-building-store"></i>Proveedores</button>
   <div class="ndiv"></div>
   <div class="nlabel">Reportes</div>
@@ -484,15 +485,63 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
   </div>
 </div>
 
+<!-- CLIENTES -->
+<div id="v-clientes" class="view">
+  <div class="ph">
+    <div><div class="aline"></div><div class="ptitle">Clientes</div><div class="psub" id="cli-sub">Ordenados por facturación total</div></div>
+    <button class="btn btn-blue btn-sm" onclick="document.getElementById('modal-cli').classList.add('show')"><i class="ti ti-plus"></i>Nuevo cliente</button>
+  </div>
+  <div class="btn-row" style="margin-bottom:13px">
+    <input id="f-cli-q" type="text" placeholder="Buscar cliente..." style="width:220px;padding:5px 9px;font-size:12px" oninput="renderClientes()">
+  </div>
+  <div class="card np">
+    <div class="twrap"><table>
+      <thead><tr><th>#</th><th>Cliente</th><th>Teléfono</th><th>Email</th><th>Contacto</th><th>Eventos</th><th>Facturado</th><th>Utilidad</th><th>Margen</th><th></th></tr></thead>
+      <tbody id="cli-tbody"><tr><td colspan="10" style="color:var(--w4);text-align:center;padding:18px">Cargando...</td></tr></tbody>
+    </table></div>
+  </div>
+</div>
+
 <!-- PROVEEDORES -->
 <div id="v-proveedores" class="view">
   <div class="ph">
-    <div><div class="aline"></div><div class="ptitle">Proveedores</div><div class="psub">Directorio de proveedores y personal externo</div></div>
+    <div><div class="aline"></div><div class="ptitle">Proveedores</div><div class="psub" id="prov-sub">Directorio de proveedores</div></div>
     <button class="btn btn-blue btn-sm" onclick="document.getElementById('modal-prov').classList.add('show')"><i class="ti ti-plus"></i>Nuevo proveedor</button>
   </div>
+  <div class="btn-row" style="margin-bottom:13px">
+    <select id="f-prov-tipo" style="width:auto;padding:5px 9px;font-size:12px" onchange="renderProveedores()">
+      <option value="">Todos los tipos</option>
+      <option>Arquitecto</option>
+<option>Barandas</option>
+<option>Baños</option>
+<option>Controlador</option>
+<option>Cotillon</option>
+<option>Dj</option>
+<option>Efectos</option>
+<option>Energía</option>
+<option>Escenario</option>
+<option>Foto/videografo</option>
+<option>Iluminación</option>
+<option>Legal</option>
+<option>Licor</option>
+<option>Locación</option>
+<option>Mantenimiento</option>
+<option>Pantallas</option>
+<option>Planta Electrca</option>
+<option>Sonido</option>
+<option>Tienda</option>
+<option>Toldo</option>
+<option>Transporte</option>
+<option>Uniforme</option>
+<option>Visuales</option>
+    </select>
+    <input id="f-prov-q" type="text" placeholder="Buscar proveedor..." style="width:200px;padding:5px 9px;font-size:12px" oninput="renderProveedores()">
+  </div>
   <div class="card np">
-    <table><thead><tr><th>Proveedor</th><th>Tipo</th><th>Teléfono</th><th>Método pago</th><th>Notas</th></tr></thead>
-    <tbody id="prov-tbody"><tr><td colspan="5" style="color:var(--w4);text-align:center;padding:18px">Cargando...</td></tr></tbody></table>
+    <div class="twrap"><table>
+      <thead><tr><th>Proveedor</th><th>Tipo</th><th>Contacto</th><th>Teléfono</th><th>Eventos</th><th>Pagado</th><th>Target</th><th>Calidad</th><th>Notas</th><th></th></tr></thead>
+      <tbody id="prov-tbody"><tr><td colspan="10" style="color:var(--w4);text-align:center;padding:18px">Cargando...</td></tr></tbody>
+    </table></div>
   </div>
 </div>
 
@@ -636,17 +685,71 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
   </div>
 </div>
 
+<!-- MODAL: NUEVO CLIENTE -->
+<div class="modal-bg" id="modal-cli">
+  <div class="modal">
+    <div class="modal-title">Nuevo cliente</div>
+    <div class="fg" style="margin-bottom:11px">
+      <div class="fgrp"><label class="flabel">Nombre</label><input type="text" id="cli-nombre" placeholder="Nombre del cliente"></div>
+      <div class="fgrp"><label class="flabel">Persona de contacto</label><input type="text" id="cli-contacto" placeholder="Nombre de contacto"></div>
+      <div class="fgrp"><label class="flabel">Teléfono</label><input type="text" id="cli-tel" placeholder="+58..."></div>
+      <div class="fgrp"><label class="flabel">Email</label><input type="email" id="cli-email" placeholder="email@..."></div>
+    </div>
+    <div class="fgrp" style="margin-bottom:11px"><label class="flabel">Notas</label><textarea id="cli-notas" rows="2"></textarea></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="document.getElementById('modal-cli').classList.remove('show')">Cancelar</button>
+      <button class="btn btn-blue" onclick="guardarCliente()">Guardar</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL: NUEVO PROVEEDOR -->
 <div class="modal-bg" id="modal-prov">
   <div class="modal">
     <div class="modal-title">Nuevo proveedor</div>
     <div class="fg" style="margin-bottom:11px">
       <div class="fgrp"><label class="flabel">Nombre</label><input type="text" id="prov-nombre" placeholder="Nombre del proveedor"></div>
-      <div class="fgrp"><label class="flabel">Tipo</label><input type="text" id="prov-tipo" placeholder="ej: Pantallas, Tarima..."></div>
+      <div class="fgrp"><label class="flabel">Tipo / Categoría</label><select id="prov-tipo-sel">
+        <option>Arquitecto</option>
+<option>Barandas</option>
+<option>Baños</option>
+<option>Controlador</option>
+<option>Cotillon</option>
+<option>Dj</option>
+<option>Efectos</option>
+<option>Energía</option>
+<option>Escenario</option>
+<option>Foto/videografo</option>
+<option>Iluminación</option>
+<option>Legal</option>
+<option>Licor</option>
+<option>Locación</option>
+<option>Mantenimiento</option>
+<option>Pantallas</option>
+<option>Planta Electrca</option>
+<option>Sonido</option>
+<option>Tienda</option>
+<option>Toldo</option>
+<option>Transporte</option>
+<option>Uniforme</option>
+<option>Visuales</option>
+        <option>Otro</option>
+      </select></div>
+      <div class="fgrp"><label class="flabel">Persona de contacto</label><input type="text" id="prov-contacto" placeholder="Nombre de contacto"></div>
       <div class="fgrp"><label class="flabel">Teléfono</label><input type="text" id="prov-tel" placeholder="+58..."></div>
-      <div class="fgrp"><label class="flabel">Método de pago</label><select id="prov-metodo"><option>Efectivo $</option><option>Zelle</option><option>Bs</option><option>Euro</option></select></div>
+      <div class="fgrp"><label class="flabel">Target</label><select id="prov-target"><option value="">Sin clasificar</option><option>A</option><option>B</option><option>C</option></select></div>
+      <div class="fgrp"><label class="flabel">Calidad (1-5 estrellas)</label>
+        <div style="display:flex;gap:6px;margin-top:4px" id="star-rating">
+          <span class="star" data-val="1" onclick="setStars(1)" style="font-size:20px;cursor:pointer;color:var(--w4)">★</span>
+          <span class="star" data-val="2" onclick="setStars(2)" style="font-size:20px;cursor:pointer;color:var(--w4)">★</span>
+          <span class="star" data-val="3" onclick="setStars(3)" style="font-size:20px;cursor:pointer;color:var(--w4)">★</span>
+          <span class="star" data-val="4" onclick="setStars(4)" style="font-size:20px;cursor:pointer;color:var(--w4)">★</span>
+          <span class="star" data-val="5" onclick="setStars(5)" style="font-size:20px;cursor:pointer;color:var(--w4)">★</span>
+        </div>
+        <input type="hidden" id="prov-estrellas" value="0">
+      </div>
     </div>
-    <div class="fgrp" style="margin-bottom:11px"><label class="flabel">Notas</label><textarea id="prov-notas" rows="2"></textarea></div>
+    <div class="fgrp" style="margin-bottom:11px"><label class="flabel">Comentario</label><textarea id="prov-notas" rows="2" placeholder="Comentario opcional..."></textarea></div>
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="document.getElementById('modal-prov').classList.remove('show')">Cancelar</button>
       <button class="btn btn-blue" onclick="guardarProv()">Guardar</button>
@@ -1215,14 +1318,7 @@ async function cargarProveedores() {
   ).join('') : '<tr><td colspan="5" style="color:var(--w4);text-align:center;padding:16px">Sin proveedores registrados</td></tr>';
 }
 
-async function guardarProv() {
-  const data = {nombre:$('prov-nombre').value.trim(), tipo:$('prov-tipo').value.trim(), telefono:$('prov-tel').value.trim(), metodo_pago:$('prov-metodo').value, notas:$('prov-notas').value.trim()};
-  if (!data.nombre) { alert('El nombre es obligatorio.'); return; }
-  const {error} = await supa.from('proveedores').insert(data);
-  if (error) { alert('Error: ' + error.message); return; }
-  $('modal-prov').classList.remove('show');
-  cargarProveedores();
-}
+// guardarProv moved above
 
 // ─── ESTADÍSTICAS ───
 function renderEstadisticas() {
@@ -1905,6 +2001,314 @@ function runEstimador() {
   ).join('') : '<span style="color:var(--w4)">Sin eventos de referencia</span>';
 }
 
+
+// ─── CONCEPTOS DATABASE (from CSV) ───
+const DB_CONCEPTOS = ["ACDC Electronics", "Academia Washington", "Adha Salcedo", "Aimer Aguilera", "Akeos", "Alberto Dillon", "Alcaldia de Chacao", "Alejandro Morales", "Alejandro Sosa", "Alexandra Di Benedetto", "Ali Pacheco", "Alicia Lasry", "Alma Yoga", "Amparito Hoyos", "Ana Luisa Pelaez", "Andres Fermin", "Andrés Machado", "Andrés Nuñez", "Andrés Shangrila", "Angelica Rivera", "Anima2", "Annie Moves", "Armando Chavez", "Audio Group", "Avanti", "Baco", "Banco Venezolano de Crédito", "Blast", "Broz Sessions", "CEL", "Cajetín", "Calique", "Calox", "Cambio Divisas", "Camila Fernandez Behrens", "Camila Marti", "Carlos Gomez (Potoko)", "Carlos Nevett", "Carlos Revete", "Carolina Russi", "Cecilia Minashes", "Centro Medico Docente la Trinidad", "Chente", "Claudia Oliver", "Claus Salge", "Club La Lagunita", "Clínica El Avila", "Colegio San Ignacio", "Controlador", "Cosme Boccassini", "Cristina De Armas", "Daniel Pacheco", "David de Vares", "Delfin Mendoza", "Diageo", "Diego Graterol", "Diego Inglese", "Distribuidora Rower", "Dj Booth", "Dj Daniel", "Dj Guillermo Galviz", "Dj Patrick", "Dj Roberto Carlos", "Dj Skinny", "Dj Vlad", "Dr. Kable", "EPA", "Eduardo Behrens", "Electrocable", "Embajada Suiza", "Emilia Mibelli", "Empresas Polar", "Enrique Behrens", "Enrique Juaristi", "Enrique de Luca", "Eric Dassy", "Ernesto Deseda", "Eugenia Yepes", "FashionTex", "Festitoldos La Orchila", "Francisco Massari", "Full Fire", "Fundalma Quince Años", "Gabriela Urdaneta", "Gerardo Martínez", "Giacomo Clérico", "Gisete Transporte", "Gonzalito Veloz", "Guasimo", "Guillermo Sanglimbeni", "Gustavo Briceño", "Gustavo Derret", "Headsets", "Horacio Giraud", "IESA", "Ignacio Gonzalez", "Ikusa", "Instituto Cumbres de Caracas", "Iomar Carreño", "Iskia", "J Medical", "JBL Caracas", "Jesus Obrero", "Jon Aramburu", "Jorge Martinez", "Jorge Rodríguez", "Jose Rumbos", "Jose Sanchez Bueno", "Jose Tejera", "José Viamonte", "Juan Pablo Velez (Matica)", "Juanber Perez", "Juancho Manzur", "Kako Mancera", "Karen B", "La Cocina Pickleball", "La Limonera", "La Oficina", "Los Arcos", "Luis Flores (Ing. Sonido)", "Luis Gamez", "Luis García (Catire)", "Luis Pacheco", "MG Campamento", "Mal Portada", "Manuela Sanglimbeni", "Maria Alejandra Ceballos", "Maria Cristina Paris", "Maye costurera", "Michelle El Masri", "Modulo Eventos", "Moises Garcia", "Moreau Gonzalez & Asociados", "Nestor", "Nicolas Dos Santos", "Nicole Totah", "Northem Collective", "Olga Coche", "Omar (MG)", "Omerryn Barandas", "One Bite", "Oriana Scribani", "Oscar Alviarez", "Otro Cantinero", "Pablo Mata", "Pantallas Visual Led", "Patricia Fernández", "Pavlova Caracas", "Perucho", "Plan B", "Playa Azul", "Playa Grande", "Pop Vox", "Portu Producciones", "Producciones Acapella", "Promo 100 CSI", "Promo 61 Emil Friedman", "Promo 98 SI Meliá", "Puerto Azul", "Qta Biloxi", "Rebeca Aguilar", "Reembolso", "Regis Kisvel", "Renato Caimi", "Ricardo Percusión", "Roberto León", "Robin", "Rodolfo Olivares", "Ronal Martinez", "Rui", "Samsung", "Samuel Hernández", "Sanitarios Portatiles DH", "Santiago Falconi", "Santiago Stuve", "Santos Palazzi", "Sebastián Alvarez", "Sebastián Moniz", "Silvia Fonseca", "Stefany PintaCarita", "Tanke", "The Drunk Guest", "The Place", "Tony Frangie", "Tony Gallardo", "Topotepuy", "Totoño", "Transporte", "Undici Restaurante", "Unsound Records", "Urban Globe", "Utopía Bazar", "Valentina Mibelli", "Victor Porfidio", "Victor Rojas", "Viáticos", "Wave Agency", "Wilfredo Transporte", "Xamantha Estevez", "Zaperoco UCAB", "Zenzey Producciones"];
+const DB_SUBCATS   = ["Arquitecto", "Barandas", "Baños", "Controlador", "Cotillon", "Dj", "Efectos", "Energía", "Escenario", "Foto/videografo", "Iluminación", "Legal", "Licor", "Locación", "Mantenimiento", "Pantallas", "Planta Electrca", "Sonido", "Tienda", "Toldo", "Transporte", "Uniforme", "Visuales"];
+
+// ─── AUTO-CÓDIGO EN REGISTRO ───
+function generarCodigoTx() {
+  const fecha    = $('tx-fecha-evento').value;
+  const concepto = $('tx-concepto').value.trim();
+  const codigoEl = $('tx-codigo');
+  if (!codigoEl || codigoEl.dataset.manual === 'true') return;
+  if (fecha && concepto) {
+    const d   = new Date(fecha + 'T12:00:00');
+    const dd  = String(d.getDate()).padStart(2,'0');
+    const mm  = String(d.getMonth()+1).padStart(2,'0');
+    const yy  = String(d.getFullYear()).slice(-2);
+    const ini = concepto.trim().split(/\s+/).map(w=>w[0]).slice(0,2).join('').toUpperCase();
+    codigoEl.value = dd + mm + yy + '-' + ini;
+  }
+}
+
+// ─── DROPDOWN CONCEPTO EN REGISTRO ───
+function initConceptoDropdown() {
+  const input = $('tx-concepto');
+  const subEl = $('tx-sub');
+  if (!input) return;
+
+  // Create dropdown
+  let dd = document.getElementById('tx-concepto-dd');
+  if (!dd) {
+    dd = document.createElement('div');
+    dd.id = 'tx-concepto-dd';
+    dd.className = 'dd-list';
+    dd.style.cssText = 'position:absolute;top:100%;left:0;right:0;z-index:999';
+    input.parentNode.style.position = 'relative';
+    input.parentNode.appendChild(dd);
+  }
+
+  input.addEventListener('input', function() {
+    const q = this.value.toLowerCase().trim();
+    if (!q) { dd.classList.remove('show'); return; }
+    const res = DB_CONCEPTOS.filter(c => c.toLowerCase().includes(q)).slice(0,10);
+    if (!res.length) { dd.classList.remove('show'); return; }
+    dd.innerHTML = res.map(c => '<div class="dd-item" data-val="'+c.replace(/"/g,'&quot;')+'">'+c+'</div>').join('');
+    dd.classList.add('show');
+  });
+  dd.addEventListener('click', function(e) {
+    const item = e.target.closest('.dd-item');
+    if (!item) return;
+    input.value = item.dataset.val;
+    dd.classList.remove('show');
+    generarCodigoTx();
+  });
+  input.addEventListener('blur', () => setTimeout(() => dd.classList.remove('show'), 200));
+  input.addEventListener('input', generarCodigoTx);
+}
+
+// ─── DROPDOWN SUBCATEGORÍA EN REGISTRO ───
+function initSubcatDropdown() {
+  const input = $('tx-sub');
+  if (!input) return;
+  let dd = document.getElementById('tx-sub-dd');
+  if (!dd) {
+    dd = document.createElement('div');
+    dd.id = 'tx-sub-dd';
+    dd.className = 'dd-list';
+    dd.style.cssText = 'position:absolute;top:100%;left:0;right:0;z-index:999';
+    input.parentNode.style.position = 'relative';
+    input.parentNode.appendChild(dd);
+  }
+  const allSubs = [...DB_SUBCATS, 'Privado','Corporativo','Institucional','Club','Honorarios','Viáticos','Comisión','Dividendos'];
+  input.addEventListener('focus', function() {
+    const q = this.value.toLowerCase().trim();
+    const res = allSubs.filter(s => !q || s.toLowerCase().includes(q)).slice(0,12);
+    dd.innerHTML = res.map(s => '<div class="dd-item">'+s+'</div>').join('');
+    dd.classList.add('show');
+  });
+  input.addEventListener('input', function() {
+    const q = this.value.toLowerCase().trim();
+    const res = allSubs.filter(s => s.toLowerCase().includes(q)).slice(0,12);
+    dd.innerHTML = res.map(s => '<div class="dd-item">'+s+'</div>').join('');
+    dd.classList[res.length ? 'add' : 'remove']('show');
+  });
+  dd.addEventListener('click', function(e) {
+    const item = e.target.closest('.dd-item');
+    if (!item) return;
+    input.value = item.textContent;
+    dd.classList.remove('show');
+  });
+  input.addEventListener('blur', () => setTimeout(() => dd.classList.remove('show'), 200));
+}
+
+// Hook into modal open
+const _origAbrirModalTx = abrirModalTx;
+function abrirModalTx(id) {
+  _origAbrirModalTx(id);
+  setTimeout(() => {
+    // Mark codigo as auto unless user edits
+    const cod = $('tx-codigo');
+    if (cod) {
+      cod.dataset.manual = 'false';
+      cod.addEventListener('input', function() { this.dataset.manual = 'true'; }, {once:true});
+    }
+    const fe = $('tx-fecha-evento');
+    if (fe) fe.addEventListener('input', generarCodigoTx);
+    initConceptoDropdown();
+    initSubcatDropdown();
+  }, 50);
+}
+
+// ─── ESTRELLAS ───
+let _stars = 0;
+function setStars(n) {
+  _stars = n;
+  document.querySelectorAll('.star').forEach(s => {
+    s.style.color = parseInt(s.dataset.val) <= n ? 'var(--orange)' : 'var(--w4)';
+  });
+  const el = $('prov-estrellas');
+  if (el) el.value = n;
+}
+
+// ─── CLIENTES ───
+let DB_CLIENTES_LOCAL = [];
+
+async function cargarClientesDB() {
+  const {data, error} = await supa.from('clientes').select('*').order('nombre');
+  if (!error && data) DB_CLIENTES_LOCAL = data;
+}
+
+function renderClientes() {
+  const q = ($('f-cli-q') ? $('f-cli-q').value.toLowerCase().trim() : '');
+
+  // Build client stats from EVS (events grouped by cliente_nombre)
+  const cliMap = {};
+  EVS.forEach(e => {
+    const n = e.cliente;
+    if (!n) return;
+    if (!cliMap[n]) cliMap[n] = {eventos:0, facturado:0, gasto:0};
+    cliMap[n].eventos++;
+    cliMap[n].facturado += e.ingreso || 0;
+    cliMap[n].gasto     += e.gasto   || 0;
+  });
+
+  // Merge with DB clients
+  const allNombres = new Set([...Object.keys(cliMap), ...DB_CLIENTES_LOCAL.map(c=>c.nombre)]);
+  let rows = Array.from(allNombres).map(nombre => {
+    const stats  = cliMap[nombre] || {eventos:0, facturado:0, gasto:0};
+    const dbData = DB_CLIENTES_LOCAL.find(c => c.nombre === nombre) || {};
+    return { nombre, ...stats, ...dbData };
+  }).filter(r => r.facturado > 0 || DB_CLIENTES_LOCAL.find(c=>c.nombre===r.nombre));
+
+  // Sort by facturado desc
+  rows.sort((a,b) => (b.facturado||0) - (a.facturado||0));
+
+  // Filter
+  if (q) rows = rows.filter(r => r.nombre.toLowerCase().includes(q));
+
+  const sub = $('cli-sub');
+  if (sub) sub.textContent = rows.length + ' clientes';
+
+  const tbody = $('cli-tbody');
+  if (!rows.length) {
+    tbody.innerHTML = '<tr><td colspan="10" style="color:var(--w4);text-align:center;padding:18px">Sin clientes</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = rows.map((r, i) => {
+    const util   = (r.facturado||0) - (r.gasto||0);
+    const margen = r.facturado > 0 ? ((util/r.facturado)*100).toFixed(1)+'%' : '—';
+    return '<tr>'
+      + '<td style="color:var(--w4);font-size:11px">' + (i+1) + '</td>'
+      + '<td style="font-weight:600;color:var(--w2)">' + esc(r.nombre) + '</td>'
+      + '<td style="color:var(--w4)">' + esc(r.telefono||'—') + '</td>'
+      + '<td style="color:var(--w4)">' + esc(r.email||'—') + '</td>'
+      + '<td style="color:var(--w4)">' + esc(r.contacto||'—') + '</td>'
+      + '<td style="text-align:center">' + (r.eventos||0) + '</td>'
+      + '<td style="color:var(--blue);font-weight:600">' + fmt(r.facturado||0) + '</td>'
+      + '<td style="color:var(--green);font-weight:600">' + fmt(util) + '</td>'
+      + '<td style="color:var(--w4)">' + margen + '</td>'
+      + '<td><button class="btn btn-ghost btn-sm" style="padding:2px 6px;font-size:10px" onclick="editarCliente(\'' + (r.id||'') + '\',\'' + esc(r.nombre) + '\')"><i class="ti ti-pencil"></i></button></td>'
+      + '</tr>';
+  }).join('');
+}
+
+async function guardarCliente() {
+  const nombre   = $('cli-nombre').value.trim();
+  if (!nombre) { alert('El nombre es obligatorio.'); return; }
+  const data = {
+    nombre,
+    contacto: $('cli-contacto').value.trim(),
+    telefono: $('cli-tel').value.trim(),
+    email:    $('cli-email').value.trim(),
+    notas:    $('cli-notas').value.trim()
+  };
+  const {error} = await supa.from('clientes').upsert(data, {onConflict:'nombre'});
+  if (error) { alert('Error: ' + error.message); return; }
+  $('modal-cli').classList.remove('show');
+  await cargarClientesDB();
+  renderClientes();
+}
+
+function editarCliente(id, nombre) {
+  const cli = DB_CLIENTES_LOCAL.find(c => c.nombre === nombre || c.id === id);
+  if (cli) {
+    $('cli-nombre').value   = cli.nombre   || '';
+    $('cli-contacto').value = cli.contacto || '';
+    $('cli-tel').value      = cli.telefono || '';
+    $('cli-email').value    = cli.email    || '';
+    $('cli-notas').value    = cli.notas    || '';
+  } else {
+    $('cli-nombre').value = nombre;
+  }
+  $('modal-cli').classList.add('show');
+}
+
+// ─── PROVEEDORES ───
+let DB_PROVEEDORES_LOCAL = [];
+
+async function cargarProveedores() {
+  const {data, error} = await supa.from('proveedores').select('*').order('nombre');
+  if (!error && data) DB_PROVEEDORES_LOCAL = data;
+  renderProveedores();
+}
+
+function renderProveedores() {
+  const q    = $('f-prov-q')    ? $('f-prov-q').value.toLowerCase().trim() : '';
+  const tipo = $('f-prov-tipo') ? $('f-prov-tipo').value : '';
+
+  // Build stats from TX
+  const provMap = {};
+  TX.forEach(t => {
+    if (t.egreso > 0 && t.concepto && t.estado === 'Pagado') {
+      const n = t.concepto;
+      if (!provMap[n]) provMap[n] = {eventos:new Set(), pagado:0, tipo: t.subcategoria||''};
+      provMap[n].pagado += parseFloat(t.egreso)||0;
+      if (t.codigo_evento) provMap[n].eventos.add(t.codigo_evento);
+    }
+  });
+
+  // Merge with DB
+  const allNombres = new Set([...Object.keys(provMap), ...DB_PROVEEDORES_LOCAL.map(p=>p.nombre)]);
+  let rows = Array.from(allNombres).map(nombre => {
+    const stats  = provMap[nombre] || {eventos: new Set(), pagado:0, tipo:''};
+    const dbData = DB_PROVEEDORES_LOCAL.find(p => p.nombre === nombre) || {};
+    return { nombre, eventos: stats.eventos.size, pagado: stats.pagado, tipo: dbData.tipo||stats.tipo, ...dbData };
+  }).filter(r => r.pagado > 0 || DB_PROVEEDORES_LOCAL.find(p=>p.nombre===r.nombre));
+
+  rows.sort((a,b) => (b.pagado||0) - (a.pagado||0));
+  if (tipo) rows = rows.filter(r => r.tipo === tipo);
+  if (q)    rows = rows.filter(r => r.nombre.toLowerCase().includes(q));
+
+  const sub = $('prov-sub');
+  if (sub) sub.textContent = rows.length + ' proveedores';
+
+  const tbody = $('prov-tbody');
+  if (!rows.length) {
+    tbody.innerHTML = '<tr><td colspan="10" style="color:var(--w4);text-align:center;padding:18px">Sin proveedores</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = rows.map(r => {
+    const stars = '★'.repeat(r.estrellas||0) + '☆'.repeat(5-(r.estrellas||0));
+    const target = r.target ? '<span class="badge ' + (r.target==='A'?'b-green':r.target==='B'?'b-blue':'b-orange') + '">' + r.target + '</span>' : '—';
+    return '<tr>'
+      + '<td style="font-weight:600;color:var(--w2)">' + esc(r.nombre) + '</td>'
+      + '<td style="color:var(--w4)">' + esc(r.tipo||'—') + '</td>'
+      + '<td style="color:var(--w4)">' + esc(r.contacto||'—') + '</td>'
+      + '<td style="color:var(--w4)">' + esc(r.telefono||'—') + '</td>'
+      + '<td style="text-align:center">' + (r.eventos||0) + '</td>'
+      + '<td style="color:var(--magenta);font-weight:600">' + fmt(r.pagado||0) + '</td>'
+      + '<td style="text-align:center">' + target + '</td>'
+      + '<td style="color:var(--orange)">' + stars + '</td>'
+      + '<td style="color:var(--w4);font-size:11px">' + esc(r.notas||'—') + '</td>'
+      + '<td><button class="btn btn-ghost btn-sm" style="padding:2px 6px;font-size:10px" onclick="editarProveedor(\'' + esc(r.nombre) + '\')"><i class="ti ti-pencil"></i></button></td>'
+      + '</tr>';
+  }).join('');
+}
+
+async function guardarProv() {
+  const nombre = $('prov-nombre').value.trim();
+  if (!nombre) { alert('El nombre es obligatorio.'); return; }
+  const data = {
+    nombre,
+    tipo:      $('prov-tipo-sel').value,
+    contacto:  $('prov-contacto').value.trim(),
+    telefono:  $('prov-tel').value.trim(),
+    target:    $('prov-target').value,
+    estrellas: parseInt($('prov-estrellas').value)||0,
+    notas:     $('prov-notas').value.trim()
+  };
+  const {error} = await supa.from('proveedores').upsert(data, {onConflict:'nombre'});
+  if (error) { alert('Error: ' + error.message); return; }
+  $('modal-prov').classList.remove('show');
+  await cargarProveedores();
+}
+
+function editarProveedor(nombre) {
+  const p = DB_PROVEEDORES_LOCAL.find(x => x.nombre === nombre);
+  $('prov-nombre').value    = nombre;
+  $('prov-contacto').value  = p ? (p.contacto||'')  : '';
+  $('prov-tel').value       = p ? (p.telefono||'')  : '';
+  $('prov-target').value    = p ? (p.target||'')    : '';
+  $('prov-notas').value     = p ? (p.notas||'')     : '';
+  if (p && p.tipo) $('prov-tipo-sel').value = p.tipo;
+  setStars(p ? (p.estrellas||0) : 0);
+  $('modal-prov').classList.add('show');
+}
+
 // ─── MOBILE NAV ───
 function toggleNav() {
   const nav = document.querySelector('.nav');
@@ -1930,7 +2334,7 @@ async function init() {
   $('dash-date').textContent = 'Al ' + now.toLocaleDateString('es-VE', {day:'numeric', month:'long', year:'numeric'});
   loadBCV();
   addCotRow();
-  await cargarTX();
+  await Promise.all([cargarTX(), cargarClientesDB(), cargarProveedores()]);
 }
 
 
