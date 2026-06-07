@@ -1157,18 +1157,24 @@ function abrirModalTx(id) {
   $('tx-egreso').value          = t ? (t.egreso        || 0) : 0;
   $('tx-desc').value            = t ? (t.descripcion   || '') : '';
   $('modal-tx').classList.add('show');
-  // Init dropdowns and auto-code
-  setTimeout(() => {
-    const cod = $('tx-codigo');
-    if (cod && !t) {
-      cod.dataset.manual = 'false';
-      cod.addEventListener('input', function() { this.dataset.manual = 'true'; }, {once:true});
+  // Init dropdowns once
+  if (!window._txDropdownsInited) {
+    window._txDropdownsInited = true;
+    setTimeout(() => {
+      initConceptoDropdown();
+      initSubcatDropdown();
       const fe = $('tx-fecha-evento');
       if (fe) fe.addEventListener('input', generarCodigoTx);
+    }, 100);
+  }
+  // Reset auto-code flag for new transactions
+  if (!t) {
+    const cod = $('tx-codigo');
+    if (cod) {
+      cod.dataset.manual = 'false';
+      cod.addEventListener('input', function() { this.dataset.manual = 'true'; }, {once:true});
     }
-    initConceptoDropdown();
-    initSubcatDropdown();
-  }, 50);
+  }
 }
 
 async function guardarTx() {
