@@ -1157,6 +1157,18 @@ function abrirModalTx(id) {
   $('tx-egreso').value          = t ? (t.egreso        || 0) : 0;
   $('tx-desc').value            = t ? (t.descripcion   || '') : '';
   $('modal-tx').classList.add('show');
+  // Init dropdowns and auto-code
+  setTimeout(() => {
+    const cod = $('tx-codigo');
+    if (cod && !t) {
+      cod.dataset.manual = 'false';
+      cod.addEventListener('input', function() { this.dataset.manual = 'true'; }, {once:true});
+      const fe = $('tx-fecha-evento');
+      if (fe) fe.addEventListener('input', generarCodigoTx);
+    }
+    initConceptoDropdown();
+    initSubcatDropdown();
+  }, 50);
 }
 
 async function guardarTx() {
@@ -2093,23 +2105,7 @@ function initSubcatDropdown() {
   input.addEventListener('blur', () => setTimeout(() => dd.classList.remove('show'), 200));
 }
 
-// Hook into modal open
-const _origAbrirModalTx = abrirModalTx;
-function abrirModalTx(id) {
-  _origAbrirModalTx(id);
-  setTimeout(() => {
-    // Mark codigo as auto unless user edits
-    const cod = $('tx-codigo');
-    if (cod) {
-      cod.dataset.manual = 'false';
-      cod.addEventListener('input', function() { this.dataset.manual = 'true'; }, {once:true});
-    }
-    const fe = $('tx-fecha-evento');
-    if (fe) fe.addEventListener('input', generarCodigoTx);
-    initConceptoDropdown();
-    initSubcatDropdown();
-  }, 50);
-}
+// abrirModalTx enhanced inline below
 
 // ─── ESTRELLAS ───
 let _stars = 0;
