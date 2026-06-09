@@ -402,7 +402,7 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
       <div style="font-size:9px;color:var(--w4);letter-spacing:1.5px;text-transform:uppercase;font-weight:600">Tasas del día</div>
       <div style="display:flex;align-items:center;gap:7px">
         <span style="font-size:11px;color:var(--w4)">BCV (USD)</span>
-        <input type="number" id="tasa-bcv-input" placeholder="Bs/$" style="width:80px;padding:4px 8px;font-size:12px;text-align:center" oninput="renderPendientes()">
+        <input type="number" id="tasa-bcv-input" placeholder="Bs/$" style="width:80px;padding:4px 8px;font-size:12px;text-align:center">
       </div>
       <div style="display:flex;align-items:center;gap:7px">
         <span style="font-size:11px;color:var(--w4)">Euro</span>
@@ -1340,38 +1340,46 @@ function autoFillTasas() {
 }
 
 function calcPagarTotals() {
-  const tasaEUR  = parseFloat($('tasa-eur-input')  ? $('tasa-eur-input').value  : 0) || 0;
-  const tasaUSDT = parseFloat($('tasa-usdt-input') ? $('tasa-usdt-input').value : 0) || 0;
-  let selTotal = 0;
-  document.querySelectorAll('.pend-chk:checked').forEach(c => { selTotal += parseFloat(c.dataset.total||0); });
+  const tasaEUR  = parseFloat(document.getElementById('tasa-eur-input')  ? document.getElementById('tasa-eur-input').value  : 0) || 0;
+  const tasaUSDT = parseFloat(document.getElementById('tasa-usdt-input') ? document.getElementById('tasa-usdt-input').value : 0) || 0;
 
-  // Update header totals
-  const selEl = $('pagar-sel-total');
-  const bsEl  = $('pagar-total-bs');
-  const bsTotal = tasaEUR > 0 ? selTotal * tasaEUR : 0;
-  if (selEl) selEl.textContent = '$' + selTotal.toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2});
-  if (bsEl)  bsEl.textContent  = tasaEUR > 0 ? 'Bs ' + Math.round(bsTotal).toLocaleString('es-VE') : 'Bs —';
+  let totalSel = 0;
 
-  // Update each row Bs equiv and $ a vender
-  document.querySelectorAll('.pend-chk').forEach(c => {
-    const gi     = c.id.replace('chk-cash-','').replace('chk-bs-','');
-    const isBs   = c.id.startsWith('chk-bs-');
-    const monto  = parseFloat(c.dataset.total||0);
-    const bsRow  = document.getElementById('bs-equiv-row-'+gi);
-    const venRow = document.getElementById('vender-row-'+gi);
-    if (!bsRow || !venRow) return;
-    if (isBs && c.checked && tasaEUR > 0) {
-      const bsEquiv = monto * tasaEUR;
-      bsRow.textContent  = 'Bs ' + Math.round(bsEquiv).toLocaleString('es-VE');
-      bsRow.style.color  = 'var(--blue)';
-      venRow.textContent = tasaUSDT > 0 ? '$' + (bsEquiv / tasaUSDT).toFixed(2) : '—';
-      venRow.style.color = 'var(--green)';
-    } else if (isBs) {
-      bsRow.textContent = '—';
-      venRow.textContent = '—';
+  // Loop through each group by gi index
+  let gi = 0;
+  while(true) {
+    const cashChk = document.getElementById('chk-cash-' + gi);
+    const bsChk   = document.getElementById('chk-bs-'   + gi);
+    const bsCell  = document.getElementById('bs-equiv-row-' + gi);
+    const venCell = document.getElementById('vender-row-'   + gi);
+    if (!cashChk && !bsChk) break;
+
+    const monto = parseFloat((bsChk || cashChk).dataset.total || 0);
+
+    if (bsChk && bsChk.checked) {
+      totalSel += monto;
+      const bsEquiv = tasaEUR > 0 ? Math.round(monto * tasaEUR) : 0;
+      const vender  = (tasaUSDT > 0 && bsEquiv > 0) ? (bsEquiv / tasaUSDT).toFixed(2) : '—';
+      if (bsCell)  { bsCell.textContent  = tasaEUR > 0 ? 'Bs ' + bsEquiv.toLocaleString('es-VE') : '—'; bsCell.style.color = 'var(--blue)'; }
+      if (venCell) { venCell.textContent = vender !== '—' ? '$' + vender : '—'; venCell.style.color = 'var(--green)'; }
+    } else if (cashChk && cashChk.checked) {
+      totalSel += monto;
+      if (bsCell)  { bsCell.textContent  = 'Cash $'; bsCell.style.color = 'var(--green)'; }
+      if (venCell) { venCell.textContent = '—'; }
+    } else {
+      if (bsCell)  { bsCell.textContent  = '—'; bsCell.style.color = ''; }
+      if (venCell) { venCell.textContent = '—'; }
     }
-  });
+    gi++;
+  }
+
+  const selEl = document.getElementById('pagar-sel-total');
+  const bsEl  = document.getElementById('pagar-total-bs');
+  const bsTotal = tasaEUR > 0 ? Math.round(totalSel * tasaEUR) : 0;
+  if (selEl) selEl.textContent = '$' + totalSel.toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2});
+  if (bsEl)  bsEl.textContent  = tasaEUR > 0 ? 'Bs ' + bsTotal.toLocaleString('es-VE') : 'Bs —';
 }
+
 
 function renderPendientes() {
   if (!TX.length) { setTimeout(renderPendientes, 400); return; }
@@ -2492,62 +2500,61 @@ let DB_CLIENTES_LOCAL = [];
 async function cargarClientesDB() {
   const {data, error} = await supa.from('clientes').select('*').order('nombre');
   if (!error && data) DB_CLIENTES_LOCAL = data;
+  // Only render if we're on the clientes view
+  if ($('v-clientes') && $('v-clientes').classList.contains('on')) renderClientes();
 }
 
 function renderClientes() {
-  // Show whatever we have, retry if nothing at all
-  if (!TX.length && !DB_CLIENTES_LOCAL.length) {
-    setTimeout(renderClientes, 600);
-    return;
-  }
-  const q = ($('f-cli-q') ? $('f-cli-q').value.toLowerCase().trim() : '');
+  const tbody = $('cli-tbody');
+  const sub   = $('cli-sub');
+  const q     = $('f-cli-q') ? $('f-cli-q').value.toLowerCase().trim() : '';
 
-  // Build client stats from TX directly (more accurate than EVS)
+  // Build stats from TX directly - group by concepto where ingreso > 0
   const cliMap = {};
-  // First build from EVS
+  TX.forEach(t => {
+    if ((t.estado === 'Cobrado' || t.estado === 'Por cobrar') && t.ingreso > 0 && t.concepto) {
+      const n = t.concepto;
+      if (!cliMap[n]) cliMap[n] = {eventos: new Set(), facturado:0, gasto:0};
+      cliMap[n].facturado += parseFloat(t.ingreso)||0;
+      if (t.codigo_evento) cliMap[n].eventos.add(t.codigo_evento);
+    }
+    // Also track gasto per event to compute margin
+    if (t.codigo_evento && t.egreso > 0) {
+      // will be handled via EVS
+    }
+  });
+
+  // Add gasto from EVS
   EVS.forEach(e => {
     const n = e.cliente;
-    if (!n) return;
-    if (!cliMap[n]) cliMap[n] = {eventos:0, facturado:0, gasto:0};
-    cliMap[n].eventos++;
-    cliMap[n].facturado += e.ingreso || 0;
-    cliMap[n].gasto     += e.gasto   || 0;
-  });
-  // Also count from TX for clients not in EVS
-  TX.filter(t => t.ingreso > 0 && t.concepto && (t.estado==='Cobrado'||t.estado==='Por cobrar')).forEach(t => {
-    const n = t.concepto;
-    if (!cliMap[n]) cliMap[n] = {eventos:0, facturado:0, gasto:0};
+    if (n && cliMap[n]) cliMap[n].gasto += e.gasto || 0;
   });
 
   // Merge with DB clients
   const allNombres = new Set([...Object.keys(cliMap), ...DB_CLIENTES_LOCAL.map(c=>c.nombre)]);
   let rows = Array.from(allNombres).map(nombre => {
-    const stats  = cliMap[nombre] || {eventos:0, facturado:0, gasto:0};
+    const stats  = cliMap[nombre] || {eventos: new Set(), facturado:0, gasto:0};
     const dbData = DB_CLIENTES_LOCAL.find(c => c.nombre === nombre) || {};
-    return { nombre, ...stats, ...dbData };
-  }).filter(r => r.facturado > 0 || DB_CLIENTES_LOCAL.find(c=>c.nombre===r.nombre));
+    return { nombre, eventos: stats.eventos.size, facturado: stats.facturado, gasto: stats.gasto, ...dbData };
+  }).filter(r => r.facturado > 0 || DB_CLIENTES_LOCAL.find(c => c.nombre === r.nombre));
 
-  // Sort by facturado desc
   rows.sort((a,b) => (b.facturado||0) - (a.facturado||0));
+  if (q) rows = rows.filter(r => (r.nombre||'').toLowerCase().includes(q));
 
-  // Filter
-  if (q) rows = rows.filter(r => r.nombre.toLowerCase().includes(q));
-
-  const sub = $('cli-sub');
   if (sub) sub.textContent = rows.length + ' clientes';
-
-  const tbody = $('cli-tbody');
   if (!rows.length) {
-    tbody.innerHTML = '<tr><td colspan="10" style="color:var(--w4);text-align:center;padding:18px">Sin clientes</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="10" style="color:var(--w4);text-align:center;padding:18px">Sin clientes registrados</td></tr>';
     return;
   }
 
   tbody.innerHTML = rows.map((r, i) => {
     const util   = (r.facturado||0) - (r.gasto||0);
     const margen = r.facturado > 0 ? ((util/r.facturado)*100).toFixed(1)+'%' : '—';
+    const nombre = r.nombre || '';
+    const safeNombre = nombre.replace(/'/g, "\'");
     return '<tr>'
       + '<td style="color:var(--w4);font-size:11px">' + (i+1) + '</td>'
-      + '<td style="font-weight:600;color:var(--w2)">' + esc(r.nombre) + '</td>'
+      + '<td style="font-weight:600">' + esc(nombre) + '</td>'
       + '<td style="color:var(--w4)">' + esc(r.telefono||'—') + '</td>'
       + '<td style="color:var(--w4)">' + esc(r.email||'—') + '</td>'
       + '<td style="color:var(--w4)">' + esc(r.contacto||'—') + '</td>'
@@ -2555,10 +2562,11 @@ function renderClientes() {
       + '<td style="color:var(--blue);font-weight:600">' + fmt(r.facturado||0) + '</td>'
       + '<td style="color:var(--green);font-weight:600">' + fmt(util) + '</td>'
       + '<td style="color:var(--w4)">' + margen + '</td>'
-      + '<td><button class="btn btn-ghost btn-sm" style="padding:2px 6px;font-size:10px" onclick="editarCliente(\'' + (r.id||'') + '\',\'' + esc(r.nombre) + '\')"><i class="ti ti-pencil"></i></button></td>'
+      + '<td><button class="btn btn-ghost btn-sm" style="padding:2px 6px;font-size:10px" onclick="editarCliente(\'\',\''+safeNombre+'\')"><i class="ti ti-pencil"></i></button></td>'
       + '</tr>';
   }).join('');
 }
+
 
 async function guardarCliente() {
   const nombre   = $('cli-nombre').value.trim();
