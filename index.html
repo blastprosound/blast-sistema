@@ -240,7 +240,7 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
         </button>
         <button class="login-user-btn" onclick="selectUser('casadetejas@gmail.com','Eduardo Behrens','EB')">
           <div class="login-avatar" style="background:rgba(234,95,242,.15);color:var(--magenta)">EB</div>
-          <div><div style="font-size:13px;font-weight:600;color:var(--white)">Eduardo Behrens</div><div style="font-size:10px;color:var(--w4)">Nene</div></div>
+          <div><div style="font-size:13px;font-weight:600;color:var(--white)">Eduardo Behrens</div><div style="font-size:10px;color:var(--w4)">Edu</div></div>
         </button>
         <button class="login-user-btn" onclick="selectUser('franciscomassari001@gmail.com','Francisco Massari','FM')">
           <div class="login-avatar" style="background:rgba(244,169,61,.15);color:var(--orange)">FM</div>
@@ -542,7 +542,7 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
   <div class="ph"><div><div class="aline"></div><div class="ptitle">Socios</div><div class="psub">Balance y participación histórica</div></div></div>
   <div class="sg3">
     <div class="soc-card" id="sc-gb"><div class="soc-top" style="background:var(--blue)"></div><div class="sav" style="background:rgba(67,189,237,.1);color:var(--blue)">GB</div><div class="sn">Gustavo Briceño</div><div class="sa">Fukity</div><div class="sst"><div><span class="ssv" id="sc-gb-bal">—</span><span class="ssl">Balance</span></div><div><span class="ssv" id="sc-gb-evs">—</span><span class="ssl">Eventos</span></div></div></div>
-    <div class="soc-card" id="sc-eb"><div class="soc-top" style="background:var(--magenta)"></div><div class="sav" style="background:rgba(234,95,242,.1);color:var(--magenta)">EB</div><div class="sn">Eduardo Behrens</div><div class="sa">Nene</div><div class="sst"><div><span class="ssv" id="sc-eb-bal" style="color:var(--magenta)">—</span><span class="ssl">Balance</span></div><div><span class="ssv" id="sc-eb-evs" style="color:var(--magenta)">—</span><span class="ssl">Eventos</span></div></div></div>
+    <div class="soc-card" id="sc-eb"><div class="soc-top" style="background:var(--magenta)"></div><div class="sav" style="background:rgba(234,95,242,.1);color:var(--magenta)">EB</div><div class="sn">Eduardo Behrens</div><div class="sa">Edu</div><div class="sst"><div><span class="ssv" id="sc-eb-bal" style="color:var(--magenta)">—</span><span class="ssl">Balance</span></div><div><span class="ssv" id="sc-eb-evs" style="color:var(--magenta)">—</span><span class="ssl">Eventos</span></div></div></div>
     <div class="soc-card" id="sc-fm"><div class="soc-top" style="background:var(--orange)"></div><div class="sav" style="background:rgba(244,169,61,.1);color:var(--orange)">FM</div><div class="sn">Francisco Massari</div><div class="sa">Fran</div><div class="sst"><div><span class="ssv" id="sc-fm-bal" style="color:var(--orange)">—</span><span class="ssl">Balance</span></div><div><span class="ssv" id="sc-fm-evs" style="color:var(--orange)">—</span><span class="ssl">Eventos</span></div></div></div>
   </div>
   <div class="two eq">
@@ -1203,6 +1203,21 @@ function renderRegistro(data) {
   tbody.innerHTML = rows.join('');
 }
 
+// Event delegation for detail toggle in pendientes
+document.addEventListener('click', function(e) {
+  const btn = e.target.closest('.detail-toggle');
+  if (btn) {
+    const id = btn.dataset.id;
+    const gi = btn.dataset.gi;
+    const row = document.getElementById(id);
+    if (!row) return;
+    const open = row.style.display !== 'table-row';
+    row.style.display = open ? 'table-row' : 'none';
+    const arr = document.getElementById('arr-'+gi);
+    if (arr) arr.style.transform = open ? 'rotate(180deg)' : '';
+  }
+});
+
 // Event delegation for registro action buttons
 document.addEventListener('click', function(e) {
   const edit = e.target.closest('.tx-btn-edit');
@@ -1414,7 +1429,7 @@ function renderPendientes() {
 
     return '<tr>'
       + '<td style="font-weight:600;color:var(--w2)">'
-      +   '<button onclick="toggleDetail(''+detailId+'')" style="background:none;border:none;color:var(--w4);cursor:pointer;padding:0 6px 0 0;font-size:11px"><i class="ti ti-chevron-down" id="arr-'+gi+'"></i></button>'
+      +   '<button class="detail-toggle" data-id="'+detailId+'" data-gi="'+gi+'" style="background:none;border:none;color:var(--w4);cursor:pointer;padding:0 6px 0 0;font-size:11px"><i class="ti ti-chevron-down" id="arr-'+gi+'"></i></button>'
       +   esc(g.nombre)
       + '</td>'
       + '<td style="text-align:right;font-weight:700;color:var(--magenta)">' + fmt(g.total) + '</td>'
