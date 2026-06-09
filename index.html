@@ -1432,35 +1432,20 @@ function renderPendientes() {
   const sorted = Object.values(grupos).sort((a,b) => b.total - a.total);
 
   // Totals for footer
-  let totTotal=0, totHon=0, totDiv=0, totVia=0, totCom=0, totOtros=0, totBsEquiv=0, totVender=0;
+  let totTotal=0, totHon=0, totDiv=0, totVia=0, totCom=0, totOtros=0;
 
   const tbody = $('p-pagar-tbody');
   tbody.innerHTML = sorted.map((g, gi) => {
-    const cashChecked = document.getElementById('chk-cash-'+gi) ? document.getElementById('chk-cash-'+gi).checked : false;
-    const bsChecked   = document.getElementById('chk-bs-'+gi)   ? document.getElementById('chk-bs-'+gi).checked   : false;
-
-    // Bs equivalent calculation
-    let bsEquiv = 0, dolVender = 0;
-    if (bsChecked && tasaBCV > 0) {
-      bsEquiv   = g.total * tasaBCV;
-      dolVender = 0;
-    } else if (cashChecked) {
-      bsEquiv   = 0;
-      dolVender = 0;
-    }
-
     totTotal  += g.total;
     totHon    += g.honorarios;
     totDiv    += g.dividendos;
     totVia    += g.viaticos;
     totCom    += g.comision;
     totOtros  += g.otros;
-    totBsEquiv+= bsEquiv;
 
     const f2 = n => n > 0 ? fmt(n) : '<span style="color:var(--w4)">$0</span>';
-
-    // Detail rows for expand
     const detailId = 'detail-' + gi;
+
     const detailRows = g.items.map(t =>
       '<tr style="background:rgba(0,0,0,.15)">'
       + '<td style="padding-left:28px;font-size:11px;color:var(--w4)" colspan="2">'
@@ -1486,15 +1471,14 @@ function renderPendientes() {
       + '<td style="text-align:right">' + f2(g.otros)      + '</td>'
       + '<td style="text-align:center"><input type="checkbox" class="pend-chk" id="chk-cash-'+gi+'" data-total="'+g.total+'" onchange="calcPagarTotals()" style="accent-color:var(--green)"></td>'
       + '<td style="text-align:center"><input type="checkbox" class="pend-chk" id="chk-bs-'+gi+'"   data-total="'+g.total+'" onchange="calcPagarTotals()" style="accent-color:var(--blue)"></td>'
-      + '<td style="text-align:right;color:var(--blue)">' + (bsEquiv>0?'Bs '+Math.round(bsEquiv).toLocaleString('es-VE'):'<span style="color:var(--w4)">—</span>') + '</td>'
-      
+      + '<td style="text-align:right" id="bs-equiv-row-'+gi+'">—</td>'
+      + '<td style="text-align:right" id="vender-row-'+gi+'">—</td>'
       + '<td></td>'
       + '</tr>'
       + '<tr id="'+detailId+'" style="display:none">'
       + '<td colspan="12" style="padding:0"><table style="width:100%"><tbody>' + detailRows + '</tbody></table></td>'
       + '</tr>';
   }).join('');
-
   // Footer totals
   const tfoot = $('p-pagar-tfoot');
   tfoot.innerHTML = '<tr style="background:rgba(67,189,237,.08);font-weight:700">'
