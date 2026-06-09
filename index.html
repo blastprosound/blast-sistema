@@ -628,7 +628,7 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
   </div>
   <div class="card np">
     <div class="twrap"><table>
-      <thead><tr><th>Código</th><th>Fecha</th><th>Cliente</th><th>Tipo</th><th>Lugar</th><th>Horario</th><th>Responsable</th><th>Total</th><th>Estado</th></tr></thead>
+      <thead><tr><th>Código</th><th>Fecha</th><th>Cliente</th><th>Tipo</th><th>Lugar</th><th>Horario</th><th>Responsable</th><th>Total</th><th>Estado</th><th></th></tr></thead>
       <tbody id="hist-tbody"><tr><td colspan="9" style="color:var(--w4);text-align:center;padding:18px">Cargando...</td></tr></tbody>
     </table></div>
   </div>
@@ -763,6 +763,7 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
       <div class="fgrp"><label class="flabel">Concepto / Persona</label><input type="text" id="tx-concepto" placeholder="Nombre o descripción"></div>
       <div class="fgrp"><label class="flabel">Método de pago</label><select id="tx-metodo"><option>Efectivo $</option><option>Zelle</option><option>Bs</option><option>Euro</option></select></div>
       <div class="fgrp"><label class="flabel">Responsable dinero</label><select id="tx-resp"><option>Gustavo Briceño</option><option>Eduardo Behrens</option><option>Francisco Massari</option></select></div>
+      <div class="fgrp"><label class="flabel">Referente (quien consiguió el evento)</label><select id="tx-referente"><option value="">— Sin referente —</option><option>Gustavo Briceño</option><option>Eduardo Behrens</option><option>Francisco Massari</option></select></div>
       <div class="fgrp"><label class="flabel">Agarro Socio ($)</label><input type="number" id="tx-ingreso" placeholder="0"></div>
       <div class="fgrp"><label class="flabel">Entregó Socio ($)</label><input type="number" id="tx-egreso" placeholder="0"></div>
     </div>
@@ -1258,6 +1259,7 @@ function abrirModalTx(id) {
   $('tx-concepto').value        = t ? (t.concepto      || '') : '';
   $('tx-metodo').value          = t ? (t.metodo_pago   || 'Efectivo $') : 'Efectivo $';
   $('tx-resp').value            = t ? (t.responsable   || 'Gustavo Briceño') : 'Gustavo Briceño';
+  if($('tx-referente')) $('tx-referente').value = t ? (t.referente || '') : '';
   $('tx-ingreso').value         = t ? (t.ingreso       || 0) : 0;
   $('tx-egreso').value          = t ? (t.egreso        || 0) : 0;
   $('tx-desc').value            = t ? (t.descripcion   || '') : '';
@@ -1294,6 +1296,7 @@ async function guardarTx() {
     concepto:      $('tx-concepto').value,
     metodo_pago:   $('tx-metodo').value,
     responsable:   $('tx-resp').value,
+    referente:     ($('tx-referente') ? $('tx-referente').value : null) || null,
     ingreso:       parseFloat($('tx-ingreso').value) || 0,
     egreso:        parseFloat($('tx-egreso').value)  || 0,
     descripcion:   $('tx-desc').value
@@ -1333,6 +1336,16 @@ function autoFillTasas() {
   if (bcv > 0) $('tasa-bcv-input').value  = bcv.toFixed(2);
   if (eur > 0) $('tasa-eur-input').value  = eur.toFixed(2);
   renderPendientes();
+}
+
+function calcPagarTotals() {
+  const tasaBCV = parseFloat($('tasa-bcv-input') ? $('tasa-bcv-input').value : 0) || 0;
+  let selUSD = 0;
+  document.querySelectorAll('.pend-chk:checked').forEach(c => { selUSD += parseFloat(c.dataset.total||0); });
+  const selEl = $('pagar-sel-total');
+  const bsEl  = $('pagar-total-bs');
+  if (selEl) selEl.textContent = '$' + selUSD.toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2});
+  if (bsEl)  bsEl.textContent  = tasaBCV > 0 ? 'Bs ' + Math.round(selUSD*tasaBCV).toLocaleString('es-VE') : 'Bs —';
 }
 
 function renderPendientes() {
@@ -1438,8 +1451,8 @@ function renderPendientes() {
       + '<td style="text-align:right">' + f2(g.viaticos)   + '</td>'
       + '<td style="text-align:right">' + f2(g.comision)   + '</td>'
       + '<td style="text-align:right">' + f2(g.otros)      + '</td>'
-      + '<td style="text-align:center"><input type="checkbox" id="chk-cash-'+gi+'" onchange="renderPendientes()" style="accent-color:var(--green)"></td>'
-      + '<td style="text-align:center"><input type="checkbox" id="chk-bs-'+gi+'"   onchange="renderPendientes()" style="accent-color:var(--blue)"></td>'
+      + '<td style="text-align:center"><input type="checkbox" class="pend-chk" id="chk-cash-'+gi+'" data-total="'+g.total+'" onchange="calcPagarTotals()" style="accent-color:var(--green)"></td>'
+      + '<td style="text-align:center"><input type="checkbox" class="pend-chk" id="chk-bs-'+gi+'"   data-total="'+g.total+'" onchange="calcPagarTotals()" style="accent-color:var(--blue)"></td>'
       + '<td style="text-align:right;color:var(--blue)">' + (bsEquiv>0?'Bs '+Math.round(bsEquiv).toLocaleString('es-VE'):'<span style="color:var(--w4)">—</span>') + '</td>'
       + '<td style="text-align:right;color:var(--w4)">' + (dolVender>0?fmt(dolVender):'—') + '</td>'
       + '<td></td>'
@@ -2028,13 +2041,20 @@ function buildPDFHTML() {
     +'</div></body></html>';
 }
 
-function exportPDF() {
+async function exportPDF() {
   let hasItems = false;
   document.querySelectorAll('.cir').forEach(r => { if(r.querySelector('.xcon').value && r.querySelector('.xpri').value) hasItems = true; });
   if(!hasItems){alert('Agrega al menos un ítem antes de exportar.');return;}
   const w = window.open('','_blank');
   if(!w){alert('Permite ventanas emergentes en Chrome para exportar el PDF.');return;}
   w.document.open(); w.document.write(buildPDFHTML()); w.document.close();
+  // Save and mark as Descargada
+  await guardarCotizacionDB();
+  const codigo = $('ccode').textContent;
+  if (codigo && codigo !== 'COT ——') {
+    await supa.from('cotizaciones').update({estado:'Descargada'}).eq('codigo', codigo);
+    await cargarHistorial();
+  }
 }
 
 function copiarDescripcion(){
@@ -2450,8 +2470,8 @@ async function cargarClientesDB() {
 }
 
 function renderClientes() {
-  // Wait for TX to be loaded
-  if (!TX.length) {
+  // If TX not loaded yet, show DB data only
+  if (!TX.length && !DB_CLIENTES_LOCAL.length) {
     setTimeout(renderClientes, 500);
     return;
   }
@@ -2554,9 +2574,9 @@ function renderProveedores() {
   const q    = $('f-prov-q')    ? $('f-prov-q').value.toLowerCase().trim() : '';
   const tipo = $('f-prov-tipo') ? $('f-prov-tipo').value : '';
 
-  // Build stats from TX
+  // Build stats from TX (only if loaded)
   const provMap = {};
-  TX.forEach(t => {
+  (TX||[]).forEach(t => {
     if (t.egreso > 0 && t.concepto && t.estado === 'Pagado') {
       const n = t.concepto;
       if (!provMap[n]) provMap[n] = {eventos:new Set(), pagado:0, tipo: t.subcategoria||''};
@@ -2679,6 +2699,51 @@ async function cargarHistorial() {
   renderHistorial();
 }
 
+function cargarCotizacion(codigo) {
+  const c = _historialData.find(x => x.codigo === codigo);
+  if (!c) return;
+  // Switch to cotizacion view
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('on'));
+  document.querySelectorAll('.ni').forEach(b => b.classList.remove('on'));
+  $('v-cotizacion').classList.add('on');
+  document.querySelector('.ni[onclick*="cotizacion"]').classList.add('on');
+  // Fill fields
+  setTimeout(() => {
+    if($('cc'))    $('cc').value    = c.cliente      || '';
+    if($('ctype')) $('ctype').value = c.tipo_evento  || 'Fiesta';
+    if($('cdate')) $('cdate').value = c.fecha_evento || '';
+    if($('cplace'))$('cplace').value= c.lugar        || '';
+    if($('ctime-start') && c.horario) {
+      const parts = c.horario.split('–')[0].trim();
+      // try to parse time
+    }
+    if($('cguests')) $('cguests').value = c.invitados || '';
+    if($('cresp'))   $('cresp').value   = c.responsable || 'Gustavo Briceño';
+    if($('c-desc'))  $('c-desc').value  = parseFloat(c.descuento)||0;
+    if($('c-iva'))   $('c-iva').checked = c.iva || false;
+    if($('ai-out') && c.descripcion_ia) { $('ai-out').textContent = c.descripcion_ia; $('ai-out').className = 'ai-box'; }
+    if($('ccode')) $('ccode').textContent = c.codigo || '';
+    // Load items
+    $('cot-items').innerHTML = '';
+    cotRowIdx = 0;
+    if (c.items && Array.isArray(c.items)) {
+      c.items.forEach(item => {
+        addCotRow();
+        const rows = document.querySelectorAll('.cir');
+        const last = rows[rows.length-1];
+        if (last) {
+          last.querySelector('.xcon').value = item.concepto || '';
+          last.querySelector('.xqty').value = item.cantidad || 1;
+          last.querySelector('.xpri').value = item.precio   || 0;
+          last.dataset.cat = item.categoria || '';
+          calcCot();
+        }
+      });
+    }
+    updateCotCode();
+  }, 100);
+}
+
 function renderHistorial() {
   const q    = $('f-hist-q')    ? $('f-hist-q').value.toLowerCase().trim()  : '';
   const resp = $('f-hist-resp') ? $('f-hist-resp').value                     : '';
@@ -2701,8 +2766,11 @@ function renderHistorial() {
   tbody.innerHTML = data.map(c => {
     const fecha = c.created_at ? new Date(c.created_at).toLocaleDateString('es-VE',{day:'2-digit',month:'short',year:'2-digit'}) : '—';
     const total = c.total ? '$'+parseFloat(c.total).toLocaleString() : '—';
-    const estado = c.estado || 'Enviada';
-    const bc = estado === 'Aprobada' ? 'b-green' : estado === 'Rechazada' ? 'b-magenta' : 'b-blue';
+    const estado = c.estado || 'Borrador';
+    const bc = estado === 'Descargada' ? 'b-green' : estado === 'Borrador' ? 'b-orange' : 'b-blue';
+    const editBtn = estado !== 'Descargada'
+      ? '<button class="btn btn-ghost btn-sm" style="padding:2px 7px;font-size:10px" onclick="cargarCotizacion(\'' + c.codigo + '\')"><i class="ti ti-edit"></i> Editar</button>'
+      : '<span style="font-size:10px;color:var(--w4)">Descargada</span>';
     return '<tr>'
       + '<td class="mono">' + esc(c.codigo||'—') + '</td>'
       + '<td>' + fecha + '</td>'
@@ -2713,6 +2781,7 @@ function renderHistorial() {
       + '<td style="color:var(--w4)">' + esc(c.responsable||'—') + '</td>'
       + '<td style="font-weight:600;color:var(--blue)">' + total + '</td>'
       + '<td><span class="badge '+bc+'">' + estado + '</span></td>'
+      + '<td>' + editBtn + '</td>'
       + '</tr>';
   }).join('');
 }
@@ -2743,7 +2812,9 @@ async function init() {
   $('dash-date').textContent = 'Al ' + now.toLocaleDateString('es-VE', {day:'numeric', month:'long', year:'numeric'});
   loadBCV();
   addCotRow();
-  await Promise.all([cargarTX(), cargarClientesDB(), cargarProveedores(), cargarHistorial()]);
+  await cargarTX();
+  await Promise.all([cargarClientesDB(), cargarHistorial()]);
+  await cargarProveedores();
 }
 
 
