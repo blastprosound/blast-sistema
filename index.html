@@ -963,7 +963,8 @@ function computeEventos() {
     if (t.ingreso > 0) {
       e.ingreso += parseFloat(t.ingreso) || 0;
       if (!e.cliente && t.concepto) e.cliente = t.concepto;
-      if (!e.referente && t.responsable) e.referente = t.responsable;
+      if (!e.referente && t.referente) e.referente = t.referente;
+      else if (!e.referente && t.responsable) e.referente = t.responsable;
       if (t.estado === 'Por cobrar') e.estado = 'Por cobrar';
     }
     if (t.egreso > 0) e.gasto += parseFloat(t.egreso) || 0;
@@ -1339,13 +1340,37 @@ function autoFillTasas() {
 }
 
 function calcPagarTotals() {
-  const tasaBCV = parseFloat($('tasa-bcv-input') ? $('tasa-bcv-input').value : 0) || 0;
-  let selUSD = 0;
-  document.querySelectorAll('.pend-chk:checked').forEach(c => { selUSD += parseFloat(c.dataset.total||0); });
+  const tasaEUR  = parseFloat($('tasa-eur-input')  ? $('tasa-eur-input').value  : 0) || 0;
+  const tasaUSDT = parseFloat($('tasa-usdt-input') ? $('tasa-usdt-input').value : 0) || 0;
+  let selTotal = 0;
+  document.querySelectorAll('.pend-chk:checked').forEach(c => { selTotal += parseFloat(c.dataset.total||0); });
+
+  // Update header totals
   const selEl = $('pagar-sel-total');
   const bsEl  = $('pagar-total-bs');
-  if (selEl) selEl.textContent = '$' + selUSD.toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2});
-  if (bsEl)  bsEl.textContent  = tasaBCV > 0 ? 'Bs ' + Math.round(selUSD*tasaBCV).toLocaleString('es-VE') : 'Bs —';
+  const bsTotal = tasaEUR > 0 ? selTotal * tasaEUR : 0;
+  if (selEl) selEl.textContent = '$' + selTotal.toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2});
+  if (bsEl)  bsEl.textContent  = tasaEUR > 0 ? 'Bs ' + Math.round(bsTotal).toLocaleString('es-VE') : 'Bs —';
+
+  // Update each row Bs equiv and $ a vender
+  document.querySelectorAll('.pend-chk').forEach(c => {
+    const gi     = c.id.replace('chk-cash-','').replace('chk-bs-','');
+    const isBs   = c.id.startsWith('chk-bs-');
+    const monto  = parseFloat(c.dataset.total||0);
+    const bsRow  = document.getElementById('bs-equiv-row-'+gi);
+    const venRow = document.getElementById('vender-row-'+gi);
+    if (!bsRow || !venRow) return;
+    if (isBs && c.checked && tasaEUR > 0) {
+      const bsEquiv = monto * tasaEUR;
+      bsRow.textContent  = 'Bs ' + Math.round(bsEquiv).toLocaleString('es-VE');
+      bsRow.style.color  = 'var(--blue)';
+      venRow.textContent = tasaUSDT > 0 ? '$' + (bsEquiv / tasaUSDT).toFixed(2) : '—';
+      venRow.style.color = 'var(--green)';
+    } else if (isBs) {
+      bsRow.textContent = '—';
+      venRow.textContent = '—';
+    }
+  });
 }
 
 function renderPendientes() {
@@ -1454,7 +1479,7 @@ function renderPendientes() {
       + '<td style="text-align:center"><input type="checkbox" class="pend-chk" id="chk-cash-'+gi+'" data-total="'+g.total+'" onchange="calcPagarTotals()" style="accent-color:var(--green)"></td>'
       + '<td style="text-align:center"><input type="checkbox" class="pend-chk" id="chk-bs-'+gi+'"   data-total="'+g.total+'" onchange="calcPagarTotals()" style="accent-color:var(--blue)"></td>'
       + '<td style="text-align:right;color:var(--blue)">' + (bsEquiv>0?'Bs '+Math.round(bsEquiv).toLocaleString('es-VE'):'<span style="color:var(--w4)">—</span>') + '</td>'
-      + '<td style="text-align:right;color:var(--w4)">' + (dolVender>0?fmt(dolVender):'—') + '</td>'
+      
       + '<td></td>'
       + '</tr>'
       + '<tr id="'+detailId+'" style="display:none">'
@@ -1548,7 +1573,7 @@ function renderSocios() {
     const agarro = rows.filter(t => t.estado === 'Cobrado').reduce((sum,t) => sum + (parseFloat(t.ingreso)||0), 0);
     const entrego= rows.filter(t => t.estado === 'Pagado' ).reduce((sum,t) => sum + (parseFloat(t.egreso) ||0), 0);
     const bal    = agarro - entrego;
-    const evs    = new Set(rows.filter(t=>t.codigo_evento).map(t=>t.codigo_evento)).size;
+    const evs    = new Set(rows.filter(t=>t.codigo_evento && (t.subcategoria||'').toLowerCase().includes('honorar')).map(t=>t.codigo_evento)).size;
     $(s.balId).textContent = fmtD(bal);
     $(s.balId).style.color = bal >= 0 ? s.color : 'var(--red)';
     $(s.evsId).textContent = evs;
@@ -2470,9 +2495,9 @@ async function cargarClientesDB() {
 }
 
 function renderClientes() {
-  // If TX not loaded yet, show DB data only
+  // Show whatever we have, retry if nothing at all
   if (!TX.length && !DB_CLIENTES_LOCAL.length) {
-    setTimeout(renderClientes, 500);
+    setTimeout(renderClientes, 600);
     return;
   }
   const q = ($('f-cli-q') ? $('f-cli-q').value.toLowerCase().trim() : '');
@@ -2487,6 +2512,11 @@ function renderClientes() {
     cliMap[n].eventos++;
     cliMap[n].facturado += e.ingreso || 0;
     cliMap[n].gasto     += e.gasto   || 0;
+  });
+  // Also count from TX for clients not in EVS
+  TX.filter(t => t.ingreso > 0 && t.concepto && (t.estado==='Cobrado'||t.estado==='Por cobrar')).forEach(t => {
+    const n = t.concepto;
+    if (!cliMap[n]) cliMap[n] = {eventos:0, facturado:0, gasto:0};
   });
 
   // Merge with DB clients
@@ -2581,7 +2611,10 @@ function renderProveedores() {
       const n = t.concepto;
       if (!provMap[n]) provMap[n] = {eventos:new Set(), pagado:0, tipo: t.subcategoria||''};
       provMap[n].pagado += parseFloat(t.egreso)||0;
-      if (t.codigo_evento) provMap[n].eventos.add(t.codigo_evento);
+      // Count events only where person received honorarios
+      const sub = (t.subcategoria||'').toLowerCase();
+      if (t.codigo_evento && sub.includes('honorar')) provMap[n].eventos.add(t.codigo_evento);
+      else if (t.codigo_evento && !provMap[n].tipo) provMap[n].eventos.add(t.codigo_evento);
     }
   });
 
@@ -2768,9 +2801,7 @@ function renderHistorial() {
     const total = c.total ? '$'+parseFloat(c.total).toLocaleString() : '—';
     const estado = c.estado || 'Borrador';
     const bc = estado === 'Descargada' ? 'b-green' : estado === 'Borrador' ? 'b-orange' : 'b-blue';
-    const editBtn = estado !== 'Descargada'
-      ? '<button class="btn btn-ghost btn-sm" style="padding:2px 7px;font-size:10px" onclick="cargarCotizacion(\'' + c.codigo + '\')"><i class="ti ti-edit"></i> Editar</button>'
-      : '<span style="font-size:10px;color:var(--w4)">Descargada</span>';
+    const editBtn = '<button class="btn btn-ghost btn-sm" style="padding:2px 7px;font-size:10px" onclick="cargarCotizacion(\'' + c.codigo + '\')"><i class="ti ti-edit"></i> Editar</button>';
     return '<tr>'
       + '<td class="mono">' + esc(c.codigo||'—') + '</td>'
       + '<td>' + fecha + '</td>'
