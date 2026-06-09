@@ -272,7 +272,7 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
     <div class="brand"><img id="logo-img" src="https://blastprosound.github.io/blast-sistema/logo-white.png" style="height:26px;width:auto;display:block" alt="Blast ProSound"></div>
   </div>
   <div class="topbar-right">
-    <div class="tasa-pill" id="tasa-pill">Euro <b id="t-eur">—</b> Bs &nbsp;·&nbsp; BCV <b id="t-usd">—</b> Bs</div>
+    <div class="tasa-pill" id="tasa-pill">Euro <b id="t-eur">—</b> Bs &nbsp;·&nbsp; BCV <b id="t-usd">—</b> Bs &nbsp;·&nbsp; USDT <b id="t-usdt">—</b> Bs</div>
     <button class="btn btn-ghost btn-sm" onclick="toggleDarkMode()" style="padding:4px 8px;border:none" title="Modo claro/oscuro"><i class="ti ti-moon" id="dm-icon"></i></button>
   <div class="user-chip" onclick="toggleUserMenu()" id="user-chip">
     <div class="user-dot"></div>
@@ -901,29 +901,53 @@ document.addEventListener('click', function(e) {
   if (e.target.classList.contains('modal-bg')) e.target.classList.remove('show');
 });
 
-// ─── BCV RATES via DolarAPI ───
+// ─── TASAS via DolarAPI + Binance P2P ───
 async function loadBCV() {
   try {
-    const r = await fetch('https://ve.dolarapi.com/v1/dolares', {signal: AbortSignal.timeout(8000)});
-    const data = await r.json();
-    // Find BCV (official) rates
-    const usdObj = data.find(d => d.fuente === 'oficial' || d.nombre.toLowerCase().includes('oficial') || d.nombre.toLowerCase().includes('bcv'));
-    const eurObj = data.find(d => d.nombre.toLowerCase().includes('euro'));
-    if (usdObj) {
-      const usd = parseFloat(usdObj.promedio || usdObj.venta || usdObj.compra);
-      const fecha = usdObj.fechaActualizacion ? new Date(usdObj.fechaActualizacion).toLocaleDateString('es-VE',{day:'2-digit',month:'short'}) : '';
-      $('t-usd').textContent = usd.toFixed(2);
-      $('d-bcv').textContent = 'USD: ' + usd.toFixed(2) + ' Bs';
-      $('cot-bcv').textContent = usd.toFixed(2);
-      if (fecha) $('tasa-pill').title = 'Actualizado: ' + fecha;
-      window._tasaUSD = usd;
+    // Fetch USD BCV and EUR BCV in parallel
+    const [rUSD, rEUR] = await Promise.all([
+      fetch('https://ve.dolarapi.com/v1/dolares/oficial',  {signal: AbortSignal.timeout(8000)}),
+      fetch('https://ve.dolarapi.com/v1/euros/oficial',    {signal: AbortSignal.timeout(8000)})
+    ]);
+
+    if (rUSD.ok) {
+      const dUSD = await rUSD.json();
+      const usd  = parseFloat(dUSD.promedio || dUSD.venta || dUSD.compra) || 0;
+      if (usd > 0) {
+        window._tasaUSD = usd;
+        $('t-usd').textContent  = usd.toFixed(2);
+        $('d-bcv').textContent  = 'USD: ' + usd.toFixed(2) + ' Bs';
+        $('cot-bcv').textContent = usd.toFixed(2);
+      }
     }
-    if (eurObj) {
-      const eur = parseFloat(eurObj.promedio || eurObj.venta || eurObj.compra);
-      $('t-eur').textContent = eur.toFixed(2);
-      $('d-eur').textContent = eur.toFixed(2) + ' Bs/€';
-      window._tasaEUR = eur;
+
+    if (rEUR.ok) {
+      const dEUR = await rEUR.json();
+      const eur  = parseFloat(dEUR.promedio || dEUR.venta || dEUR.compra) || 0;
+      if (eur > 0) {
+        window._tasaEUR = eur;
+        $('t-eur').textContent = eur.toFixed(2);
+        $('d-eur').textContent = eur.toFixed(2) + ' Bs/€';
+      }
     }
+
+    // Fetch USDT from Binance P2P (public endpoint, no auth needed)
+    try {
+      const rUSDT = await fetch('https://api.binance.com/api/v3/ticker/price?symbol=USDTVES', {signal: AbortSignal.timeout(6000)});
+      if (rUSDT.ok) {
+        const dUSDT = await rUSDT.json();
+        const usdt  = parseFloat(dUSDT.price) || 0;
+        if (usdt > 0) {
+          window._tasaUSDT = usdt;
+          // Update USDT display if element exists
+          const usdtEl = $('t-usdt');
+          if (usdtEl) usdtEl.textContent = usdt.toFixed(2);
+        }
+      }
+    } catch(eUsdt) {
+      // USDT optional - no error shown
+    }
+
   } catch(e) {
     console.warn('DolarAPI error:', e.message);
     $('t-usd').textContent = 'Sin conexión';
@@ -1332,10 +1356,12 @@ async function eliminarTx(id) {
 
 // ─── PENDIENTES ───
 function autoFillTasas() {
-  const bcv  = window._tasaUSD || 0;
-  const eur  = window._tasaEUR || 0;
-  if (bcv > 0) $('tasa-bcv-input').value  = bcv.toFixed(2);
-  if (eur > 0) $('tasa-eur-input').value  = eur.toFixed(2);
+  const bcv  = window._tasaUSD  || 0;
+  const eur  = window._tasaEUR  || 0;
+  const usdt = window._tasaUSDT || 0;
+  if (bcv  > 0 && $('tasa-bcv-input'))  $('tasa-bcv-input').value  = bcv.toFixed(2);
+  if (eur  > 0 && $('tasa-eur-input'))  $('tasa-eur-input').value  = eur.toFixed(2);
+  if (usdt > 0 && $('tasa-usdt-input')) $('tasa-usdt-input').value = usdt.toFixed(2);
   renderPendientes();
 }
 
@@ -1405,9 +1431,11 @@ function renderPendientes() {
     + '<td>' + esc(t.responsable) + '</td>'
     + '<td style="font-weight:600;color:var(--blue)">' + fmt(t.ingreso||0) + '</td>'
     + '</tr>';
-  $('p-cobrar-tbody').innerHTML = cobrar.length
-    ? cobrar.map(rowCobrar).join('')
+  const totCobrar = cobrar.reduce((s,t) => s + (parseFloat(t.ingreso)||0), 0);
+  const cobrarRows = cobrar.length
+    ? cobrar.map(rowCobrar).join('') + '<tr style="background:rgba(67,189,237,.08);font-weight:700"><td colspan="6" style="font-size:11px;color:var(--w4);text-transform:uppercase;letter-spacing:1px">TOTAL</td><td style="color:var(--blue);font-weight:700">' + fmt(totCobrar) + '</td></tr>'
     : '<tr><td colspan="7" style="color:var(--w4);text-align:center;padding:14px">Sin cuentas por cobrar</td></tr>';
+  $('p-cobrar-tbody').innerHTML = cobrarRows;
 
   // ── POR PAGAR — group by responsable ──
   const tasaBCV  = parseFloat($('tasa-bcv-input')  ? $('tasa-bcv-input').value  : 0) || 0;
@@ -1481,6 +1509,16 @@ function renderPendientes() {
   }).join('');
   // Footer totals
   const tfoot = $('p-pagar-tfoot');
+  const tasaEURf  = parseFloat($('tasa-eur-input')  ? $('tasa-eur-input').value  : 0) || 0;
+  const tasaUSDTf = parseFloat($('tasa-usdt-input') ? $('tasa-usdt-input').value : 0) || 0;
+  // Sum Bs checked totals for footer
+  let totBsSelEquiv = 0;
+  sorted.forEach((g, gi) => {
+    const bsChk = document.getElementById('chk-bs-' + gi);
+    if (bsChk && bsChk.checked && tasaEURf > 0) totBsSelEquiv += g.total * tasaEURf;
+  });
+  const totVenderF = (tasaUSDTf > 0 && totBsSelEquiv > 0) ? (totBsSelEquiv / tasaUSDTf).toFixed(2) : null;
+
   tfoot.innerHTML = '<tr style="background:rgba(67,189,237,.08);font-weight:700">'
     + '<td style="font-size:11px;color:var(--w4);text-transform:uppercase;letter-spacing:1px">TOTAL</td>'
     + '<td style="text-align:right;color:var(--magenta)">' + fmt(totTotal)  + '</td>'
@@ -1490,8 +1528,9 @@ function renderPendientes() {
     + '<td style="text-align:right;color:var(--w2)">'      + fmt(totCom)    + '</td>'
     + '<td style="text-align:right;color:var(--w2)">'      + fmt(totOtros)  + '</td>'
     + '<td></td><td></td>'
-    + '<td style="text-align:right;color:var(--blue)">'    + (totBsEquiv>0?'Bs '+Math.round(totBsEquiv).toLocaleString('es-VE'):'—') + '</td>'
-    + '<td></td><td></td>'
+    + '<td style="text-align:right;color:var(--blue)">'    + (totBsSelEquiv > 0 ? 'Bs ' + Math.round(totBsSelEquiv).toLocaleString('es-VE') : '—') + '</td>'
+    + '<td style="text-align:right;color:var(--green)">'   + (totVenderF ? '$' + totVenderF : '—') + '</td>'
+    + '<td></td>'
     + '</tr>';
 }
 
