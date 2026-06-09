@@ -166,6 +166,19 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
 .drive-status.err{background:rgba(234,67,53,.15);color:#c62828}
 .drive-status.loading{background:rgba(67,189,237,.15);color:var(--blue)}
 
+/* ─── ACCORDION PENDIENTES ─── */
+.pagar-grupo{border-bottom:1px solid var(--border)}
+.pagar-grupo:last-child{border-bottom:none}
+.pagar-grupo-header{display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;transition:background .15s}
+.pagar-grupo-header:hover{background:rgba(67,189,237,.04)}
+.pagar-grupo-arrow{font-size:12px;color:var(--w4);transition:transform .2s;flex-shrink:0}
+.pagar-grupo-arrow.open{transform:rotate(180deg)}
+.pagar-grupo-body{display:none;border-top:1px solid rgba(255,255,255,.04)}
+.pagar-grupo-body.open{display:block}
+.pagar-grupo-row{display:grid;grid-template-columns:28px 1fr 80px 90px 90px 90px;gap:6px;align-items:center;padding:6px 14px 6px 24px;border-bottom:1px solid rgba(255,255,255,.03);font-size:12px}
+.pagar-grupo-row:last-child{border-bottom:none}
+.pagar-grupo-row:hover{background:rgba(67,189,237,.025)}
+
 /* ─── RESPONSIVE ─── */
 @media (max-width: 768px) {
   .nav { display: none }
@@ -194,6 +207,10 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
 }
 
 /* ─── LOGIN ─── */
+.login-user-btn{display:flex;align-items:center;gap:12px;padding:10px 12px;background:var(--black3);border:1px solid var(--border);border-radius:8px;cursor:pointer;transition:all .15s;width:100%;text-align:left}
+.login-user-btn:hover{border-color:var(--border2);background:rgba(67,189,237,.05)}
+.login-avatar{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0;letter-spacing:1px}
+
 .login-screen{position:fixed;inset:0;background:var(--black);display:flex;align-items:center;justify-content:center;z-index:1000;flex-direction:column}
 .login-box{background:var(--black2);border:1px solid var(--border2);border-radius:14px;padding:36px 32px;width:360px;max-width:92vw}
 .login-logo{font-family:'Archivo',sans-serif;font-weight:900;font-size:28px;color:var(--white);letter-spacing:5px;text-align:center;margin-bottom:4px}
@@ -210,18 +227,41 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
 <!-- LOGIN SCREEN -->
 <div class="login-screen" id="login-screen">
   <div class="login-box">
-    <div class="login-logo">BLAST</div>
-    <div class="login-sub">PROSOUND</div>
-    <div class="login-error" id="login-error">Email o contraseña incorrectos</div>
-    <div class="fgrp" style="margin-bottom:11px">
-      <label class="flabel">Email</label>
-      <input type="email" id="login-email" placeholder="tu@email.com" onkeydown="if(event.key==='Enter') doLogin()">
+    <img src="https://blastprosound.github.io/blast-sistema/logo-white.png" style="height:40px;width:auto;margin:0 auto 16px;display:block" alt="Blast ProSound">
+    <div class="login-error" id="login-error">Contraseña incorrecta</div>
+
+    <!-- Step 1: User selection -->
+    <div id="login-step1">
+      <div style="font-size:11px;color:var(--w4);text-align:center;margin-bottom:14px;letter-spacing:1px">Selecciona tu perfil</div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <button class="login-user-btn" onclick="selectUser('gustavobricenob@gmail.com','Gustavo Briceño','GB')">
+          <div class="login-avatar" style="background:rgba(67,189,237,.15);color:var(--blue)">GB</div>
+          <div><div style="font-size:13px;font-weight:600;color:var(--white)">Gustavo Briceño</div><div style="font-size:10px;color:var(--w4)">Fukity</div></div>
+        </button>
+        <button class="login-user-btn" onclick="selectUser('casadetejas@gmail.com','Eduardo Behrens','EB')">
+          <div class="login-avatar" style="background:rgba(234,95,242,.15);color:var(--magenta)">EB</div>
+          <div><div style="font-size:13px;font-weight:600;color:var(--white)">Eduardo Behrens</div><div style="font-size:10px;color:var(--w4)">Nene</div></div>
+        </button>
+        <button class="login-user-btn" onclick="selectUser('franciscomassari001@gmail.com','Francisco Massari','FM')">
+          <div class="login-avatar" style="background:rgba(244,169,61,.15);color:var(--orange)">FM</div>
+          <div><div style="font-size:13px;font-weight:600;color:var(--white)">Francisco Massari</div><div style="font-size:10px;color:var(--w4)">Fran</div></div>
+        </button>
+      </div>
     </div>
-    <div class="fgrp" style="margin-bottom:4px">
-      <label class="flabel">Contraseña</label>
-      <input type="password" id="login-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter') doLogin()">
+
+    <!-- Step 2: Password -->
+    <div id="login-step2" style="display:none">
+      <div id="login-selected-user" style="display:flex;align-items:center;gap:10px;margin-bottom:16px;padding:10px;background:var(--black3);border-radius:8px">
+        <div id="login-sel-avatar" class="login-avatar"></div>
+        <div id="login-sel-name" style="font-size:13px;font-weight:600;color:var(--white)"></div>
+        <button onclick="backToUsers()" style="margin-left:auto;background:none;border:none;color:var(--w4);cursor:pointer;font-size:11px">Cambiar</button>
+      </div>
+      <div class="fgrp" style="margin-bottom:10px">
+        <label class="flabel">Contraseña</label>
+        <input type="hidden" id="login-email"><input type="password" id="login-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter') doLogin()">
+      </div>
+      <button class="login-btn" id="login-btn" onclick="doLogin()">Entrar</button>
     </div>
-    <button class="login-btn" id="login-btn" onclick="doLogin()">Entrar</button>
   </div>
   <div style="margin-top:20px;font-size:10px;color:var(--w4)">Blast ProSound · Sistema interno</div>
 </div>
@@ -229,11 +269,12 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
 <div class="topbar">
   <div style="display:flex;align-items:center;gap:10px">
     <button class="menu-btn btn btn-ghost btn-sm" onclick="toggleNav()" style="display:none;padding:4px 8px" aria-label="Menú"><i class="ti ti-menu-2" style="font-size:18px"></i></button>
-    <div class="brand">BLAST <span>PROSOUND</span></div>
+    <div class="brand"><img id="logo-img" src="https://blastprosound.github.io/blast-sistema/logo-white.png" style="height:26px;width:auto;display:block" alt="Blast ProSound"></div>
   </div>
   <div class="topbar-right">
     <div class="tasa-pill" id="tasa-pill">Euro <b id="t-eur">—</b> Bs &nbsp;·&nbsp; BCV <b id="t-usd">—</b> Bs</div>
-    <div class="user-chip" onclick="toggleUserMenu()" id="user-chip">
+    <button class="btn btn-ghost btn-sm" onclick="toggleDarkMode()" style="padding:4px 8px;border:none" title="Modo claro/oscuro"><i class="ti ti-moon" id="dm-icon"></i></button>
+  <div class="user-chip" onclick="toggleUserMenu()" id="user-chip">
     <div class="user-dot"></div>
     <span id="user-name">—</span>
     <i class="ti ti-chevron-down" style="font-size:11px;color:var(--w4)"></i>
@@ -257,6 +298,7 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
   <div class="nlabel">Gestión</div>
   <button class="ni" onclick="sv('estimador',this)"><i class="ti ti-brain"></i>Estimador</button>
   <button class="ni" onclick="sv('cotizacion',this)"><i class="ti ti-file-invoice"></i>Cotizaciones</button>
+  <button class="ni" onclick="sv('historial',this)"><i class="ti ti-history"></i>Historial</button>
   <button class="ni" onclick="sv('socios',this)"><i class="ti ti-users"></i>Socios</button>
   <button class="ni" onclick="sv('clientes',this)"><i class="ti ti-address-book"></i>Clientes</button>
   <button class="ni" onclick="sv('proveedores',this)"><i class="ti ti-building-store"></i>Proveedores</button>
@@ -347,47 +389,70 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
 <!-- CUENTAS PENDIENTES -->
 <div id="v-pendientes" class="view">
   <div class="ph"><div><div class="aline"></div><div class="ptitle">Cuentas pendientes</div><div class="psub" id="pend-sub">Cargando...</div></div></div>
-  <div class="sg2" style="grid-template-columns:1fr 1fr">
+
+  <!-- Summary cards -->
+  <div class="sg2" style="grid-template-columns:1fr 1fr;margin-bottom:14px">
     <div class="sc"><div class="sc-top" style="background:var(--blue)"></div><div class="slabel">Por cobrar</div><div class="sval" id="p-cobrar-total" style="color:var(--blue)">—</div><div class="ssub" id="p-cobrar-n">— registros</div></div>
     <div class="sc"><div class="sc-top" style="background:var(--magenta)"></div><div class="slabel">Por pagar</div><div class="sval" id="p-pagar-total" style="color:var(--magenta)">—</div><div class="ssub" id="p-pagar-n">— registros</div></div>
   </div>
-  <!-- Resumen de selección -->
-  <div id="pend-sel-summary" style="display:none;margin-bottom:13px;padding:12px 16px;background:var(--black3);border:1px solid var(--border2);border-radius:8px">
-    <div style="font-size:9px;color:var(--w4);letter-spacing:1.5px;text-transform:uppercase;font-weight:600;margin-bottom:10px">Resumen de filas seleccionadas</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
-      <div>
-        <div style="font-size:10px;color:var(--w4);margin-bottom:3px">Total en Euros (seleccionadas)</div>
-        <div style="font-size:18px;font-weight:700;color:var(--blue)" id="sel-total-eur">€0</div>
-        <div style="font-size:10px;color:var(--w4);margin-top:2px" id="sel-total-bs">= Bs 0</div>
+
+  <!-- Tasa inputs -->
+  <div class="card" style="margin-bottom:14px;padding:12px 16px">
+    <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+      <div style="font-size:9px;color:var(--w4);letter-spacing:1.5px;text-transform:uppercase;font-weight:600">Tasas del día</div>
+      <div style="display:flex;align-items:center;gap:7px">
+        <span style="font-size:11px;color:var(--w4)">BCV (USD)</span>
+        <input type="number" id="tasa-bcv-input" placeholder="Bs/$" style="width:80px;padding:4px 8px;font-size:12px;text-align:center" oninput="renderPendientes()">
       </div>
-      <div>
-        <div style="font-size:10px;color:var(--w4);margin-bottom:3px">Total en USD (no seleccionadas)</div>
-        <div style="font-size:18px;font-weight:700;color:var(--green)" id="sel-total-usd">$0</div>
-        <div style="font-size:10px;color:var(--w4);margin-top:2px" id="sel-count">0 filas seleccionadas</div>
+      <div style="display:flex;align-items:center;gap:7px">
+        <span style="font-size:11px;color:var(--w4)">Euro</span>
+        <input type="number" id="tasa-eur-input" placeholder="Bs/€" style="width:80px;padding:4px 8px;font-size:12px;text-align:center" oninput="renderPendientes()">
       </div>
-      <div>
-        <div style="font-size:10px;color:var(--w4);margin-bottom:3px">Tasa Euro BCV</div>
-        <div style="font-size:18px;font-weight:700;color:var(--w2)" id="sel-tasa">— Bs/€</div>
-        <div style="font-size:10px;color:var(--w4);margin-top:2px">Actualizada automáticamente</div>
+      <div style="display:flex;align-items:center;gap:7px">
+        <span style="font-size:11px;color:var(--w4)">USDT</span>
+        <input type="number" id="tasa-usdt-input" placeholder="Bs/USDT" style="width:80px;padding:4px 8px;font-size:12px;text-align:center" oninput="renderPendientes()">
       </div>
+      <button class="btn btn-ghost btn-sm" onclick="autoFillTasas()"><i class="ti ti-refresh"></i>Cargar tasas BCV</button>
     </div>
   </div>
 
-  <div class="card np" style="margin-bottom:13px">
-    <div style="padding:12px 17px 7px;display:flex;align-items:center;justify-content:space-between">
-      <div class="ctitle" style="margin-bottom:0">Por cobrar</div>
-      <span style="font-size:10px;color:var(--w4)">Marca con check las filas a pagar en Euros</span>
-    </div>
-    <div class="twrap"><table><thead><tr><th style="width:32px"><input type="checkbox" id="check-all-cobrar" onchange="toggleAllPend(this,'cobrar')" style="accent-color:var(--blue)"></th><th>F.Evento</th><th>Categoría</th><th>Sub-Cat</th><th>Concepto</th><th>Código</th><th>Responsable</th><th>Monto</th></tr></thead>
-    <tbody id="p-cobrar-tbody"></tbody></table></div>
+  <!-- POR COBRAR -->
+  <div class="card np" style="margin-bottom:14px">
+    <div style="padding:12px 17px 10px"><div class="ctitle">Por cobrar</div></div>
+    <div class="twrap"><table>
+      <thead><tr><th>F.Evento</th><th>Categoría</th><th>Sub-Cat</th><th>Concepto</th><th>Código</th><th>Responsable</th><th>Monto</th></tr></thead>
+      <tbody id="p-cobrar-tbody"></tbody>
+    </table></div>
   </div>
+
+  <!-- POR PAGAR — Excel style table -->
   <div class="card np">
-    <div style="padding:12px 17px 7px;display:flex;align-items:center;justify-content:space-between">
-      <div class="ctitle" style="margin-bottom:0">Por pagar</div>
-      <span style="font-size:10px;color:var(--w4)">Marca con check las filas a pagar en Euros</span>
+    <div style="padding:12px 17px 10px;border-bottom:1px solid var(--border)">
+      <div class="ctitle" style="margin-bottom:6px">Por pagar · resumen por persona</div>
+      <div style="font-size:11px;color:var(--w4)">Marca <b style="color:var(--w2)">Bs($)</b> si se paga en dólares en efectivo, o <b style="color:var(--w2)">Bs</b> si se paga en bolívares</div>
     </div>
-    <div class="twrap"><table><thead><tr><th style="width:32px"><input type="checkbox" id="check-all-pagar" onchange="toggleAllPend(this,'pagar')" style="accent-color:var(--blue)"></th><th>F.Evento</th><th>Categoría</th><th>Sub-Cat</th><th>Concepto</th><th>Código</th><th>Responsable</th><th>Monto</th></tr></thead>
-    <tbody id="p-pagar-tbody"></tbody></table></div>
+    <div class="twrap">
+      <table id="pagar-table">
+        <thead>
+          <tr>
+            <th>Persona</th>
+            <th style="text-align:right">Total</th>
+            <th style="text-align:right">Honorarios</th>
+            <th style="text-align:right">Dividendos</th>
+            <th style="text-align:right">Viáticos</th>
+            <th style="text-align:right">Comisión</th>
+            <th style="text-align:right">Otros</th>
+            <th style="text-align:center">Cash $</th>
+            <th style="text-align:center">Bs($)</th>
+            <th style="text-align:right">Bs equiv.</th>
+            <th style="text-align:right">$ a vender</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="p-pagar-tbody"></tbody>
+        <tfoot id="p-pagar-tfoot"></tfoot>
+      </table>
+    </div>
   </div>
 </div>
 
@@ -464,6 +529,10 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
       <span id="drive-status" class="drive-status" style="display:none"></span>
       <button class="btn btn-ghost btn-sm" onclick="copiarDescripcion()"><i class="ti ti-copy"></i>Copiar</button>
     </div>
+    <div style="display:flex;align-items:center;gap:8px;margin-top:10px;margin-bottom:6px">
+      <input type="checkbox" id="ai-include" checked style="accent-color:var(--blue)">
+      <label for="ai-include" style="font-size:12px;color:var(--w3);cursor:pointer">Incluir descripción en el PDF</label>
+    </div>
     <div id="ai-out" class="ai-box ai-dim">La descripción generada aparecerá aquí...</div>
   </div>
 </div>
@@ -472,9 +541,9 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
 <div id="v-socios" class="view">
   <div class="ph"><div><div class="aline"></div><div class="ptitle">Socios</div><div class="psub">Balance y participación histórica</div></div></div>
   <div class="sg3">
-    <div class="soc-card" id="sc-gb"><div class="soc-top" style="background:var(--blue)"></div><div class="sav" style="background:rgba(67,189,237,.1);color:var(--blue)">GB</div><div class="sn">Gustavo Briceño</div><div class="sa">Fukity · 30%</div><div class="sst"><div><span class="ssv" id="sc-gb-bal">—</span><span class="ssl">Balance</span></div><div><span class="ssv" id="sc-gb-evs">—</span><span class="ssl">Eventos</span></div></div></div>
-    <div class="soc-card" id="sc-eb"><div class="soc-top" style="background:var(--magenta)"></div><div class="sav" style="background:rgba(234,95,242,.1);color:var(--magenta)">EB</div><div class="sn">Eduardo Behrens</div><div class="sa">Nene · 60%</div><div class="sst"><div><span class="ssv" id="sc-eb-bal" style="color:var(--magenta)">—</span><span class="ssl">Balance</span></div><div><span class="ssv" id="sc-eb-evs" style="color:var(--magenta)">—</span><span class="ssl">Eventos</span></div></div></div>
-    <div class="soc-card" id="sc-fm"><div class="soc-top" style="background:var(--orange)"></div><div class="sav" style="background:rgba(244,169,61,.1);color:var(--orange)">FM</div><div class="sn">Francisco Massari</div><div class="sa">Fran · 10%</div><div class="sst"><div><span class="ssv" id="sc-fm-bal" style="color:var(--orange)">—</span><span class="ssl">Balance</span></div><div><span class="ssv" id="sc-fm-evs" style="color:var(--orange)">—</span><span class="ssl">Eventos</span></div></div></div>
+    <div class="soc-card" id="sc-gb"><div class="soc-top" style="background:var(--blue)"></div><div class="sav" style="background:rgba(67,189,237,.1);color:var(--blue)">GB</div><div class="sn">Gustavo Briceño</div><div class="sa">Fukity</div><div class="sst"><div><span class="ssv" id="sc-gb-bal">—</span><span class="ssl">Balance</span></div><div><span class="ssv" id="sc-gb-evs">—</span><span class="ssl">Eventos</span></div></div></div>
+    <div class="soc-card" id="sc-eb"><div class="soc-top" style="background:var(--magenta)"></div><div class="sav" style="background:rgba(234,95,242,.1);color:var(--magenta)">EB</div><div class="sn">Eduardo Behrens</div><div class="sa">Nene</div><div class="sst"><div><span class="ssv" id="sc-eb-bal" style="color:var(--magenta)">—</span><span class="ssl">Balance</span></div><div><span class="ssv" id="sc-eb-evs" style="color:var(--magenta)">—</span><span class="ssl">Eventos</span></div></div></div>
+    <div class="soc-card" id="sc-fm"><div class="soc-top" style="background:var(--orange)"></div><div class="sav" style="background:rgba(244,169,61,.1);color:var(--orange)">FM</div><div class="sn">Francisco Massari</div><div class="sa">Fran</div><div class="sst"><div><span class="ssv" id="sc-fm-bal" style="color:var(--orange)">—</span><span class="ssl">Balance</span></div><div><span class="ssv" id="sc-fm-evs" style="color:var(--orange)">—</span><span class="ssl">Eventos</span></div></div></div>
   </div>
   <div class="two eq">
     <div class="card"><div class="ctitle">Distribución por responsable</div>
@@ -541,6 +610,26 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
     <div class="twrap"><table>
       <thead><tr><th>Proveedor</th><th>Tipo</th><th>Contacto</th><th>Teléfono</th><th>Eventos</th><th>Pagado</th><th>Target</th><th>Calidad</th><th>Notas</th><th></th></tr></thead>
       <tbody id="prov-tbody"><tr><td colspan="10" style="color:var(--w4);text-align:center;padding:18px">Cargando...</td></tr></tbody>
+    </table></div>
+  </div>
+</div>
+
+<!-- HISTORIAL COTIZACIONES -->
+<div id="v-historial" class="view">
+  <div class="ph">
+    <div><div class="aline"></div><div class="ptitle">Historial</div><div class="psub" id="hist-sub">Cotizaciones enviadas</div></div>
+  </div>
+  <div class="btn-row" style="margin-bottom:13px">
+    <select id="f-hist-resp" style="width:auto;padding:5px 9px;font-size:12px" onchange="renderHistorial()">
+      <option value="">Todos los responsables</option>
+      <option>Gustavo Briceño</option><option>Eduardo Behrens</option><option>Francisco Massari</option>
+    </select>
+    <input id="f-hist-q" type="text" placeholder="Buscar cliente o código..." style="width:200px;padding:5px 9px;font-size:12px" oninput="renderHistorial()">
+  </div>
+  <div class="card np">
+    <div class="twrap"><table>
+      <thead><tr><th>Código</th><th>Fecha</th><th>Cliente</th><th>Tipo</th><th>Lugar</th><th>Horario</th><th>Responsable</th><th>Total</th><th>Estado</th></tr></thead>
+      <tbody id="hist-tbody"><tr><td colspan="9" style="color:var(--w4);text-align:center;padding:18px">Cargando...</td></tr></tbody>
     </table></div>
   </div>
 </div>
@@ -801,6 +890,7 @@ function sv(id, btn) {
   if (id === 'balance')      renderBalance();
   if (id === 'socios')       renderSocios();
   if (id === 'estadisticas') renderEstadisticas();
+  if (id === 'historial')    renderHistorial();
   if (id === 'proveedores')  cargarProveedores();
   if (id === 'dashboard')    renderDashboard();
 }
@@ -1222,30 +1312,158 @@ async function eliminarTx(id) {
 }
 
 // ─── PENDIENTES ───
+function autoFillTasas() {
+  const bcv  = window._tasaUSD || 0;
+  const eur  = window._tasaEUR || 0;
+  if (bcv > 0) $('tasa-bcv-input').value  = bcv.toFixed(2);
+  if (eur > 0) $('tasa-eur-input').value  = eur.toFixed(2);
+  renderPendientes();
+}
+
 function renderPendientes() {
+  if (!TX.length) { setTimeout(renderPendientes, 400); return; }
+
   const cobrar = TX.filter(t => t.estado === 'Por cobrar');
   const pagar  = TX.filter(t => t.estado === 'Por pagar');
-  const tC = cobrar.reduce((s,t) => s + (parseFloat(t.ingreso)||0), 0);
-  const tP = pagar.reduce ((s,t) => s + (parseFloat(t.egreso) ||0), 0);
+  const tC = cobrar.reduce((s,t) => s+(parseFloat(t.ingreso)||0), 0);
+  const tP = pagar.reduce ((s,t) => s+(parseFloat(t.egreso) ||0), 0);
+
   $('p-cobrar-total').textContent = fmt(tC);
   $('p-cobrar-n').textContent     = cobrar.length + ' registros';
   $('p-pagar-total').textContent  = fmt(tP);
   $('p-pagar-n').textContent      = pagar.length  + ' registros';
   $('pend-sub').textContent       = cobrar.length + ' por cobrar · ' + pagar.length + ' por pagar';
 
-  const rowHTML = t => '<tr>'
+  // ── POR COBRAR ──
+  const rowCobrar = t => '<tr>'
     + '<td>' + fDate(t.fecha_evento) + '</td>'
     + '<td>' + esc(t.categoria) + '</td>'
     + '<td>' + esc(t.subcategoria) + '</td>'
     + '<td>' + esc(t.concepto) + '</td>'
     + '<td class="mono">' + esc(t.codigo_evento) + '</td>'
     + '<td>' + esc(t.responsable) + '</td>'
-    + '<td style="font-weight:600;color:var(--blue)">' + fmt(t.ingreso > 0 ? t.ingreso : t.egreso) + '</td>'
+    + '<td style="font-weight:600;color:var(--blue)">' + fmt(t.ingreso||0) + '</td>'
     + '</tr>';
+  $('p-cobrar-tbody').innerHTML = cobrar.length
+    ? cobrar.map(rowCobrar).join('')
+    : '<tr><td colspan="7" style="color:var(--w4);text-align:center;padding:14px">Sin cuentas por cobrar</td></tr>';
 
-  $('p-cobrar-tbody').innerHTML = cobrar.length ? cobrar.map(rowHTML).join('') : '<tr><td colspan="7" style="color:var(--w4);text-align:center;padding:14px">Sin cuentas por cobrar ✓</td></tr>';
-  $('p-pagar-tbody').innerHTML  = pagar.length  ? pagar.map(rowHTML).join('')  : '<tr><td colspan="7" style="color:var(--w4);text-align:center;padding:14px">Sin cuentas por pagar ✓</td></tr>';
+  // ── POR PAGAR — group by responsable ──
+  const tasaBCV  = parseFloat($('tasa-bcv-input')  ? $('tasa-bcv-input').value  : 0) || 0;
+  const tasaEUR  = parseFloat($('tasa-eur-input')   ? $('tasa-eur-input').value   : 0) || 0;
+  const tasaUSDT = parseFloat($('tasa-usdt-input')  ? $('tasa-usdt-input').value  : 0) || 0;
+
+  const grupos = {};
+  pagar.forEach(t => {
+    const key = t.concepto || 'Sin nombre';
+    if (!grupos[key]) grupos[key] = {nombre:key, total:0, honorarios:0, dividendos:0, viaticos:0, comision:0, otros:0, items:[], cashUSD:false, bsUSD:false};
+    const monto = parseFloat(t.egreso)||0;
+    grupos[key].total += monto;
+    const sub = (t.subcategoria||'').toLowerCase();
+    if (sub.includes('honorar'))          grupos[key].honorarios += monto;
+    else if (sub.includes('dividend'))    grupos[key].dividendos += monto;
+    else if (sub.includes('viático')||sub.includes('viatico')) grupos[key].viaticos += monto;
+    else if (sub.includes('comisi'))      grupos[key].comision   += monto;
+    else                                  grupos[key].otros      += monto;
+    grupos[key].items.push(t);
+  });
+
+  const sorted = Object.values(grupos).sort((a,b) => b.total - a.total);
+
+  // Totals for footer
+  let totTotal=0, totHon=0, totDiv=0, totVia=0, totCom=0, totOtros=0, totBsEquiv=0, totVender=0;
+
+  const tbody = $('p-pagar-tbody');
+  tbody.innerHTML = sorted.map((g, gi) => {
+    const cashChecked = document.getElementById('chk-cash-'+gi) ? document.getElementById('chk-cash-'+gi).checked : false;
+    const bsChecked   = document.getElementById('chk-bs-'+gi)   ? document.getElementById('chk-bs-'+gi).checked   : false;
+
+    // Bs equivalent calculation
+    let bsEquiv = 0, dolVender = 0;
+    if (bsChecked && tasaBCV > 0) {
+      bsEquiv   = g.total * tasaBCV;
+      dolVender = 0;
+    } else if (cashChecked) {
+      bsEquiv   = 0;
+      dolVender = 0;
+    }
+
+    totTotal  += g.total;
+    totHon    += g.honorarios;
+    totDiv    += g.dividendos;
+    totVia    += g.viaticos;
+    totCom    += g.comision;
+    totOtros  += g.otros;
+    totBsEquiv+= bsEquiv;
+
+    const f2 = n => n > 0 ? fmt(n) : '<span style="color:var(--w4)">$0</span>';
+
+    // Detail rows for expand
+    const detailId = 'detail-' + gi;
+    const detailRows = g.items.map(t =>
+      '<tr style="background:rgba(0,0,0,.15)">'
+      + '<td style="padding-left:28px;font-size:11px;color:var(--w4)" colspan="2">'
+      +   (t.codigo_evento ? '<span class="mono">'+esc(t.codigo_evento)+'</span> · ' : '')
+      +   esc(t.subcategoria||'—') + ' · ' + fDate(t.fecha_evento)
+      + '</td>'
+      + '<td></td><td></td><td></td><td></td>'
+      + '<td style="text-align:right;font-size:11px;color:var(--magenta)">'+fmt(parseFloat(t.egreso)||0)+'</td>'
+      + '<td colspan="4"></td><td></td>'
+      + '</tr>'
+    ).join('');
+
+    return '<tr>'
+      + '<td style="font-weight:600;color:var(--w2)">'
+      +   '<button onclick="toggleDetail(''+detailId+'')" style="background:none;border:none;color:var(--w4);cursor:pointer;padding:0 6px 0 0;font-size:11px"><i class="ti ti-chevron-down" id="arr-'+gi+'"></i></button>'
+      +   esc(g.nombre)
+      + '</td>'
+      + '<td style="text-align:right;font-weight:700;color:var(--magenta)">' + fmt(g.total) + '</td>'
+      + '<td style="text-align:right">' + f2(g.honorarios) + '</td>'
+      + '<td style="text-align:right">' + f2(g.dividendos) + '</td>'
+      + '<td style="text-align:right">' + f2(g.viaticos)   + '</td>'
+      + '<td style="text-align:right">' + f2(g.comision)   + '</td>'
+      + '<td style="text-align:right">' + f2(g.otros)      + '</td>'
+      + '<td style="text-align:center"><input type="checkbox" id="chk-cash-'+gi+'" onchange="renderPendientes()" style="accent-color:var(--green)"></td>'
+      + '<td style="text-align:center"><input type="checkbox" id="chk-bs-'+gi+'"   onchange="renderPendientes()" style="accent-color:var(--blue)"></td>'
+      + '<td style="text-align:right;color:var(--blue)">' + (bsEquiv>0?'Bs '+Math.round(bsEquiv).toLocaleString('es-VE'):'<span style="color:var(--w4)">—</span>') + '</td>'
+      + '<td style="text-align:right;color:var(--w4)">' + (dolVender>0?fmt(dolVender):'—') + '</td>'
+      + '<td></td>'
+      + '</tr>'
+      + '<tr id="'+detailId+'" style="display:none">'
+      + '<td colspan="12" style="padding:0"><table style="width:100%"><tbody>' + detailRows + '</tbody></table></td>'
+      + '</tr>';
+  }).join('');
+
+  // Footer totals
+  const tfoot = $('p-pagar-tfoot');
+  tfoot.innerHTML = '<tr style="background:rgba(67,189,237,.08);font-weight:700">'
+    + '<td style="font-size:11px;color:var(--w4);text-transform:uppercase;letter-spacing:1px">TOTAL</td>'
+    + '<td style="text-align:right;color:var(--magenta)">' + fmt(totTotal)  + '</td>'
+    + '<td style="text-align:right;color:var(--w2)">'      + fmt(totHon)    + '</td>'
+    + '<td style="text-align:right;color:var(--w2)">'      + fmt(totDiv)    + '</td>'
+    + '<td style="text-align:right;color:var(--w2)">'      + fmt(totVia)    + '</td>'
+    + '<td style="text-align:right;color:var(--w2)">'      + fmt(totCom)    + '</td>'
+    + '<td style="text-align:right;color:var(--w2)">'      + fmt(totOtros)  + '</td>'
+    + '<td></td><td></td>'
+    + '<td style="text-align:right;color:var(--blue)">'    + (totBsEquiv>0?'Bs '+Math.round(totBsEquiv).toLocaleString('es-VE'):'—') + '</td>'
+    + '<td></td><td></td>'
+    + '</tr>';
 }
+
+function toggleDetail(id) {
+  const row = document.getElementById(id);
+  if (!row) return;
+  const gi  = id.replace('detail-','');
+  const arr = document.getElementById('arr-'+gi);
+  const open = row.style.display === 'none' || row.style.display === '';
+  row.style.display = open ? 'table-row' : 'none';
+  if (arr) arr.style.transform = open ? 'rotate(180deg)' : '';
+}
+
+// Legacy compat
+function toggleAllPend(){}
+function calcPagarBs(){}
+
 
 // ─── BALANCE ───
 function renderBalance() {
@@ -1648,14 +1866,10 @@ async function genIA() {
       max_tokens: 300,
       messages: [{role:'user', content: prompt}]
     };
-    const proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent('https://api.anthropic.com/v1/messages');
-    const res = await fetch(proxyUrl, {
+    // Use Anthropic API directly - works when called from the artifact context
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': 'ANTHROPIC_KEY_PLACEHOLDER',
-        'anthropic-version': '2023-06-01'
-      },
+      headers: {'Content-Type': 'application/json'},
       body: JSON.stringify(payload)
     });
     if (!res.ok) throw new Error('HTTP ' + res.status);
@@ -1681,33 +1895,121 @@ function generarDescripcionLocal(cliente, tipo, lugar, fecha, horario, total, it
 }
 
 function buildPDFHTML() {
-  const cliente = $('cc').value||'Cliente', codigo=$('ccode').textContent;
-  const tipo=$('ctype').value, fecha=$('cdate').value, lugar=$('cplace').value||'Por confirmar';
-  const horario=getCotHorario()||'Por confirmar', invitados=$('cguests').value||'—';
-  const total=$('c-total').textContent, sub=$('c-sub').textContent;
-  const descPct=parseFloat($('c-desc').value)||0, ivaOn=$('c-iva').checked;
-  const aiText=$('ai-out').textContent, showAI=aiText&&aiText.length>10&&!aiText.includes('aparecerá');
-  let fechaStr='Por confirmar';
+  const cliente  = $('cc').value||'Cliente';
+  const codigo   = $('ccode').textContent;
+  const tipo     = $('ctype').value === 'Otro' ? ($('ctype-otro') ? $('ctype-otro').value : 'Otro') : $('ctype').value;
+  const fecha    = $('cdate').value;
+  const lugar    = $('cplace').value||'Por confirmar';
+  const horario  = getCotHorario()||'Por confirmar';
+  const duracion = getCotDuracion();
+  const invitados= $('cguests').value||'—';
+  const total    = $('c-total').textContent;
+  const sub      = $('c-sub').textContent;
+  const descPct  = parseFloat($('c-desc').value)||0;
+  const ivaOn    = $('c-iva').checked;
+  const aiText   = $('ai-out').textContent;
+  const incluirAI= $('ai-include') ? $('ai-include').checked : true;
+  const showAI   = incluirAI && aiText && aiText.length > 10 && !aiText.includes('aparecerá');
+  let fechaStr = 'Por confirmar';
   if(fecha){try{fechaStr=new Date(fecha+'T12:00:00').toLocaleDateString('es-VE',{day:'2-digit',month:'long',year:'numeric'});}catch(e){}}
-  const hoy=new Date().toLocaleDateString('es-VE');
-  let itemsHTML=''; let i2=0;
-  document.querySelectorAll('.cir').forEach(r=>{
-    const con=r.querySelector('.xcon').value, cat=r.dataset.cat||'—';
-    const qty=r.querySelector('.xqty').value, pri=r.querySelector('.xpri').value;
-    const t2=(parseFloat(qty)||0)*(parseFloat(pri)||0);
-    if(con&&pri){const bg=i2%2===0?'#fff':'#f9f9f9';itemsHTML+='<tr style="background:'+bg+'"><td style="padding:8px 12px;border-bottom:1px solid #eee;font-size:12px">'+cat+'</td><td style="padding:8px 12px;border-bottom:1px solid #eee;font-size:12px">'+con+'</td><td style="padding:8px 12px;border-bottom:1px solid #eee;font-size:12px;text-align:center">'+qty+'</td><td style="padding:8px 12px;border-bottom:1px solid #eee;font-size:12px;text-align:right">$'+parseFloat(pri).toFixed(0)+'</td><td style="padding:8px 12px;border-bottom:1px solid #eee;font-size:12px;font-weight:bold;text-align:right">$'+t2.toFixed(0)+'</td></tr>';i2++;}
+  const hoy = new Date().toLocaleDateString('es-VE');
+
+  let itemsHTML = ''; let idx2 = 0;
+  document.querySelectorAll('.cir').forEach(r => {
+    const con = r.querySelector('.xcon').value;
+    const cat = r.dataset.cat||'—';
+    const qty = r.querySelector('.xqty').value;
+    const pri = r.querySelector('.xpri').value;
+    const t2  = (parseFloat(qty)||0)*(parseFloat(pri)||0);
+    if(con&&pri){
+      const bg = idx2%2===0?'#ffffff':'#f9f9f9';
+      itemsHTML += '<tr style="background:'+bg+'"><td style="padding:8px 12px;border-bottom:1px solid #eee;font-size:12px">'+cat+'</td><td style="padding:8px 12px;border-bottom:1px solid #eee;font-size:12px">'+con+'</td><td style="padding:8px 12px;border-bottom:1px solid #eee;font-size:12px;text-align:center">'+qty+'</td><td style="padding:8px 12px;border-bottom:1px solid #eee;font-size:12px;text-align:right">$'+parseFloat(pri).toFixed(0)+'</td><td style="padding:8px 12px;border-bottom:1px solid #eee;font-size:12px;font-weight:bold;text-align:right">$'+t2.toFixed(0)+'</td></tr>';
+      idx2++;
+    }
   });
-  const ai=showAI?'<div style="margin:14px 0;padding:12px 14px;background:#f0fbff;border-left:4px solid #43bded;font-size:12px;line-height:1.7;color:#444">'+aiText+'</div>':'';
-  return '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>'+codigo+' - '+cliente+'</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;background:#fff;color:#222}@media print{.noprint{display:none}@page{margin:8mm;size:A4}}</style></head><body>'
-    +'<div class="noprint" style="background:#43bded;padding:11px 18px;text-align:right;position:sticky;top:0"><span style="color:#141414;font-size:12px;font-weight:bold;margin-right:12px">'+codigo+' · '+cliente+'</span><button onclick="window.print()" style="background:#141414;color:#fff;border:none;padding:8px 18px;font-size:13px;font-weight:bold;cursor:pointer;border-radius:4px">⬇ IMPRIMIR / GUARDAR PDF</button></div>'
-    +'<div style="max-width:760px;margin:0 auto"><table width="100%" cellpadding="0" cellspacing="0" bgcolor="#141414"><tr><td bgcolor="#141414" style="background:#141414;padding:22px 26px"><div style="font-size:26px;font-weight:900;letter-spacing:5px;color:#fff">BLAST</div><div style="font-size:9px;letter-spacing:6px;color:#43bded;margin-top:3px">PROSOUND</div></td><td bgcolor="#141414" style="background:#141414;padding:22px 26px;text-align:right"><div style="font-size:15px;font-weight:700;color:#43bded;letter-spacing:2px">'+codigo+'</div><div style="font-size:10px;color:#aaa;margin-top:5px">blast.prosound@gmail.com · @blast.sonido</div></td></tr></table>'
-    +'<div style="height:4px;background:#43bded"></div>'
-    +'<table width="100%" cellpadding="0" cellspacing="0" bgcolor="#f7f7f7"><tr><td width="50%" style="padding:16px 26px;vertical-align:top;background:#f7f7f7"><div style="font-size:9px;color:#888;letter-spacing:1.5px;text-transform:uppercase;font-weight:bold;margin-bottom:3px">Cliente</div><div style="font-size:15px;font-weight:bold;margin-bottom:10px">'+cliente+'</div><div style="font-size:9px;color:#888;letter-spacing:1.5px;text-transform:uppercase;font-weight:bold;margin-bottom:3px">Tipo de evento</div><div style="font-size:13px;margin-bottom:10px">'+tipo+'</div><div style="font-size:9px;color:#888;letter-spacing:1.5px;text-transform:uppercase;font-weight:bold;margin-bottom:3px">Lugar</div><div style="font-size:13px">'+lugar+'</div></td><td width="50%" style="padding:16px 26px;vertical-align:top;background:#f7f7f7"><div style="font-size:9px;color:#888;letter-spacing:1.5px;text-transform:uppercase;font-weight:bold;margin-bottom:3px">Fecha</div><div style="font-size:13px;margin-bottom:10px">'+fechaStr+'</div><div style="font-size:9px;color:#888;letter-spacing:1.5px;text-transform:uppercase;font-weight:bold;margin-bottom:3px">Horario</div><div style="font-size:13px;margin-bottom:10px">'+horario+'</div><div style="font-size:9px;color:#888;letter-spacing:1.5px;text-transform:uppercase;font-weight:bold;margin-bottom:3px">Invitados</div><div style="font-size:13px">'+invitados+'</div></td></tr></table>'
-    +'<div style="padding:16px 26px 0"><div style="font-size:9px;color:#888;letter-spacing:2px;text-transform:uppercase;font-weight:bold;padding-bottom:5px;border-bottom:1px solid #ddd;margin-bottom:0">Servicios incluidos</div><table width="100%" cellpadding="0" cellspacing="0"><thead><tr bgcolor="#141414"><th style="padding:7px 12px;text-align:left;font-size:9px;color:#fff;letter-spacing:1px">CATEGORÍA</th><th style="padding:7px 12px;text-align:left;font-size:9px;color:#fff;letter-spacing:1px">CONCEPTO</th><th style="padding:7px 12px;text-align:center;font-size:9px;color:#fff;letter-spacing:1px">CANT.</th><th style="padding:7px 12px;text-align:right;font-size:9px;color:#fff;letter-spacing:1px">P. UNIT.</th><th style="padding:7px 12px;text-align:right;font-size:9px;color:#fff;letter-spacing:1px">TOTAL</th></tr></thead><tbody>'+itemsHTML+'</tbody></table></div>'
-    +'<div style="margin:14px 26px 0;padding:13px 16px;background:#f5f5f5;border-radius:4px"><table width="100%" cellpadding="0" cellspacing="3"><tr><td style="font-size:12px;color:#666">Sub total</td><td style="font-size:12px;color:#666;text-align:right">'+sub+'</td></tr>'+(descPct>0?'<tr><td style="font-size:12px;color:#e05555">Descuento ('+descPct+'%)</td><td style="font-size:12px;color:#e05555;text-align:right">aplicado</td></tr>':'')+(ivaOn?'<tr><td style="font-size:12px;color:#666">IVA (16%)</td><td style="font-size:12px;color:#666;text-align:right">incluido</td></tr>':'')+'<tr><td colspan="2" style="padding:6px 0 0"><div style="height:2px;background:#43bded"></div></td></tr><tr><td style="font-size:20px;font-weight:900;color:#141414;padding-top:5px">TOTAL</td><td style="font-size:20px;font-weight:900;color:#43bded;text-align:right;padding-top:5px">'+total+'</td></tr></table></div>'
-    +(showAI?'<div style="margin:14px 26px 0">'+ai+'</div>':'')
-    +'<div style="margin:14px 26px 0;padding:10px 13px;border:1px solid #eee;border-radius:4px"><p style="font-size:9px;color:#999;line-height:1.6;margin:0"><strong style="color:#666">Términos y condiciones: </strong>Para confirmar el servicio se requiere un abono del 50% del monto total. El saldo restante debe cancelarse con al menos 48 horas de anticipación al evento. Blast ProSound no se hace responsable por interrupciones causadas por factores externos. La aceptación de este presupuesto implica la aceptación de todos los términos.</p></div>'
-    +'<table width="100%" cellpadding="0" cellspacing="0" style="margin:12px 0 0;padding:9px 26px;border-top:1px solid #eee"><tr><td style="font-size:9px;color:#bbb">Blast ProSound · Caracas, Venezuela · blast.prosound@gmail.com</td><td style="font-size:9px;color:#bbb;text-align:right">Generado el '+hoy+'</td></tr></table>'
+
+  const aiBlock = showAI ? '<div style="margin:14px 0;padding:12px 14px;background:#f0fbff;border-left:4px solid #43bded;font-size:12px;line-height:1.7;color:#444">'+aiText+'</div>' : '';
+  const horarioFull = horario + (duracion ? ' (' + duracion + ')' : '');
+
+  return '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>'+codigo+' - '+cliente+'</title>'
+    +'<style>'
+    +'*{margin:0;padding:0;box-sizing:border-box}'
+    +'body{font-family:Arial,Helvetica,sans-serif;background:#fff;color:#222}'
+    +'@media print{'
+    +'.noprint{display:none!important}'
+    +'@page{margin:8mm;size:A4}'
+    +'*{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;color-adjust:exact!important}'
+    +'}'
+    +'</style></head><body>'
+    // Print bar
+    +'<div class="noprint" style="background:#43bded;padding:10px 18px;text-align:right;position:sticky;top:0">'
+    +'<span style="color:#141414;font-size:12px;font-weight:bold;margin-right:12px">'+codigo+' · '+cliente+'</span>'
+    +'<button onclick="window.print()" style="background:#141414;color:#fff;border:none;padding:8px 18px;font-size:13px;font-weight:bold;cursor:pointer;border-radius:4px">IMPRIMIR / GUARDAR PDF</button>'
+    +'<div style="font-size:10px;color:#141414;margin-top:4px">Activar "Gráficos de fondo" en opciones para ver colores completos</div>'
+    +'</div>'
+    +'<div style="max-width:760px;margin:0 auto">'
+    // Header — forced background color
+    +'<table width="100%" cellpadding="0" cellspacing="0" style="-webkit-print-color-adjust:exact;print-color-adjust:exact"><tr>'
+    +'<td style="background-color:#141414;background:#141414;padding:22px 26px;-webkit-print-color-adjust:exact;print-color-adjust:exact">'
+    +'<img src="https://blastprosound.github.io/blast-sistema/logo-white.png" style="height:32px;width:auto" alt="Blast ProSound">'
+    +'</td>'
+    +'<td style="background-color:#141414;background:#141414;padding:22px 26px;text-align:right;-webkit-print-color-adjust:exact;print-color-adjust:exact">'
+    +'<div style="font-size:15px;font-weight:700;color:#43bded;letter-spacing:2px">'+codigo+'</div>'
+    +'<div style="font-size:10px;color:#aaaaaa;margin-top:5px">blast.prosound@gmail.com · @blast.sonido</div>'
+    +'</td></tr></table>'
+    // Blue bar
+    +'<div style="height:4px;background-color:#43bded;background:#43bded;-webkit-print-color-adjust:exact;print-color-adjust:exact"></div>'
+    // Event info
+    +'<table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f7f7f7;background:#f7f7f7;border-bottom:2px solid #e0e0e0"><tr>'
+    +'<td width="50%" style="background-color:#f7f7f7;padding:16px 26px;vertical-align:top">'
+    +'<div style="font-size:9px;color:#888;letter-spacing:1.5px;text-transform:uppercase;font-weight:bold;margin-bottom:3px">Cliente</div>'
+    +'<div style="font-size:15px;font-weight:bold;margin-bottom:10px;color:#111">'+cliente+'</div>'
+    +'<div style="font-size:9px;color:#888;letter-spacing:1.5px;text-transform:uppercase;font-weight:bold;margin-bottom:3px">Tipo de evento</div>'
+    +'<div style="font-size:13px;margin-bottom:10px">'+tipo+'</div>'
+    +'<div style="font-size:9px;color:#888;letter-spacing:1.5px;text-transform:uppercase;font-weight:bold;margin-bottom:3px">Lugar</div>'
+    +'<div style="font-size:13px">'+lugar+'</div>'
+    +'</td>'
+    +'<td width="50%" style="background-color:#f7f7f7;padding:16px 26px;vertical-align:top">'
+    +'<div style="font-size:9px;color:#888;letter-spacing:1.5px;text-transform:uppercase;font-weight:bold;margin-bottom:3px">Fecha</div>'
+    +'<div style="font-size:13px;margin-bottom:10px">'+fechaStr+'</div>'
+    +'<div style="font-size:9px;color:#888;letter-spacing:1.5px;text-transform:uppercase;font-weight:bold;margin-bottom:3px">Horario</div>'
+    +'<div style="font-size:13px;margin-bottom:10px">'+horarioFull+'</div>'
+    +'<div style="font-size:9px;color:#888;letter-spacing:1.5px;text-transform:uppercase;font-weight:bold;margin-bottom:3px">Invitados</div>'
+    +'<div style="font-size:13px">'+invitados+'</div>'
+    +'</td></tr></table>'
+    // Services
+    +'<div style="padding:16px 26px 0">'
+    +'<div style="font-size:9px;color:#888;letter-spacing:2px;text-transform:uppercase;font-weight:bold;padding-bottom:5px;border-bottom:1px solid #ddd;margin-bottom:0">Servicios incluidos</div>'
+    +'<table width="100%" cellpadding="0" cellspacing="0">'
+    +'<thead><tr style="background-color:#141414;background:#141414;-webkit-print-color-adjust:exact;print-color-adjust:exact">'
+    +'<th style="background-color:#141414;padding:7px 12px;text-align:left;font-size:9px;color:#ffffff;letter-spacing:1px">CATEGORÍA</th>'
+    +'<th style="background-color:#141414;padding:7px 12px;text-align:left;font-size:9px;color:#ffffff;letter-spacing:1px">CONCEPTO</th>'
+    +'<th style="background-color:#141414;padding:7px 12px;text-align:center;font-size:9px;color:#ffffff;letter-spacing:1px">CANT.</th>'
+    +'<th style="background-color:#141414;padding:7px 12px;text-align:right;font-size:9px;color:#ffffff;letter-spacing:1px">P. UNIT.</th>'
+    +'<th style="background-color:#141414;padding:7px 12px;text-align:right;font-size:9px;color:#ffffff;letter-spacing:1px">TOTAL</th>'
+    +'</tr></thead><tbody>'+itemsHTML+'</tbody></table></div>'
+    // Totals
+    +'<div style="margin:14px 26px 0;padding:12px 16px;background-color:#f5f5f5;background:#f5f5f5;border-radius:4px;-webkit-print-color-adjust:exact;print-color-adjust:exact">'
+    +'<table width="100%" cellpadding="0" cellspacing="3">'
+    +'<tr><td style="font-size:12px;color:#666">Sub total</td><td style="font-size:12px;color:#666;text-align:right">'+sub+'</td></tr>'
+    +(descPct>0?'<tr><td style="font-size:12px;color:#e05555">Descuento ('+descPct+'%)</td><td style="font-size:12px;color:#e05555;text-align:right">aplicado</td></tr>':'')
+    +(ivaOn?'<tr><td style="font-size:12px;color:#666">IVA (16%)</td><td style="font-size:12px;color:#666;text-align:right">incluido</td></tr>':'')
+    +'<tr><td colspan="2" style="padding:6px 0 0"><div style="height:2px;background-color:#43bded;background:#43bded;-webkit-print-color-adjust:exact"></div></td></tr>'
+    +'<tr><td style="font-size:20px;font-weight:900;color:#141414;padding-top:5px">TOTAL</td>'
+    +'<td style="font-size:20px;font-weight:900;color:#43bded;text-align:right;padding-top:5px;-webkit-print-color-adjust:exact">'+total+'</td></tr>'
+    +'</table></div>'
+    // AI description
+    +(showAI?'<div style="margin:14px 26px 0">'+aiBlock+'</div>':'')
+    // Full terms
+    +'<div style="margin:14px 26px 0;padding:12px 14px;border:1px solid #eeeeee;border-radius:4px;background:#fafafa">'
+    +'<div style="font-size:10px;font-weight:bold;color:#444;margin-bottom:6px;letter-spacing:1px;text-transform:uppercase">Términos y condiciones</div>'
+    +'<p style="font-size:9px;color:#888;line-height:1.7;margin:0">1. Validez: Este presupuesto tiene validez de 5 días hábiles. 2. Confirmación: Se requiere un abono del 50% del total para garantizar la fecha. El saldo restante debe cancelarse 48 horas antes del evento. 3. Cancelaciones: Modificaciones deben notificarse con 72 horas de antelación. Cancelaciones con menos de 48 horas pierden el abono. 4. Montaje: El cliente garantizará acceso al lugar en los horarios acordados. 5. Equipos: Los equipos deben permanecer protegidos. El manejo técnico es exclusivo del personal de Blast. 6. Responsabilidad: Blast no se hace responsable por interrupciones causadas por factores externos (fallas eléctricas, clima, etc.). 7. Limitación: Blast actúa únicamente como proveedor de servicios técnicos y/o producción. 8. Aceptación: La aprobación de este presupuesto, por cualquier medio, implica la aceptación expresa de estos términos.</p>'
+    +'</div>'
+    // Footer
+    +'<table width="100%" cellpadding="0" cellspacing="0" style="margin:12px 0 0;padding:9px 26px;border-top:1px solid #eee"><tr>'
+    +'<td style="font-size:9px;color:#bbb">Blast ProSound · Caracas, Venezuela · blast.prosound@gmail.com</td>'
+    +'<td style="font-size:9px;color:#bbb;text-align:right">Generado el '+hoy+'</td>'
+    +'</tr></table>'
     +'</div></body></html>';
 }
 
@@ -2133,10 +2435,16 @@ async function cargarClientesDB() {
 }
 
 function renderClientes() {
+  // Wait for TX to be loaded
+  if (!TX.length) {
+    setTimeout(renderClientes, 500);
+    return;
+  }
   const q = ($('f-cli-q') ? $('f-cli-q').value.toLowerCase().trim() : '');
 
-  // Build client stats from EVS (events grouped by cliente_nombre)
+  // Build client stats from TX directly (more accurate than EVS)
   const cliMap = {};
+  // First build from EVS
   EVS.forEach(e => {
     const n = e.cliente;
     if (!n) return;
@@ -2311,6 +2619,89 @@ function editarProveedor(nombre) {
   $('modal-prov').classList.add('show');
 }
 
+// ─── DARK / LIGHT MODE ───
+let _darkMode = true;
+function toggleDarkMode() {
+  _darkMode = !_darkMode;
+  const root = document.documentElement;
+  if (_darkMode) {
+    root.style.setProperty('--black',  '#141414');
+    root.style.setProperty('--black2', '#1c1c1c');
+    root.style.setProperty('--black3', '#242424');
+    root.style.setProperty('--black4', '#2e2e2e');
+    root.style.setProperty('--w2',     '#e8e8e8');
+    root.style.setProperty('--w3',     '#a0a0a0');
+    root.style.setProperty('--w4',     '#606060');
+    root.style.setProperty('--border', 'rgba(255,255,255,0.07)');
+    document.getElementById('dm-icon').className = 'ti ti-sun';
+    const li = document.getElementById('logo-img'); if(li) li.src = 'https://blastprosound.github.io/blast-sistema/logo-white.png';
+  } else {
+    root.style.setProperty('--black',  '#f4f4f4');
+    root.style.setProperty('--black2', '#ffffff');
+    root.style.setProperty('--black3', '#f0f0f0');
+    root.style.setProperty('--black4', '#e8e8e8');
+    root.style.setProperty('--w2',     '#1a1a1a');
+    root.style.setProperty('--w3',     '#444444');
+    root.style.setProperty('--w4',     '#888888');
+    root.style.setProperty('--border', 'rgba(0,0,0,0.1)');
+    document.getElementById('dm-icon').className = 'ti ti-moon';
+    const li2 = document.getElementById('logo-img'); if(li2) li2.src = 'https://blastprosound.github.io/blast-sistema/logo-black.png';
+  }
+  localStorage.setItem('blastDarkMode', _darkMode ? '1' : '0');
+}
+
+function initDarkMode() {
+  const saved = localStorage.getItem('blastDarkMode');
+  if (saved === '0') { _darkMode = true; toggleDarkMode(); }
+}
+
+// ─── HISTORIAL COTIZACIONES ───
+let _historialData = [];
+
+async function cargarHistorial() {
+  const {data, error} = await supa.from('cotizaciones').select('*').order('created_at', {ascending: false});
+  if (!error && data) _historialData = data;
+  renderHistorial();
+}
+
+function renderHistorial() {
+  const q    = $('f-hist-q')    ? $('f-hist-q').value.toLowerCase().trim()  : '';
+  const resp = $('f-hist-resp') ? $('f-hist-resp').value                     : '';
+
+  let data = _historialData.filter(c => {
+    if (resp && c.responsable !== resp) return false;
+    if (q && !String(c.cliente||'').toLowerCase().includes(q) && !String(c.codigo||'').toLowerCase().includes(q)) return false;
+    return true;
+  });
+
+  const sub = $('hist-sub');
+  if (sub) sub.textContent = data.length + ' cotizaciones';
+
+  const tbody = $('hist-tbody');
+  if (!data.length) {
+    tbody.innerHTML = '<tr><td colspan="9" style="color:var(--w4);text-align:center;padding:18px">Sin cotizaciones registradas aún</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = data.map(c => {
+    const fecha = c.created_at ? new Date(c.created_at).toLocaleDateString('es-VE',{day:'2-digit',month:'short',year:'2-digit'}) : '—';
+    const total = c.total ? '$'+parseFloat(c.total).toLocaleString() : '—';
+    const estado = c.estado || 'Enviada';
+    const bc = estado === 'Aprobada' ? 'b-green' : estado === 'Rechazada' ? 'b-magenta' : 'b-blue';
+    return '<tr>'
+      + '<td class="mono">' + esc(c.codigo||'—') + '</td>'
+      + '<td>' + fecha + '</td>'
+      + '<td style="font-weight:600">' + esc(c.cliente||'—') + '</td>'
+      + '<td>' + esc(c.tipo_evento||'—') + '</td>'
+      + '<td style="color:var(--w4)">' + esc(c.lugar||'—') + '</td>'
+      + '<td style="color:var(--w4)">' + esc(c.horario||'—') + '</td>'
+      + '<td style="color:var(--w4)">' + esc(c.responsable||'—') + '</td>'
+      + '<td style="font-weight:600;color:var(--blue)">' + total + '</td>'
+      + '<td><span class="badge '+bc+'">' + estado + '</span></td>'
+      + '</tr>';
+  }).join('');
+}
+
 // ─── MOBILE NAV ───
 function toggleNav() {
   const nav = document.querySelector('.nav');
@@ -2332,15 +2723,37 @@ document.querySelectorAll('.ni').forEach(btn => {
 
 // ─── INIT (called after login) ───
 async function init() {
+  initDarkMode();
   const now = new Date();
   $('dash-date').textContent = 'Al ' + now.toLocaleDateString('es-VE', {day:'numeric', month:'long', year:'numeric'});
   loadBCV();
   addCotRow();
-  await Promise.all([cargarTX(), cargarClientesDB(), cargarProveedores()]);
+  await Promise.all([cargarTX(), cargarClientesDB(), cargarProveedores(), cargarHistorial()]);
 }
 
 
 // ─── AUTH ───
+function selectUser(email, nombre, initials) {
+  $('login-step1').style.display = 'none';
+  $('login-step2').style.display = 'block';
+  $('login-email').value = email;
+  $('login-sel-name').textContent = nombre;
+  const colors = {GB:'rgba(67,189,237,.15)',EB:'rgba(234,95,242,.15)',FM:'rgba(244,169,61,.15)'};
+  const textColors = {GB:'var(--blue)',EB:'var(--magenta)',FM:'var(--orange)'};
+  const av = $('login-sel-avatar');
+  av.textContent = initials;
+  av.style.background = colors[initials]||'rgba(255,255,255,.1)';
+  av.style.color = textColors[initials]||'var(--w2)';
+  setTimeout(() => $('login-pass').focus(), 100);
+}
+
+function backToUsers() {
+  $('login-step1').style.display = 'block';
+  $('login-step2').style.display = 'none';
+  $('login-error').style.display = 'none';
+  $('login-pass').value = '';
+}
+
 const ALLOWED_EMAILS = {
   'gustavobricenob@gmail.com':    'Gustavo Briceño',
   'casadetejas@gmail.com':        'Eduardo Behrens',
