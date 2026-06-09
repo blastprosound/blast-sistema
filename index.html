@@ -406,11 +406,11 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
       </div>
       <div style="display:flex;align-items:center;gap:7px">
         <span style="font-size:11px;color:var(--w4)">Euro</span>
-        <input type="number" id="tasa-eur-input" placeholder="Bs/€" style="width:80px;padding:4px 8px;font-size:12px;text-align:center" oninput="renderPendientes()">
+        <input type="number" id="tasa-eur-input" placeholder="Bs/€" style="width:80px;padding:4px 8px;font-size:12px;text-align:center" oninput="calcPagarTotals()">
       </div>
       <div style="display:flex;align-items:center;gap:7px">
         <span style="font-size:11px;color:var(--w4)">USDT</span>
-        <input type="number" id="tasa-usdt-input" placeholder="Bs/USDT" style="width:80px;padding:4px 8px;font-size:12px;text-align:center" oninput="renderPendientes()">
+        <input type="number" id="tasa-usdt-input" placeholder="Bs/USDT" style="width:80px;padding:4px 8px;font-size:12px;text-align:center" oninput="calcPagarTotals()">
       </div>
       <button class="btn btn-ghost btn-sm" onclick="autoFillTasas()"><i class="ti ti-refresh"></i>Cargar tasas BCV</button>
     </div>
