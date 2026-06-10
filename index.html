@@ -930,16 +930,20 @@ async function loadBCV() {
         $('d-eur').textContent = eur.toFixed(2) + ' Bs/€';
       }
     }
-    // USDT from Binance P2P
+    // USDT from DolarAPI (has CORS enabled)
     try {
-      const rU = await fetch('https://api.binance.com/api/v3/ticker/price?symbol=USDTVES', {signal: AbortSignal.timeout(6000)});
+      const rU = await fetch('https://ve.dolarapi.com/v1/dolares', {signal: AbortSignal.timeout(6000)});
       if (rU.ok) {
-        const d    = await rU.json();
-        const usdt = parseFloat(d.price) || 0;
-        if (usdt > 0) {
-          window._tasaUSDT = usdt;
-          const el = $('t-usdt');
-          if (el) el.textContent = usdt.toFixed(2);
+        const arr = await rU.json();
+        // Find parallel/crypto rate as USDT proxy
+        const usdt = arr.find(d => (d.fuente||'').toLowerCase().includes('crypto') || (d.nombre||'').toLowerCase().includes('crypto') || (d.nombre||'').toLowerCase().includes('usdt') || (d.nombre||'').toLowerCase().includes('paralelo'));
+        if (usdt) {
+          const rate = parseFloat(usdt.promedio || usdt.venta || usdt.compra) || 0;
+          if (rate > 0) {
+            window._tasaUSDT = rate;
+            const el = $('t-usdt');
+            if (el) el.textContent = rate.toFixed(2);
+          }
         }
       }
     } catch(e) { /* USDT optional */ }
@@ -1475,7 +1479,7 @@ function renderPendientes() {
   const sorted = Object.values(grupos).sort((a,b) => b.total - a.total);
 
   // Totals for footer
-  let totTotal=0, totHon=0, totDiv=0, totVia=0, totCom=0, totOtros=0, totBsEquiv=0, totVender=0;
+  let totTotal=0, totHon=0, totDiv=0, totVia=0, totCom=0, totOtros=0;
 
   const tbody = $('p-pagar-tbody');
   tbody.innerHTML = sorted.map((g, gi) => {
@@ -1486,7 +1490,7 @@ function renderPendientes() {
     totVia    += g.viaticos;
     totCom    += g.comision;
     totOtros  += g.otros;
-    totBsEquiv+= bsEquiv;
+    // totBsEquiv removed - handled by calcPagarTotals
 
     const f2 = n => n > 0 ? fmt(n) : '<span style="color:var(--w4)">$0</span>';
 
