@@ -1517,9 +1517,9 @@ function renderPendientes() {
       + '<td style="text-align:right">' + f2(g.otros)      + '</td>'
       + '<td style="text-align:center"><input type="checkbox" class="pend-chk" id="chk-cash-'+gi+'" data-total="'+g.total+'" onchange="calcPagarTotals()" style="accent-color:var(--green)"></td>'
       + '<td style="text-align:center"><input type="checkbox" class="pend-chk" id="chk-bs-'+gi+'"   data-total="'+g.total+'" onchange="calcPagarTotals()" style="accent-color:var(--blue)"></td>'
-      + '<td style="text-align:right;color:var(--blue)">' + (bsEquiv>0?'Bs '+Math.round(bsEquiv).toLocaleString('es-VE'):'<span style="color:var(--w4)">—</span>') + '</td>'
+      + '<td style="text-align:right" id="bs-equiv-row-'+gi+'">—</td>'
       
-      + '<td></td>'
+      + '<td style="text-align:right" id="vender-row-'+gi+'">—</td>'
       + '</tr>'
       + '<tr id="'+detailId+'" style="display:none">'
       + '<td colspan="12" style="padding:0"><table style="width:100%"><tbody>' + detailRows + '</tbody></table></td>'
