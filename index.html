@@ -272,7 +272,7 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
     <div class="brand"><img id="logo-img" src="https://blastprosound.github.io/blast-sistema/logo-white.png" style="height:26px;width:auto;display:block" alt="Blast ProSound"></div>
   </div>
   <div class="topbar-right">
-    <div class="tasa-pill" id="tasa-pill">Euro <b id="t-eur">—</b> Bs &nbsp;·&nbsp; BCV <b id="t-usd">—</b> Bs &nbsp;·&nbsp; USDT <b id="t-usdt">—</b> Bs</div>
+    <div class="tasa-pill" id="tasa-pill">Euro <b id="t-eur">—</b> Bs &nbsp;·&nbsp; BCV <b id="t-usd">—</b> Bs</div>
     <button class="btn btn-ghost btn-sm" onclick="toggleDarkMode()" style="padding:4px 8px;border:none" title="Modo claro/oscuro"><i class="ti ti-moon" id="dm-icon"></i></button>
   <div class="user-chip" onclick="toggleUserMenu()" id="user-chip">
     <div class="user-dot"></div>
@@ -380,7 +380,7 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
   </div>
   <div class="card np">
     <div class="twrap"><table>
-      <thead><tr><th>F.Evento</th><th>F.Pago</th><th>Categoría</th><th>Sub-Cat</th><th>Concepto</th><th>Código</th><th>Método</th><th>Resp.</th><th>Ingreso</th><th>Egreso</th><th>Estado</th><th></th></tr></thead>
+      <thead><tr><th>F.Evento</th><th>F.Pago</th><th>Categoría</th><th>Sub-Cat</th><th>Concepto</th><th>Código</th><th>Método</th><th>Resp. Dinero</th><th>Ingreso</th><th>Egreso</th><th>Estado</th><th></th></tr></thead>
       <tbody id="reg-tbody"><tr><td colspan="12" style="color:var(--w4);text-align:center;padding:18px">Cargando...</td></tr></tbody>
     </table></div>
   </div>
@@ -628,7 +628,7 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
   </div>
   <div class="card np">
     <div class="twrap"><table>
-      <thead><tr><th>Código</th><th>Fecha</th><th>Cliente</th><th>Tipo</th><th>Lugar</th><th>Horario</th><th>Responsable</th><th>Total</th><th>Estado</th><th></th></tr></thead>
+      <thead><tr><th>Código</th><th>Fecha</th><th>Cliente</th><th>Tipo</th><th>Lugar</th><th>Duración</th><th>Invitados</th><th>Referente</th><th>Total</th><th>Estado</th><th></th></tr></thead>
       <tbody id="hist-tbody"><tr><td colspan="9" style="color:var(--w4);text-align:center;padding:18px">Cargando...</td></tr></tbody>
     </table></div>
   </div>
@@ -901,53 +901,29 @@ document.addEventListener('click', function(e) {
   if (e.target.classList.contains('modal-bg')) e.target.classList.remove('show');
 });
 
-// ─── TASAS via DolarAPI + Binance P2P ───
+// ─── BCV RATES via DolarAPI ───
 async function loadBCV() {
   try {
-    // Fetch USD BCV and EUR BCV in parallel
-    const [rUSD, rEUR] = await Promise.all([
-      fetch('https://ve.dolarapi.com/v1/dolares/oficial',  {signal: AbortSignal.timeout(8000)}),
-      fetch('https://ve.dolarapi.com/v1/euros/oficial',    {signal: AbortSignal.timeout(8000)})
-    ]);
-
-    if (rUSD.ok) {
-      const dUSD = await rUSD.json();
-      const usd  = parseFloat(dUSD.promedio || dUSD.venta || dUSD.compra) || 0;
-      if (usd > 0) {
-        window._tasaUSD = usd;
-        $('t-usd').textContent  = usd.toFixed(2);
-        $('d-bcv').textContent  = 'USD: ' + usd.toFixed(2) + ' Bs';
-        $('cot-bcv').textContent = usd.toFixed(2);
-      }
+    const r = await fetch('https://ve.dolarapi.com/v1/dolares', {signal: AbortSignal.timeout(8000)});
+    const data = await r.json();
+    // Find BCV (official) rates
+    const usdObj = data.find(d => d.fuente === 'oficial' || d.nombre.toLowerCase().includes('oficial') || d.nombre.toLowerCase().includes('bcv'));
+    const eurObj = data.find(d => d.nombre.toLowerCase().includes('euro'));
+    if (usdObj) {
+      const usd = parseFloat(usdObj.promedio || usdObj.venta || usdObj.compra);
+      const fecha = usdObj.fechaActualizacion ? new Date(usdObj.fechaActualizacion).toLocaleDateString('es-VE',{day:'2-digit',month:'short'}) : '';
+      $('t-usd').textContent = usd.toFixed(2);
+      $('d-bcv').textContent = 'USD: ' + usd.toFixed(2) + ' Bs';
+      $('cot-bcv').textContent = usd.toFixed(2);
+      if (fecha) $('tasa-pill').title = 'Actualizado: ' + fecha;
+      window._tasaUSD = usd;
     }
-
-    if (rEUR.ok) {
-      const dEUR = await rEUR.json();
-      const eur  = parseFloat(dEUR.promedio || dEUR.venta || dEUR.compra) || 0;
-      if (eur > 0) {
-        window._tasaEUR = eur;
-        $('t-eur').textContent = eur.toFixed(2);
-        $('d-eur').textContent = eur.toFixed(2) + ' Bs/€';
-      }
+    if (eurObj) {
+      const eur = parseFloat(eurObj.promedio || eurObj.venta || eurObj.compra);
+      $('t-eur').textContent = eur.toFixed(2);
+      $('d-eur').textContent = eur.toFixed(2) + ' Bs/€';
+      window._tasaEUR = eur;
     }
-
-    // Fetch USDT from Binance P2P (public endpoint, no auth needed)
-    try {
-      const rUSDT = await fetch('https://api.binance.com/api/v3/ticker/price?symbol=USDTVES', {signal: AbortSignal.timeout(6000)});
-      if (rUSDT.ok) {
-        const dUSDT = await rUSDT.json();
-        const usdt  = parseFloat(dUSDT.price) || 0;
-        if (usdt > 0) {
-          window._tasaUSDT = usdt;
-          // Update USDT display if element exists
-          const usdtEl = $('t-usdt');
-          if (usdtEl) usdtEl.textContent = usdt.toFixed(2);
-        }
-      }
-    } catch(eUsdt) {
-      // USDT optional - no error shown
-    }
-
   } catch(e) {
     console.warn('DolarAPI error:', e.message);
     $('t-usd').textContent = 'Sin conexión';
@@ -975,6 +951,9 @@ async function cargarTX() {
   renderRegistro(TX);
 }
 
+// ─── REFERENTE MAP FROM CSV (from 23/08/2025 onwards) ───
+const REFERENTE_MAP = {"23082025-ME": "Gustavo Briceño", "30082025-AV": "Eduardo Behrens", "30082025-MG": "Eduardo Behrens", "02092025-WA": "Francisco Massari", "05092025-RP": "Gustavo Briceño", "06092025-GU": "Gustavo Briceño", "20092025-NC": "Gustavo Briceño", "24092025-IE": "Gustavo Briceño", "27092025-SM": "Gustavo Briceño", "03102025-RA": "Gustavo Briceño", "04102025-JR": "Gustavo Briceño", "11072026-GU": "Gustavo Briceño", "16102025-TF": "Francisco Massari", "24102025-DR": "Gustavo Briceño", "24102025-MEM": "Francisco Massari", "24102025-JR": "Eduardo Behrens", "25102025-SM": "Gustavo Briceño", "31102025-SM": "Gustavo Briceño", "01112025-JSB": "Gustavo Briceño", "14112025-BS": "Gustavo Briceño", "14112025-SM": "Gustavo Briceño", "15112025-US": "Gustavo Briceño", "21112025-SM": "Gustavo Briceño", "22112025-AK": "Gustavo Briceño", "22112025-ED": "Francisco Massari", "30112025-CSI": "Eduardo Behrens", "04122025-AW": "Eduardo Behrens", "05122025-CA": "Eduardo Behrens", "05122025-AC": "Francisco Massari", "05122025-SM": "Gustavo Briceño", "06122025-A2": "Eduardo Behrens", "06122025-AW": "Eduardo Behrens", "06122025-SP": "Francisco Massari", "12122025-AW": "Eduardo Behrens", "12122025-CS": "Eduardo Behrens", "12122025-SM": "Gustavo Briceño", "13122025-SM": "Gustavo Briceño", "15122025-CA": "Eduardo Behrens", "15122025-RA": "Gustavo Briceño", "19122025-SM": "Gustavo Briceño", "20122025-BS": "Gustavo Briceño", "21122025-GS": "Francisco Massari", "24122025-NE": "Eduardo Behrens", "27122025-ALP": "Francisco Massari", "13012026-CSI": "Eduardo Behrens", "23012026-CSI": "Eduardo Behrens", "24012026-SM": "Gustavo Briceño", "31012026-EDL": "Francisco Massari", "07022026-CSI": "Eduardo Behrens", "07022026-P100": "Eduardo Behrens", "16022026-NDS": "Gustavo Briceño", "21022026-SM": "Gustavo Briceño", "24022026-LF": "Eduardo Behrens", "28022026-XE": "Francisco Massari", "21032026-ICC": "Eduardo Behrens", "21032026-TP": "Gustavo Briceño", "25032026-AY": "Eduardo Behrens", "26032026-ICC": "Eduardo Behrens", "26032026-CLL": "Eduardo Behrens", "26032026-NE": "Eduardo Behrens", "26032026-AC": "Eduardo Behrens", "10042026-ICC": "Eduardo Behrens", "25042026-CM": "Gustavo Briceño", "26042026-CSI": "Eduardo Behrens", "01052026-VP": "Francisco Massari", "08052026-AW": "Eduardo Behrens", "09052026-DR": "Gustavo Briceño", "13052026-TO": "Eduardo Behrens", "16052026-RA": "Francisco Massari", "21052026-CSI": "Eduardo Behrens", "22052026-SM": "Gustavo Briceño", "23052026-SM": "Gustavo Briceño", "23052026-BS": "Gustavo Briceño", "23052026-DM": "Eduardo Behrens", "28052026-PB": "Eduardo Behrens", "29052026-AW": "Eduardo Behrens", "30052026-TNC": "Eduardo Behrens", "05062026-JS": "Gustavo Briceño", "07062026-LL": "Eduardo Behrens"};
+
 // ─── COMPUTE EVENTOS FROM TX ───
 function computeEventos() {
   const map = {};
@@ -987,8 +966,10 @@ function computeEventos() {
     if (t.ingreso > 0) {
       e.ingreso += parseFloat(t.ingreso) || 0;
       if (!e.cliente && t.concepto) e.cliente = t.concepto;
-      if (!e.referente && t.referente) e.referente = t.referente;
-      else if (!e.referente && t.responsable) e.referente = t.responsable;
+      // Use referente from CSV map first, then from TX field, NEVER from responsable
+      if (REFERENTE_MAP[cod]) e.referente = REFERENTE_MAP[cod];
+      else if (!e.referente && t.referente) e.referente = t.referente;
+      // Note: never fallback to t.responsable
       if (t.estado === 'Por cobrar') e.estado = 'Por cobrar';
     }
     if (t.egreso > 0) e.gasto += parseFloat(t.egreso) || 0;
@@ -1356,12 +1337,10 @@ async function eliminarTx(id) {
 
 // ─── PENDIENTES ───
 function autoFillTasas() {
-  const bcv  = window._tasaUSD  || 0;
-  const eur  = window._tasaEUR  || 0;
-  const usdt = window._tasaUSDT || 0;
-  if (bcv  > 0 && $('tasa-bcv-input'))  $('tasa-bcv-input').value  = bcv.toFixed(2);
-  if (eur  > 0 && $('tasa-eur-input'))  $('tasa-eur-input').value  = eur.toFixed(2);
-  if (usdt > 0 && $('tasa-usdt-input')) $('tasa-usdt-input').value = usdt.toFixed(2);
+  const bcv  = window._tasaUSD || 0;
+  const eur  = window._tasaEUR || 0;
+  if (bcv > 0) $('tasa-bcv-input').value  = bcv.toFixed(2);
+  if (eur > 0) $('tasa-eur-input').value  = eur.toFixed(2);
   renderPendientes();
 }
 
@@ -1431,11 +1410,9 @@ function renderPendientes() {
     + '<td>' + esc(t.responsable) + '</td>'
     + '<td style="font-weight:600;color:var(--blue)">' + fmt(t.ingreso||0) + '</td>'
     + '</tr>';
-  const totCobrar = cobrar.reduce((s,t) => s + (parseFloat(t.ingreso)||0), 0);
-  const cobrarRows = cobrar.length
-    ? cobrar.map(rowCobrar).join('') + '<tr style="background:rgba(67,189,237,.08);font-weight:700"><td colspan="6" style="font-size:11px;color:var(--w4);text-transform:uppercase;letter-spacing:1px">TOTAL</td><td style="color:var(--blue);font-weight:700">' + fmt(totCobrar) + '</td></tr>'
+  $('p-cobrar-tbody').innerHTML = cobrar.length
+    ? cobrar.map(rowCobrar).join('')
     : '<tr><td colspan="7" style="color:var(--w4);text-align:center;padding:14px">Sin cuentas por cobrar</td></tr>';
-  $('p-cobrar-tbody').innerHTML = cobrarRows;
 
   // ── POR PAGAR — group by responsable ──
   const tasaBCV  = parseFloat($('tasa-bcv-input')  ? $('tasa-bcv-input').value  : 0) || 0;
@@ -1460,20 +1437,35 @@ function renderPendientes() {
   const sorted = Object.values(grupos).sort((a,b) => b.total - a.total);
 
   // Totals for footer
-  let totTotal=0, totHon=0, totDiv=0, totVia=0, totCom=0, totOtros=0;
+  let totTotal=0, totHon=0, totDiv=0, totVia=0, totCom=0, totOtros=0, totBsEquiv=0, totVender=0;
 
   const tbody = $('p-pagar-tbody');
   tbody.innerHTML = sorted.map((g, gi) => {
+    const cashChecked = document.getElementById('chk-cash-'+gi) ? document.getElementById('chk-cash-'+gi).checked : false;
+    const bsChecked   = document.getElementById('chk-bs-'+gi)   ? document.getElementById('chk-bs-'+gi).checked   : false;
+
+    // Bs equivalent calculation
+    let bsEquiv = 0, dolVender = 0;
+    if (bsChecked && tasaBCV > 0) {
+      bsEquiv   = g.total * tasaBCV;
+      dolVender = 0;
+    } else if (cashChecked) {
+      bsEquiv   = 0;
+      dolVender = 0;
+    }
+
     totTotal  += g.total;
     totHon    += g.honorarios;
     totDiv    += g.dividendos;
     totVia    += g.viaticos;
     totCom    += g.comision;
     totOtros  += g.otros;
+    totBsEquiv+= bsEquiv;
 
     const f2 = n => n > 0 ? fmt(n) : '<span style="color:var(--w4)">$0</span>';
-    const detailId = 'detail-' + gi;
 
+    // Detail rows for expand
+    const detailId = 'detail-' + gi;
     const detailRows = g.items.map(t =>
       '<tr style="background:rgba(0,0,0,.15)">'
       + '<td style="padding-left:28px;font-size:11px;color:var(--w4)" colspan="2">'
@@ -1499,26 +1491,17 @@ function renderPendientes() {
       + '<td style="text-align:right">' + f2(g.otros)      + '</td>'
       + '<td style="text-align:center"><input type="checkbox" class="pend-chk" id="chk-cash-'+gi+'" data-total="'+g.total+'" onchange="calcPagarTotals()" style="accent-color:var(--green)"></td>'
       + '<td style="text-align:center"><input type="checkbox" class="pend-chk" id="chk-bs-'+gi+'"   data-total="'+g.total+'" onchange="calcPagarTotals()" style="accent-color:var(--blue)"></td>'
-      + '<td style="text-align:right" id="bs-equiv-row-'+gi+'">—</td>'
-      + '<td style="text-align:right" id="vender-row-'+gi+'">—</td>'
+      + '<td style="text-align:right;color:var(--blue)">' + (bsEquiv>0?'Bs '+Math.round(bsEquiv).toLocaleString('es-VE'):'<span style="color:var(--w4)">—</span>') + '</td>'
+      
       + '<td></td>'
       + '</tr>'
       + '<tr id="'+detailId+'" style="display:none">'
       + '<td colspan="12" style="padding:0"><table style="width:100%"><tbody>' + detailRows + '</tbody></table></td>'
       + '</tr>';
   }).join('');
+
   // Footer totals
   const tfoot = $('p-pagar-tfoot');
-  const tasaEURf  = parseFloat($('tasa-eur-input')  ? $('tasa-eur-input').value  : 0) || 0;
-  const tasaUSDTf = parseFloat($('tasa-usdt-input') ? $('tasa-usdt-input').value : 0) || 0;
-  // Sum Bs checked totals for footer
-  let totBsSelEquiv = 0;
-  sorted.forEach((g, gi) => {
-    const bsChk = document.getElementById('chk-bs-' + gi);
-    if (bsChk && bsChk.checked && tasaEURf > 0) totBsSelEquiv += g.total * tasaEURf;
-  });
-  const totVenderF = (tasaUSDTf > 0 && totBsSelEquiv > 0) ? (totBsSelEquiv / tasaUSDTf).toFixed(2) : null;
-
   tfoot.innerHTML = '<tr style="background:rgba(67,189,237,.08);font-weight:700">'
     + '<td style="font-size:11px;color:var(--w4);text-transform:uppercase;letter-spacing:1px">TOTAL</td>'
     + '<td style="text-align:right;color:var(--magenta)">' + fmt(totTotal)  + '</td>'
@@ -1528,9 +1511,8 @@ function renderPendientes() {
     + '<td style="text-align:right;color:var(--w2)">'      + fmt(totCom)    + '</td>'
     + '<td style="text-align:right;color:var(--w2)">'      + fmt(totOtros)  + '</td>'
     + '<td></td><td></td>'
-    + '<td style="text-align:right;color:var(--blue)">'    + (totBsSelEquiv > 0 ? 'Bs ' + Math.round(totBsSelEquiv).toLocaleString('es-VE') : '—') + '</td>'
-    + '<td style="text-align:right;color:var(--green)">'   + (totVenderF ? '$' + totVenderF : '—') + '</td>'
-    + '<td></td>'
+    + '<td style="text-align:right;color:var(--blue)">'    + (totBsEquiv>0?'Bs '+Math.round(totBsEquiv).toLocaleString('es-VE'):'—') + '</td>'
+    + '<td></td><td></td>'
     + '</tr>';
 }
 
@@ -2808,6 +2790,35 @@ function cargarCotizacion(codigo) {
   }, 100);
 }
 
+function importarCotizacionARegistro(codigo) {
+  const c = _historialData.find(x => x.codigo === codigo);
+  if (!c) return;
+  if (!confirm('¿Crear una transacción en Registro con los datos de esta cotización?')) return;
+
+  // Pre-fill the tx modal with cotizacion data
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('on'));
+  document.querySelectorAll('.ni').forEach(b => b.classList.remove('on'));
+  $('v-registro').classList.add('on');
+  document.querySelector('.ni[onclick*="registro"]').classList.add('on');
+
+  setTimeout(() => {
+    abrirModalTx(null);
+    setTimeout(() => {
+      if (c.fecha_evento) $('tx-fecha-evento').value = c.fecha_evento;
+      if (c.tipo_evento)  $('tx-cat').value = 'Evento';
+      if (c.tipo_evento)  $('tx-sub').value = c.tipo_evento;
+      if (c.cliente)      $('tx-concepto').value = c.cliente;
+      if (c.codigo) {
+        $('tx-codigo').value = c.codigo.replace('COT ','').replace('COT','').trim();
+        if ($('tx-codigo')) $('tx-codigo').dataset.manual = 'true';
+      }
+      if (c.responsable) $('tx-referente').value = c.responsable;
+      if (c.total)       $('tx-ingreso').value   = parseFloat(c.total) || 0;
+      $('tx-estado').value = 'Por cobrar';
+    }, 150);
+  }, 100);
+}
+
 function renderHistorial() {
   const q    = $('f-hist-q')    ? $('f-hist-q').value.toLowerCase().trim()  : '';
   const resp = $('f-hist-resp') ? $('f-hist-resp').value                     : '';
@@ -2832,14 +2843,18 @@ function renderHistorial() {
     const total = c.total ? '$'+parseFloat(c.total).toLocaleString() : '—';
     const estado = c.estado || 'Borrador';
     const bc = estado === 'Descargada' ? 'b-green' : estado === 'Borrador' ? 'b-orange' : 'b-blue';
-    const editBtn = '<button class="btn btn-ghost btn-sm" style="padding:2px 7px;font-size:10px" onclick="cargarCotizacion(\'' + c.codigo + '\')"><i class="ti ti-edit"></i> Editar</button>';
+    const editBtn = '<div style="display:flex;gap:4px">'
+      + '<button class="btn btn-ghost btn-sm" style="padding:2px 7px;font-size:10px" onclick="cargarCotizacion(\'' + c.codigo + '\')"><i class="ti ti-edit"></i> Editar</button>'
+      + (estado === 'Descargada' ? '<button class="btn btn-ghost btn-sm" style="padding:2px 7px;font-size:10px;color:var(--blue)" onclick="importarCotizacionARegistro(\'' + c.codigo + '\')"><i class="ti ti-transfer"></i> Registrar</button>' : '')
+      + '</div>';
     return '<tr>'
       + '<td class="mono">' + esc(c.codigo||'—') + '</td>'
       + '<td>' + fecha + '</td>'
       + '<td style="font-weight:600">' + esc(c.cliente||'—') + '</td>'
       + '<td>' + esc(c.tipo_evento||'—') + '</td>'
       + '<td style="color:var(--w4)">' + esc(c.lugar||'—') + '</td>'
-      + '<td style="color:var(--w4)">' + esc(c.horario||'—') + '</td>'
+      + '<td style="color:var(--w4)">' + esc(c.duracion||'—') + '</td>'
+      + '<td style="text-align:center">' + (c.invitados||'—') + '</td>'
       + '<td style="color:var(--w4)">' + esc(c.responsable||'—') + '</td>'
       + '<td style="font-weight:600;color:var(--blue)">' + total + '</td>'
       + '<td><span class="badge '+bc+'">' + estado + '</span></td>'
