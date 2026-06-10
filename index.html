@@ -1409,11 +1409,18 @@ function calcPagarTotals() {
     gi++;
   }
 
+  // Header totals
   const selEl = document.getElementById('pagar-sel-total');
   const bsEl  = document.getElementById('pagar-total-bs');
   const bsTotal = tasaEUR > 0 ? Math.round(totalSel * tasaEUR) : 0;
   if (selEl) selEl.textContent = '$' + totalSel.toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2});
   if (bsEl)  bsEl.textContent  = tasaEUR > 0 ? 'Bs ' + bsTotal.toLocaleString('es-VE') : 'Bs —';
+
+  // Footer totals
+  const footerBs  = document.getElementById('footer-bs-equiv');
+  const footerVen = document.getElementById('footer-vender');
+  if (footerBs)  footerBs.textContent  = bsTotal > 0 ? 'Bs ' + bsTotal.toLocaleString('es-VE') : '—';
+  if (footerVen) footerVen.textContent = (tasaUSDT > 0 && bsTotal > 0) ? '$' + (bsTotal / tasaUSDT).toFixed(2) : '—';
 }
 
 
@@ -1472,19 +1479,7 @@ function renderPendientes() {
 
   const tbody = $('p-pagar-tbody');
   tbody.innerHTML = sorted.map((g, gi) => {
-    const cashChecked = document.getElementById('chk-cash-'+gi) ? document.getElementById('chk-cash-'+gi).checked : false;
-    const bsChecked   = document.getElementById('chk-bs-'+gi)   ? document.getElementById('chk-bs-'+gi).checked   : false;
-
-    // Bs equivalent calculation
-    let bsEquiv = 0, dolVender = 0;
-    if (bsChecked && tasaBCV > 0) {
-      bsEquiv   = g.total * tasaBCV;
-      dolVender = 0;
-    } else if (cashChecked) {
-      bsEquiv   = 0;
-      dolVender = 0;
-    }
-
+    // bsEquiv calculated live by calcPagarTotals(), not here
     totTotal  += g.total;
     totHon    += g.honorarios;
     totDiv    += g.dividendos;
@@ -1542,8 +1537,9 @@ function renderPendientes() {
     + '<td style="text-align:right;color:var(--w2)">'      + fmt(totCom)    + '</td>'
     + '<td style="text-align:right;color:var(--w2)">'      + fmt(totOtros)  + '</td>'
     + '<td></td><td></td>'
-    + '<td style="text-align:right;color:var(--blue)">'    + (totBsEquiv>0?'Bs '+Math.round(totBsEquiv).toLocaleString('es-VE'):'—') + '</td>'
-    + '<td></td><td></td>'
+    + '<td style="text-align:right;color:var(--blue)" id="footer-bs-equiv">—</td>'
+    + '<td style="text-align:right;color:var(--green)" id="footer-vender">—</td>'
+    + '<td></td>'
     + '</tr>';
 }
 
