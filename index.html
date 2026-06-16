@@ -2994,31 +2994,16 @@ Devuelve SOLO el array JSON, sin texto adicional.`;
     }
 
     // Use corsproxy to bypass CORS from GitHub Pages
-    // Try multiple CORS proxies in order
-    const PROXIES = [
-      'https://proxy.cors.sh/',
-      'https://corsproxy.io/?',
-    ];
-    let res = null;
-    for (const proxy of PROXIES) {
-      try {
-        const url = proxy.endsWith('?')
-          ? proxy + encodeURIComponent('https://api.anthropic.com/v1/messages')
-          : proxy + 'https://api.anthropic.com/v1/messages';
-        res = await fetch(url, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'anthropic-version': '2023-06-01',
-            'x-api-key': ANTHROPIC_KEY,
-            'x-requested-with': 'XMLHttpRequest'
-          },
-          body: JSON.stringify({model:'claude-haiku-4-5-20251001', max_tokens:1500, messages})
-        });
-        if (res.ok) break;
-      } catch(e) { continue; }
-    }
-    if (!res || !res.ok) throw new Error('No se pudo conectar con la IA (HTTP ' + (res ? res.status : 'sin respuesta') + ')');
+    // Call Supabase Edge Function (proxy to Anthropic - avoids CORS)
+    const res = await fetch(SUPA_URL + '/functions/v1/anthropic-proxy', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + SUPA_KEY
+      },
+      body: JSON.stringify({messages, model:'claude-haiku-4-5-20251001', max_tokens:1500})
+    });
+    if (!res.ok) throw new Error('Error IA (HTTP ' + res.status + ')');
 
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const data = await res.json();
