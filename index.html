@@ -836,9 +836,16 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
 
     <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
 
+    <!-- Extracted transactions preview -->
+    <div id="ia-extracted-wrap" style="display:none;margin-bottom:11px">
+      <div style="font-size:9px;color:var(--w4);letter-spacing:1.5px;text-transform:uppercase;font-weight:600;margin-bottom:8px">Transacciones extraídas — revisa antes de guardar</div>
+      <div id="ia-extracted"></div>
+    </div>
+
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="document.getElementById('modal-ia').classList.remove('show')">Cancelar</button>
-      <button class="btn btn-blue" onclick="procesarConIA()"><i class="ti ti-sparkles"></i>Extraer datos</button>
+      <button class="btn btn-ghost" onclick="procesarConIA()"><i class="ti ti-sparkles"></i>Extraer datos</button>
+      <button class="btn btn-blue" id="btn-guardar-ia" onclick="guardarIATxs()" style="display:none"><i class="ti ti-check"></i>Guardar todo</button>
     </div>
   </div>
 </div>
@@ -2916,6 +2923,10 @@ function abrirModalIA() {
   $('ia-imagen').value = '';
   $('ia-img-preview').style.display = 'none';
   $('ia-status').style.display = 'none';
+  $('ia-extracted-wrap').style.display = 'none';
+  $('ia-extracted').innerHTML = '';
+  $('btn-guardar-ia').style.display = 'none';
+  window._iaTxs = null;
   $('modal-ia').classList.add('show');
 }
 
@@ -2931,91 +2942,133 @@ function previewIAImage() {
 }
 
 async function procesarConIA() {
-  const texto  = $('ia-texto').value.trim();
-  const imgFile= $('ia-imagen').files[0];
+  const texto   = $('ia-texto').value.trim();
+  const imgFile = $('ia-imagen').files[0];
   if (!texto && !imgFile) { alert('Escribe una descripción o sube una imagen.'); return; }
 
   const statusEl = $('ia-status');
   statusEl.style.display = 'block';
-  statusEl.innerHTML = '<span style="color:var(--blue)">Analizando con IA...</span>';
+  statusEl.innerHTML = '<span style="color:var(--blue)"><i class="ti ti-loader-2"></i> Analizando con IA...</span>';
 
   const PROMPT = `Eres un asistente de Blast ProSound, empresa de sonido en Caracas.
-Analiza el texto o imagen y extrae los datos de una transacción para registrar en el sistema.
-Devuelve SOLO un JSON válido con estos campos (usa null si no se puede determinar):
-{
-  "fecha_evento": "YYYY-MM-DD o null",
-  "fecha_pago": "YYYY-MM-DD o null",
-  "categoria": "Evento|Equipos|Dividendos|Cambio divisas|Reserva|Préstamo",
-  "subcategoria": "Privado|Corporativo|Institucional|Club|Honorarios|Viáticos|Comisión|DJ|Sonido|Pantallas|Tarima|Locación u otro",
+Analiza el texto o imagen y extrae TODAS las transacciones mencionadas (puede haber varias: el cobro al cliente, pagos a proveedores, honorarios, viáticos, etc.).
+Devuelve SOLO un JSON array válido. Cada objeto tiene estos campos (null si no aplica):
+[{
+  "fecha_evento": "YYYY-MM-DD",
+  "fecha_pago": "YYYY-MM-DD",
+  "categoria": "Evento|Equipos|Dividendos|Cambio divisas",
+  "subcategoria": "Privado|Corporativo|Institucional|Club|Matrimonio|Honorarios|Viáticos|Comisión|DJ|Sonido|Pantallas|Tarima|Locación",
   "estado": "Cobrado|Pagado|Por cobrar|Por pagar|Exonerado",
-  "concepto": "nombre del cliente o proveedor/persona",
-  "codigo_evento": "código del evento o null",
-  "metodo_pago": "Efectivo $|Zelle|Bs|Euro o null",
-  "responsable": "Gustavo Briceño|Eduardo Behrens|Francisco Massari o null",
+  "concepto": "nombre del cliente o persona",
+  "codigo_evento": "código o null",
+  "metodo_pago": "Efectivo $|Zelle|Bs|Euro",
+  "responsable": "Gustavo Briceño|Eduardo Behrens|Francisco Massari",
   "referente": "Gustavo Briceño|Eduardo Behrens|Francisco Massari o null",
   "ingreso": número o 0,
   "egreso": número o 0,
-  "descripcion": "notas adicionales o null"
-}`;
+  "descripcion": "notas"
+}]
+Reglas:
+- El cobro al cliente va con ingreso > 0 y estado Cobrado/Por cobrar
+- Los pagos a proveedores/personal van con egreso > 0 y estado Pagado/Por pagar
+- responsable = quien físicamente recibió/entregó el dinero
+- referente = quien consiguió el evento (solo si se menciona explícitamente)
+- Si no se menciona fecha de pago, déjala null
+Devuelve SOLO el array JSON, sin texto adicional.`;
 
   try {
     let messages;
     if (imgFile) {
-      // Convert image to base64
       const b64 = await new Promise(res => {
         const r = new FileReader();
         r.onload = e => res(e.target.result.split(',')[1]);
         r.readAsDataURL(imgFile);
       });
-      const mediaType = imgFile.type || 'image/jpeg';
-      messages = [{
-        role: 'user',
-        content: [
-          {type:'image', source:{type:'base64', media_type:mediaType, data:b64}},
-          {type:'text',  text: (texto ? texto + '\n\n' : '') + PROMPT}
-        ]
-      }];
+      messages = [{role:'user', content:[
+        {type:'image', source:{type:'base64', media_type: imgFile.type||'image/jpeg', data:b64}},
+        {type:'text',  text: (texto ? texto + '\n\n' : '') + PROMPT}
+      ]}];
     } else {
       messages = [{role:'user', content: texto + '\n\n' + PROMPT}];
     }
 
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
+    // Use corsproxy to bypass CORS from GitHub Pages
+    const proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent('https://api.anthropic.com/v1/messages');
+    const res = await fetch(proxyUrl, {
       method: 'POST',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({model:'claude-haiku-4-5-20251001', max_tokens:600, messages})
+      headers: {'Content-Type':'application/json', 'anthropic-version':'2023-06-01'},
+      body: JSON.stringify({model:'claude-haiku-4-5-20251001', max_tokens:1500, messages})
     });
 
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const data = await res.json();
-    const raw  = data.content ? data.content.map(x=>x.text||'').join('') : '';
-    const jsonMatch = raw.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) throw new Error('No se encontró JSON en la respuesta');
-    const tx = JSON.parse(jsonMatch[0]);
+    const raw  = (data.content||[]).map(x=>x.text||'').join('');
+    const match = raw.match(/\[[\s\S]*\]/);
+    if (!match) throw new Error('No se pudo parsear la respuesta');
+    const txs = JSON.parse(match[0]);
 
-    // Close IA modal and open TX modal pre-filled
-    $('modal-ia').classList.remove('show');
-    abrirModalTx(null);
+    if (!Array.isArray(txs) || !txs.length) throw new Error('No se encontraron transacciones');
 
-    setTimeout(() => {
-      if (tx.fecha_evento)  $('tx-fecha-evento').value = tx.fecha_evento;
-      if (tx.fecha_pago)    $('tx-fecha-pago').value   = tx.fecha_pago;
-      if (tx.categoria)     $('tx-cat').value           = tx.categoria;
-      if (tx.subcategoria)  $('tx-sub').value           = tx.subcategoria;
-      if (tx.estado)        $('tx-estado').value        = tx.estado;
-      if (tx.concepto)      $('tx-concepto').value      = tx.concepto;
-      if (tx.codigo_evento) { $('tx-codigo').value = tx.codigo_evento; $('tx-codigo').dataset.manual = 'true'; }
-      if (tx.metodo_pago)   $('tx-metodo').value        = tx.metodo_pago;
-      if (tx.responsable)   $('tx-resp').value          = tx.responsable;
-      if (tx.referente && $('tx-referente')) $('tx-referente').value = tx.referente;
-      if (tx.ingreso)       $('tx-ingreso').value       = tx.ingreso;
-      if (tx.egreso)        $('tx-egreso').value        = tx.egreso;
-      if (tx.descripcion)   $('tx-desc').value          = tx.descripcion;
-    }, 150);
+    statusEl.innerHTML = '<span style="color:var(--green)">✓ ' + txs.length + ' transacción' + (txs.length>1?'es':'') + ' encontrada' + (txs.length>1?'s':'') + '. Revisa y confirma cada una.</span>';
+
+    // Show extracted transactions for review
+    $('ia-extracted').innerHTML = txs.map((tx, i) => {
+      const tipo = tx.ingreso > 0 ? 'Ingreso' : 'Egreso';
+      const monto = tx.ingreso > 0 ? '$'+tx.ingreso : '$'+tx.egreso;
+      const color = tx.ingreso > 0 ? 'var(--green)' : 'var(--red)';
+      return '<div style="background:var(--black3);border:1px solid var(--border);border-radius:8px;padding:11px 13px;margin-bottom:8px">'
+        + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">'
+        + '<span style="font-size:12px;font-weight:600;color:var(--w2)">' + (i+1) + '. ' + esc(tx.concepto||'Sin nombre') + '</span>'
+        + '<span style="font-size:14px;font-weight:700;color:'+color+'">' + monto + '</span>'
+        + '</div>'
+        + '<div style="font-size:11px;color:var(--w4);display:flex;gap:12px;flex-wrap:wrap">'
+        + (tx.fecha_evento ? '<span>📅 ' + tx.fecha_evento + '</span>' : '')
+        + (tx.subcategoria ? '<span>🏷 ' + tx.subcategoria + '</span>' : '')
+        + (tx.estado ? '<span>• ' + tx.estado + '</span>' : '')
+        + (tx.metodo_pago ? '<span>💳 ' + tx.metodo_pago + '</span>' : '')
+        + (tx.responsable ? '<span>👤 ' + tx.responsable + '</span>' : '')
+        + (tx.codigo_evento ? '<span>🔑 ' + tx.codigo_evento + '</span>' : '')
+        + '</div>'
+        + '</div>';
+    }).join('');
+    $('ia-extracted-wrap').style.display = 'block';
+    $('btn-guardar-ia').style.display = 'inline-flex';
+
+    // Store for saving
+    window._iaTxs = txs;
 
   } catch(e) {
-    statusEl.innerHTML = '<span style="color:var(--red)">Error: ' + e.message + '. Intenta de nuevo o completa los datos manualmente.</span>';
+    statusEl.innerHTML = '<span style="color:var(--red)">Error: ' + e.message + '</span>';
   }
 }
+
+async function guardarIATxs() {
+  const txs = window._iaTxs;
+  if (!txs || !txs.length) return;
+  let saved = 0, errors = 0;
+  for (const tx of txs) {
+    const {error} = await supa.from('transacciones').insert({
+      fecha_evento:  tx.fecha_evento  || null,
+      fecha_pago:    tx.fecha_pago    || null,
+      categoria:     tx.categoria     || 'Evento',
+      subcategoria:  tx.subcategoria  || null,
+      estado:        tx.estado        || 'Cobrado',
+      concepto:      tx.concepto      || null,
+      codigo_evento: tx.codigo_evento || null,
+      metodo_pago:   tx.metodo_pago   || null,
+      responsable:   tx.responsable   || null,
+      referente:     tx.referente     || null,
+      ingreso:       parseFloat(tx.ingreso) || 0,
+      egreso:        parseFloat(tx.egreso)  || 0,
+      descripcion:   tx.descripcion   || null
+    });
+    if (error) errors++; else saved++;
+  }
+  $('modal-ia').classList.remove('show');
+  await cargarTX();
+  alert('✓ ' + saved + ' transacción' + (saved!==1?'es':'') + ' guardada' + (saved!==1?'s':'') + (errors?' ('+errors+' con error)':'') + '.');
+}
+
 
 // ─── TASAS DROPDOWN ───
 function toggleTasasDropdown(e) {
