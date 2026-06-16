@@ -179,6 +179,11 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
 .pagar-grupo-row:last-child{border-bottom:none}
 .pagar-grupo-row:hover{background:rgba(67,189,237,.025)}
 
+/* ─── TASA PILL RESPONSIVE ─── */
+.tasa-mini{display:none}
+.tasa-full{display:inline}
+@media(max-width:768px){.tasa-full{display:none}.tasa-mini{display:inline-flex;align-items:center;gap:3px}}
+
 /* ─── RESPONSIVE ─── */
 @media (max-width: 768px) {
   .nav { display: none }
@@ -272,7 +277,15 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
     <div class="brand"><img id="logo-img" src="https://blastprosound.github.io/blast-sistema/logo-white.png" style="height:26px;width:auto;display:block" alt="Blast ProSound"></div>
   </div>
   <div class="topbar-right">
-    <div class="tasa-pill" id="tasa-pill">Euro <b id="t-eur">—</b> Bs &nbsp;·&nbsp; BCV <b id="t-usd">—</b> Bs &nbsp;·&nbsp; USDT <b id="t-usdt">—</b> Bs</div>
+    <div class="tasa-pill" id="tasa-pill" onclick="toggleTasasDropdown()" style="cursor:pointer;position:relative">
+    <span class="tasa-full">Euro <b id="t-eur">—</b> Bs &nbsp;·&nbsp; BCV <b id="t-usd">—</b> Bs &nbsp;·&nbsp; USDT <b id="t-usdt">—</b> Bs</span>
+    <span class="tasa-mini">Euro <b id="t-eur-mini">—</b> Bs <i class="ti ti-chevron-down" style="font-size:10px;margin-left:2px"></i></span>
+    <div id="tasas-dropdown" style="display:none;position:absolute;top:calc(100% + 6px);right:0;background:var(--black2);border:1px solid var(--border2);border-radius:8px;padding:10px 14px;min-width:180px;z-index:400;font-size:12px;white-space:nowrap;box-shadow:0 8px 24px rgba(0,0,0,.4)">
+      <div style="margin-bottom:5px">Euro &nbsp;<b id="t-eur-dd" style="color:var(--blue)">—</b> Bs</div>
+      <div style="margin-bottom:5px">BCV &nbsp;&nbsp;<b id="t-usd-dd" style="color:var(--w3)">—</b> Bs</div>
+      <div>USDT &nbsp;<b id="t-usdt-dd" style="color:var(--w3)">—</b> Bs</div>
+    </div>
+  </div>
     <button class="btn btn-ghost btn-sm" onclick="toggleDarkMode()" style="padding:4px 8px;border:none" title="Modo claro/oscuro"><i class="ti ti-moon" id="dm-icon"></i></button>
   <div class="user-chip" onclick="toggleUserMenu()" id="user-chip">
     <div class="user-dot"></div>
@@ -363,7 +376,10 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
     <div><div class="aline"></div><div class="ptitle">Registro</div><div class="psub" id="reg-sub">Cargando...</div></div>
     <div class="btn-row">
       <button class="btn btn-ghost btn-sm" onclick="exportarExcel()"><i class="ti ti-file-spreadsheet"></i>Exportar Excel</button>
+      <div class="btn-row">
+      <button class="btn btn-ghost btn-sm" onclick="abrirModalIA()"><i class="ti ti-sparkles"></i>Registrar con IA</button>
       <button class="btn btn-blue btn-sm" onclick="abrirModalTx(null)"><i class="ti ti-plus"></i>Nueva transacción</button>
+    </div>
     </div>
   </div>
   <div id="reg-totals" style="display:flex;gap:16px;margin-bottom:8px;font-size:12px;font-family:'Archivo',sans-serif;padding:8px 12px;background:var(--black3);border-radius:6px;border:1px solid var(--border)">
@@ -793,6 +809,40 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
   </div>
 </div>
 
+<!-- MODAL: REGISTRAR CON IA -->
+<div class="modal-bg" id="modal-ia">
+  <div class="modal" style="width:600px">
+    <div class="modal-title"><i class="ti ti-sparkles" style="color:var(--blue)"></i> Registrar con IA</div>
+    <div style="font-size:12px;color:var(--w4);margin-bottom:14px">Describe el registro en texto libre o sube una foto. La IA extraerá los datos y pre-llenará el formulario para que lo revises.</div>
+
+    <!-- Text input -->
+    <div class="fgrp" style="margin-bottom:11px">
+      <label class="flabel">Descripción del registro</label>
+      <textarea id="ia-texto" rows="4" placeholder='Ej: "Evento Circle Tha Jungle el 11 julio, cobré $3,970 por Zelle, referente Gustavo, código 11072026-CTJ" o "Pagué $180 en honorarios a Luis García por el evento del 5 de junio"'></textarea>
+    </div>
+
+    <!-- Image upload -->
+    <div class="fgrp" style="margin-bottom:14px">
+      <label class="flabel">O sube una imagen (comprobante, WhatsApp, papel...)</label>
+      <input type="file" id="ia-imagen" accept="image/*" style="padding:6px;font-size:12px" onchange="previewIAImage()">
+      <div id="ia-img-preview" style="margin-top:8px;display:none">
+        <img id="ia-img-el" style="max-width:100%;max-height:180px;border-radius:6px;border:1px solid var(--border)">
+      </div>
+    </div>
+
+    <div id="ia-status" style="display:none;padding:10px 12px;background:var(--black3);border-radius:6px;font-size:12px;color:var(--w3);margin-bottom:11px">
+      <i class="ti ti-loader-2" style="animation:spin 1s linear infinite"></i> Analizando...
+    </div>
+
+    <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="document.getElementById('modal-ia').classList.remove('show')">Cancelar</button>
+      <button class="btn btn-blue" onclick="procesarConIA()"><i class="ti ti-sparkles"></i>Extraer datos</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL: NUEVO PROVEEDOR -->
 <div class="modal-bg" id="modal-prov">
   <div class="modal">
@@ -916,9 +966,8 @@ async function loadBCV() {
       const usd = parseFloat(d.promedio || d.venta || d.compra) || 0;
       if (usd > 0) {
         window._tasaUSD = usd;
-        $('t-usd').textContent   = usd.toFixed(2);
-        $('d-bcv').textContent   = 'USD: ' + usd.toFixed(2) + ' Bs';
-        $('cot-bcv').textContent = usd.toFixed(2);
+        ['t-usd','t-usd-dd'].forEach(id=>{const e=$(id);if(e)e.textContent=usd.toFixed(2);});
+        $('d-bcv').textContent='USD: '+usd.toFixed(2)+' Bs'; $('cot-bcv').textContent=usd.toFixed(2);
       }
     }
     if (rEUR.ok) {
@@ -926,7 +975,7 @@ async function loadBCV() {
       const eur = parseFloat(d.promedio || d.venta || d.compra) || 0;
       if (eur > 0) {
         window._tasaEUR = eur;
-        $('t-eur').textContent = eur.toFixed(2);
+        ['t-eur','t-eur-mini','t-eur-dd'].forEach(id=>{const e=$( id);if(e)e.textContent=eur.toFixed(2);});
         $('d-eur').textContent = eur.toFixed(2) + ' Bs/€';
       }
     }
@@ -2860,6 +2909,126 @@ function renderHistorial() {
       + '</tr>';
   }).join('');
 }
+
+// ─── REGISTRO CON IA ───
+function abrirModalIA() {
+  $('ia-texto').value = '';
+  $('ia-imagen').value = '';
+  $('ia-img-preview').style.display = 'none';
+  $('ia-status').style.display = 'none';
+  $('modal-ia').classList.add('show');
+}
+
+function previewIAImage() {
+  const file = $('ia-imagen').files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    $('ia-img-el').src = e.target.result;
+    $('ia-img-preview').style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+}
+
+async function procesarConIA() {
+  const texto  = $('ia-texto').value.trim();
+  const imgFile= $('ia-imagen').files[0];
+  if (!texto && !imgFile) { alert('Escribe una descripción o sube una imagen.'); return; }
+
+  const statusEl = $('ia-status');
+  statusEl.style.display = 'block';
+  statusEl.innerHTML = '<span style="color:var(--blue)">Analizando con IA...</span>';
+
+  const PROMPT = `Eres un asistente de Blast ProSound, empresa de sonido en Caracas.
+Analiza el texto o imagen y extrae los datos de una transacción para registrar en el sistema.
+Devuelve SOLO un JSON válido con estos campos (usa null si no se puede determinar):
+{
+  "fecha_evento": "YYYY-MM-DD o null",
+  "fecha_pago": "YYYY-MM-DD o null",
+  "categoria": "Evento|Equipos|Dividendos|Cambio divisas|Reserva|Préstamo",
+  "subcategoria": "Privado|Corporativo|Institucional|Club|Honorarios|Viáticos|Comisión|DJ|Sonido|Pantallas|Tarima|Locación u otro",
+  "estado": "Cobrado|Pagado|Por cobrar|Por pagar|Exonerado",
+  "concepto": "nombre del cliente o proveedor/persona",
+  "codigo_evento": "código del evento o null",
+  "metodo_pago": "Efectivo $|Zelle|Bs|Euro o null",
+  "responsable": "Gustavo Briceño|Eduardo Behrens|Francisco Massari o null",
+  "referente": "Gustavo Briceño|Eduardo Behrens|Francisco Massari o null",
+  "ingreso": número o 0,
+  "egreso": número o 0,
+  "descripcion": "notas adicionales o null"
+}`;
+
+  try {
+    let messages;
+    if (imgFile) {
+      // Convert image to base64
+      const b64 = await new Promise(res => {
+        const r = new FileReader();
+        r.onload = e => res(e.target.result.split(',')[1]);
+        r.readAsDataURL(imgFile);
+      });
+      const mediaType = imgFile.type || 'image/jpeg';
+      messages = [{
+        role: 'user',
+        content: [
+          {type:'image', source:{type:'base64', media_type:mediaType, data:b64}},
+          {type:'text',  text: (texto ? texto + '\n\n' : '') + PROMPT}
+        ]
+      }];
+    } else {
+      messages = [{role:'user', content: texto + '\n\n' + PROMPT}];
+    }
+
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({model:'claude-haiku-4-5-20251001', max_tokens:600, messages})
+    });
+
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    const raw  = data.content ? data.content.map(x=>x.text||'').join('') : '';
+    const jsonMatch = raw.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) throw new Error('No se encontró JSON en la respuesta');
+    const tx = JSON.parse(jsonMatch[0]);
+
+    // Close IA modal and open TX modal pre-filled
+    $('modal-ia').classList.remove('show');
+    abrirModalTx(null);
+
+    setTimeout(() => {
+      if (tx.fecha_evento)  $('tx-fecha-evento').value = tx.fecha_evento;
+      if (tx.fecha_pago)    $('tx-fecha-pago').value   = tx.fecha_pago;
+      if (tx.categoria)     $('tx-cat').value           = tx.categoria;
+      if (tx.subcategoria)  $('tx-sub').value           = tx.subcategoria;
+      if (tx.estado)        $('tx-estado').value        = tx.estado;
+      if (tx.concepto)      $('tx-concepto').value      = tx.concepto;
+      if (tx.codigo_evento) { $('tx-codigo').value = tx.codigo_evento; $('tx-codigo').dataset.manual = 'true'; }
+      if (tx.metodo_pago)   $('tx-metodo').value        = tx.metodo_pago;
+      if (tx.responsable)   $('tx-resp').value          = tx.responsable;
+      if (tx.referente && $('tx-referente')) $('tx-referente').value = tx.referente;
+      if (tx.ingreso)       $('tx-ingreso').value       = tx.ingreso;
+      if (tx.egreso)        $('tx-egreso').value        = tx.egreso;
+      if (tx.descripcion)   $('tx-desc').value          = tx.descripcion;
+    }, 150);
+
+  } catch(e) {
+    statusEl.innerHTML = '<span style="color:var(--red)">Error: ' + e.message + '. Intenta de nuevo o completa los datos manualmente.</span>';
+  }
+}
+
+// ─── TASAS DROPDOWN ───
+function toggleTasasDropdown(e) {
+  const dd = $('tasas-dropdown');
+  if (!dd) return;
+  dd.style.display = dd.style.display === 'none' ? 'block' : 'none';
+}
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('#tasa-pill')) {
+    const dd = $('tasas-dropdown');
+    if (dd) dd.style.display = 'none';
+  }
+});
 
 // ─── MOBILE NAV ───
 function toggleNav() {
