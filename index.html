@@ -2635,62 +2635,56 @@ async function cargarClientesDB() {
 function renderClientes() {
   const tbody = $('cli-tbody');
   const sub   = $('cli-sub');
-  const q     = $('f-cli-q') ? $('f-cli-q').value.toLowerCase().trim() : '';
+  const q     = ($('f-cli-q') ? $('f-cli-q').value : '').toLowerCase().trim();
 
-  // Build stats from TX directly - group by concepto where ingreso > 0
+  // Wait for EVS to be computed from TX
+  if (!TX.length) {
+    if (tbody) tbody.innerHTML = '<tr><td colspan="9" style="color:var(--w4);text-align:center;padding:18px">Cargando...</td></tr>';
+    setTimeout(renderClientes, 700);
+    return;
+  }
+
+  // Build from EVS — same source as Eventos tab
   const cliMap = {};
-  TX.forEach(t => {
-    if ((t.estado === 'Cobrado' || t.estado === 'Por cobrar') && t.ingreso > 0 && t.concepto) {
-      const n = t.concepto;
-      if (!cliMap[n]) cliMap[n] = {eventos: new Set(), facturado:0, gasto:0};
-      cliMap[n].facturado += parseFloat(t.ingreso)||0;
-      if (t.codigo_evento) cliMap[n].eventos.add(t.codigo_evento);
-    }
-    // Also track gasto per event to compute margin
-    if (t.codigo_evento && t.egreso > 0) {
-      // will be handled via EVS
-    }
-  });
-
-  // Add gasto from EVS
   EVS.forEach(e => {
-    const n = e.cliente;
-    if (n && cliMap[n]) cliMap[n].gasto += e.gasto || 0;
+    const nombre = (e.cliente || '').trim();
+    if (!nombre) return;
+    if (!cliMap[nombre]) cliMap[nombre] = {nombre, eventos:0, ingreso:0, gasto:0};
+    cliMap[nombre].eventos++;
+    cliMap[nombre].ingreso += parseFloat(e.ingreso) || 0;
+    cliMap[nombre].gasto   += parseFloat(e.gasto)   || 0;
   });
 
-  // Merge with DB clients
-  const allNombres = new Set([...Object.keys(cliMap), ...DB_CLIENTES_LOCAL.map(c=>c.nombre)]);
-  let rows = Array.from(allNombres).map(nombre => {
-    const stats  = cliMap[nombre] || {eventos: new Set(), facturado:0, gasto:0};
-    const dbData = DB_CLIENTES_LOCAL.find(c => c.nombre === nombre) || {};
-    return { nombre, eventos: stats.eventos.size, facturado: stats.facturado, gasto: stats.gasto, ...dbData };
-  }).filter(r => r.facturado > 0 || DB_CLIENTES_LOCAL.find(c => c.nombre === r.nombre));
+  // Merge with DB contacts if available
+  let rows = Object.values(cliMap).map(c => {
+    const db = DB_CLIENTES_LOCAL.find(d => d.nombre === c.nombre) || {};
+    return {...c, telefono: db.telefono||'', email: db.email||'', contacto: db.contacto||''};
+  });
 
-  rows.sort((a,b) => (b.facturado||0) - (a.facturado||0));
-  if (q) rows = rows.filter(r => (r.nombre||'').toLowerCase().includes(q));
+  // Sort by utilidad DESC
+  rows.sort((a, b) => (b.ingreso - b.gasto) - (a.ingreso - a.gasto));
 
+  if (q) rows = rows.filter(r => r.nombre.toLowerCase().includes(q));
   if (sub) sub.textContent = rows.length + ' clientes';
+
   if (!rows.length) {
-    tbody.innerHTML = '<tr><td colspan="10" style="color:var(--w4);text-align:center;padding:18px">Sin clientes registrados</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="9" style="color:var(--w4);text-align:center;padding:18px">Sin clientes registrados</td></tr>';
     return;
   }
 
   tbody.innerHTML = rows.map((r, i) => {
-    const util   = (r.facturado||0) - (r.gasto||0);
-    const margen = r.facturado > 0 ? ((util/r.facturado)*100).toFixed(1)+'%' : '—';
-    const nombre = r.nombre || '';
-    const safeNombre = nombre.replace(/'/g, "\'");
+    const util   = r.ingreso - r.gasto;
+    const margen = r.ingreso > 0 ? ((util / r.ingreso) * 100).toFixed(1) + '%' : '—';
     return '<tr>'
       + '<td style="color:var(--w4);font-size:11px">' + (i+1) + '</td>'
-      + '<td style="font-weight:600">' + esc(nombre) + '</td>'
+      + '<td style="font-weight:600">' + esc(r.nombre) + '</td>'
       + '<td style="color:var(--w4)">' + esc(r.telefono||'—') + '</td>'
       + '<td style="color:var(--w4)">' + esc(r.email||'—') + '</td>'
       + '<td style="color:var(--w4)">' + esc(r.contacto||'—') + '</td>'
-      + '<td style="text-align:center">' + (r.eventos||0) + '</td>'
-      + '<td style="color:var(--blue);font-weight:600">' + fmt(r.facturado||0) + '</td>'
-      + '<td style="color:var(--green);font-weight:600">' + fmt(util) + '</td>'
-      + '<td style="color:var(--w4)">' + margen + '</td>'
-      + '<td><button class="btn btn-ghost btn-sm" style="padding:2px 6px;font-size:10px" onclick="editarCliente(\'\',\''+safeNombre+'\')"><i class="ti ti-pencil"></i></button></td>'
+      + '<td style="text-align:center">' + r.eventos + '</td>'
+      + '<td style="color:var(--blue);font-weight:600;text-align:right">' + fmt(r.ingreso) + '</td>'
+      + '<td style="color:' + (util >= 0 ? 'var(--green)' : 'var(--red)') + ';font-weight:600;text-align:right">' + fmt(util) + '</td>'
+      + '<td style="color:var(--w3);text-align:right">' + margen + '</td>'
       + '</tr>';
   }).join('');
 }
