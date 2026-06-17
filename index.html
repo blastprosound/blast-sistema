@@ -1288,11 +1288,16 @@ function renderRegistro(data) {
         + (ref.includes('Gustavo')?'GB':ref.includes('Eduardo')?'EB':ref.includes('Francisco')?'FM':ref.slice(0,2).toUpperCase())
         + '</span>'
       : '';
-    // Rows without codigo: border above and below each row
-    const sinCodigoStyle = !hasCodigo
-      ? 'border-top:1px solid var(--border2);border-bottom:1px solid var(--border2)'
-      : (isFirst && groupSize > 1 ? 'border-top:2px solid rgba(67,189,237,0.2)' : '');
-    const style = sinCodigoStyle ? ' style="' + sinCodigoStyle + '"' : '';
+    // Border logic:
+    // - Rows WITHOUT codigo: top+bottom border to isolate each row
+    // - Rows WITH codigo, first of group: top border to separate groups (even single-row groups)
+    let rowStyle = '';
+    if (!hasCodigo) {
+      rowStyle = 'border-top:1px solid var(--border2);border-bottom:1px solid var(--border2);background:rgba(255,255,255,0.02)';
+    } else if (isFirst) {
+      rowStyle = 'border-top:2px solid rgba(67,189,237,0.15)';
+    }
+    const style = rowStyle ? ' style="' + rowStyle + '"' : '';
     return '<tr data-id="' + id + '"' + style + '>'
       + '<td>' + fe + '</td>'
       + '<td>' + fp + '</td>'
