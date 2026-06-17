@@ -1229,7 +1229,7 @@ function renderRegistro(data) {
     return;
   }
 
-  // Group by codigo_evento, then sort within each group
+  // Group by codigo_evento to keep event rows together
   const grouped = {};
   const sinCodigo = [];
   data.forEach(t => {
@@ -1242,21 +1242,40 @@ function renderRegistro(data) {
     }
   });
 
-  // Sort within each group
+  // Sort within each event group by subcategoria order
   Object.keys(grouped).forEach(cod => {
     grouped[cod].sort((a, b) => {
       const oa = ordenSubcat(a), ob = ordenSubcat(b);
-      if (oa !== ob) return oa - ob;
-      return (a.fecha_evento||'').localeCompare(b.fecha_evento||'');
+      return oa - ob;
     });
   });
 
-  // Sort groups by fecha of first tx (most recent first)
-  const sortedCodes = Object.keys(grouped).sort((a, b) => {
-    const fa = grouped[a][0].fecha_evento || '';
-    const fb = grouped[b][0].fecha_evento || '';
-    return fb.localeCompare(fa);
-  });
+  // Build a flat list sorted by fecha_evento DESC
+  // Each event group gets the date of its first tx
+  const groups = Object.entries(grouped).map(([cod, txs]) => ({
+    cod,
+    fecha: txs.map(t => t.fecha_evento||'').filter(Boolean).sort().reverse()[0] || '',
+    txs
+  }));
+  groups.sort((a, b) => b.fecha.localeCompare(a.fecha));
+
+  // sinCodigo sorted by fecha_evento DESC
+  sinCodigo.sort((a, b) => (b.fecha_evento||'').localeCompare(a.fecha_evento||''));
+
+  // Merge groups and sinCodigo by fecha — interleave by date
+  const allItems = [];
+  let gi = 0, si = 0;
+  while (gi < groups.length || si < sinCodigo.length) {
+    const gFecha = gi < groups.length ? groups[gi].fecha : '';
+    const sFecha = si < sinCodigo.length ? (sinCodigo[si].fecha_evento||'') : '';
+    if (gFecha >= sFecha && gi < groups.length) {
+      allItems.push({type:'group', data: groups[gi++]});
+    } else if (si < sinCodigo.length) {
+      allItems.push({type:'single', data: sinCodigo[si++]});
+    } else {
+      allItems.push({type:'group', data: groups[gi++]});
+    }
+  }
 
   // Build rows
   const rows = [];
@@ -1274,7 +1293,13 @@ function renderRegistro(data) {
       + '<td>' + fp + '</td>'
       + '<td>' + esc(t.categoria) + '</td>'
       + '<td>' + esc(t.subcategoria) + '</td>'
-      + '<td>' + esc(t.concepto) + '</td>'
+      + '<td>' + esc(t.concepto||'')
+        + (t.referente
+          ? ' <span style="font-size:9px;font-weight:700;color:var(--blue);background:rgba(67,189,237,.13);border-radius:3px;padding:1px 4px;margin-left:3px">'
+            + (t.referente.includes('Gustavo')?'GB':t.referente.includes('Eduardo')?'EB':t.referente.includes('Francisco')?'FM':'?')
+            + '</span>'
+          : '')
+        + '</td>'
       + '<td class="mono" style="font-size:10px;color:var(--w4)">' + esc(t.codigo_evento) + '</td>'
       + '<td>' + esc(t.metodo_pago) + '</td>'
       + '<td>' + esc(t.responsable) + '</td>'
@@ -1288,14 +1313,14 @@ function renderRegistro(data) {
       + '</tr>';
   };
 
-  // Add grouped events
-  sortedCodes.forEach(cod => {
-    const group = grouped[cod];
-    group.forEach((t, i) => rows.push(renderRow(t, i === 0, group.length)));
+  // Render all items interleaved by fecha
+  allItems.forEach(item => {
+    if (item.type === 'group') {
+      item.data.txs.forEach((t, i) => rows.push(renderRow(t, i === 0, item.data.txs.length)));
+    } else {
+      rows.push(renderRow(item.data, false, 1));
+    }
   });
-
-  // Add rows without code at the end
-  sinCodigo.forEach(t => rows.push(renderRow(t, false, 1)));
 
   tbody.innerHTML = rows.join('');
 }
@@ -1329,11 +1354,13 @@ document.addEventListener('click', function(e) {
 function filtrarRegistro() {
   const estado = $('f-tx-estado').value;
   const cat    = $('f-tx-cat').value;
+  const sub    = $('f-tx-sub') ? $('f-tx-sub').value : '';
   const resp   = $('f-tx-resp').value;
   const q      = $('f-tx-q').value.toLowerCase().trim();
   const result = TX.filter(t => {
     if (estado && t.estado !== estado) return false;
     if (cat    && t.categoria !== cat) return false;
+    if (sub    && (t.subcategoria||'') !== sub) return false;
     if (resp   && t.responsable !== resp) return false;
     if (q && !String(t.concepto || '').toLowerCase().includes(q) && !String(t.codigo_evento || '').toLowerCase().includes(q) && !String(t.subcategoria || '').toLowerCase().includes(q)) return false;
     return true;
@@ -1674,7 +1701,11 @@ function renderSocios() {
     const agarro = rows.filter(t => t.estado === 'Cobrado').reduce((sum,t) => sum + (parseFloat(t.ingreso)||0), 0);
     const entrego= rows.filter(t => t.estado === 'Pagado' ).reduce((sum,t) => sum + (parseFloat(t.egreso) ||0), 0);
     const bal    = agarro - entrego;
-    const evs    = new Set(rows.filter(t=>t.codigo_evento && (t.subcategoria||'').toLowerCase().includes('honorar')).map(t=>t.codigo_evento)).size;
+    // Count rows where concepto = socio and subcategoria = Honorarios
+    const evs = TX.filter(t =>
+      (t.subcategoria||'').toLowerCase().includes('honorar') &&
+      (t.concepto||'') === s.nombre
+    ).length;
     $(s.balId).textContent = fmtD(bal);
     $(s.balId).style.color = bal >= 0 ? s.color : 'var(--red)';
     $(s.evsId).textContent = evs;
