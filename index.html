@@ -1280,20 +1280,25 @@ function renderRegistro(data) {
     const ing = t.ingreso > 0 ? '<td style="color:var(--green);font-weight:600">' + fmt(t.ingreso) + '</td>' : '<td style="color:var(--w4)">—</td>';
     const egr = t.egreso  > 0 ? '<td style="color:var(--red);font-weight:600">'   + fmt(t.egreso)  + '</td>' : '<td style="color:var(--w4)">—</td>';
     const id  = t.id || '';
-    // Visual grouping: top border on first row of group
-    const style = isFirst && groupSize > 1 ? ' style="border-top:2px solid rgba(67,189,237,0.2)"' : '';
+    const hasCodigo = (t.codigo_evento || '').trim() !== '';
+    // Referente badge: only on rows with ingreso and no egreso
+    const ref = t.referente || '';
+    const refBadge = (ref && t.ingreso > 0 && !(t.egreso > 0))
+      ? ' <span style="font-size:9px;font-weight:700;color:var(--blue);background:rgba(67,189,237,.13);border-radius:3px;padding:1px 4px">'
+        + (ref.includes('Gustavo')?'GB':ref.includes('Eduardo')?'EB':ref.includes('Francisco')?'FM':ref.slice(0,2).toUpperCase())
+        + '</span>'
+      : '';
+    // Rows without codigo: border above and below each row
+    const sinCodigoStyle = !hasCodigo
+      ? 'border-top:1px solid var(--border2);border-bottom:1px solid var(--border2)'
+      : (isFirst && groupSize > 1 ? 'border-top:2px solid rgba(67,189,237,0.2)' : '');
+    const style = sinCodigoStyle ? ' style="' + sinCodigoStyle + '"' : '';
     return '<tr data-id="' + id + '"' + style + '>'
       + '<td>' + fe + '</td>'
       + '<td>' + fp + '</td>'
       + '<td>' + esc(t.categoria) + '</td>'
       + '<td>' + esc(t.subcategoria) + '</td>'
-      + '<td>' + esc(t.concepto||'')
-        + (t.referente
-          ? ' <span style="font-size:9px;font-weight:700;color:var(--blue);background:rgba(67,189,237,.13);border-radius:3px;padding:1px 4px;margin-left:3px">'
-            + (t.referente.includes('Gustavo')?'GB':t.referente.includes('Eduardo')?'EB':t.referente.includes('Francisco')?'FM':'?')
-            + '</span>'
-          : '')
-        + '</td>'
+      + '<td>' + esc(t.concepto||'') + refBadge + '</td>'
       + '<td class="mono" style="font-size:10px;color:var(--w4)">' + esc(t.codigo_evento) + '</td>'
       + '<td>' + esc(t.metodo_pago) + '</td>'
       + '<td>' + esc(t.responsable) + '</td>'
