@@ -573,7 +573,7 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
 <!-- CLIENTES -->
 <div id="v-clientes" class="view">
   <div class="ph">
-    <div><div class="aline"></div><div class="ptitle">Clientes</div><div class="psub" id="cli-sub">Ordenados por facturación total</div></div>
+    <div><div class="aline"></div><div class="ptitle">Clientes</div><div class="psub" id="cli-sub">Ordenados por utilidad</div></div>
     <button class="btn btn-blue btn-sm" onclick="document.getElementById('modal-cli').classList.add('show')"><i class="ti ti-plus"></i>Nuevo cliente</button>
   </div>
   <div class="btn-row" style="margin-bottom:13px">
@@ -2638,9 +2638,9 @@ function renderClientes() {
   const q     = ($('f-cli-q') ? $('f-cli-q').value : '').toLowerCase().trim();
 
   // Wait for EVS to be computed from TX
-  if (!TX.length) {
+  if (!EVS.length) {
     if (tbody) tbody.innerHTML = '<tr><td colspan="9" style="color:var(--w4);text-align:center;padding:18px">Cargando...</td></tr>';
-    setTimeout(renderClientes, 700);
+    setTimeout(renderClientes, 500);
     return;
   }
 
