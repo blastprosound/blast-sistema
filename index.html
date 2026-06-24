@@ -364,8 +364,8 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
   </div>
   <div class="card np">
     <div class="twrap"><table>
-      <thead><tr><th>Código</th><th>Fecha</th><th>Cliente</th><th>Categoría</th><th>Referente</th><th>Ingreso</th><th>Gasto</th><th>Utilidad</th><th>%</th><th>Estado</th></tr></thead>
-      <tbody id="ev-tbody"><tr><td colspan="10" style="color:var(--w4);text-align:center;padding:18px">Cargando...</td></tr></tbody>
+      <thead><tr><th>Código</th><th>Fecha</th><th>Cliente</th><th>Categoría</th><th>Referente</th><th>Ingreso</th><th>Gasto</th><th>Utilidad</th><th>%</th><th>Estado</th><th></th></tr></thead>
+      <tbody id="ev-tbody"><tr><td colspan="11" style="color:var(--w4);text-align:center;padding:18px">Cargando...</td></tr></tbody>
     </table></div>
   </div>
 </div>
@@ -378,6 +378,7 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
       <button class="btn btn-ghost btn-sm" onclick="exportarExcel()"><i class="ti ti-file-spreadsheet"></i>Exportar Excel</button>
       <div class="btn-row">
       <button class="btn btn-ghost btn-sm" onclick="abrirModalIA()"><i class="ti ti-sparkles"></i>Registrar con IA</button>
+      <button class="btn btn-ghost btn-sm" onclick="abrirModalChecklist()"><i class="ti ti-list-check"></i>Nuevo evento (checklist)</button>
       <button class="btn btn-blue btn-sm" onclick="abrirModalTx(null)"><i class="ti ti-plus"></i>Nueva transacción</button>
     </div>
     </div>
@@ -388,6 +389,33 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
     <span style="color:var(--w4)">Total egresos: <b id="reg-total-egr" style="color:var(--red)">$0</b></span>
     <span style="color:var(--w4)">Neto: <b id="reg-total-neto" style="color:var(--blue)">$0</b></span>
   </div>
+
+  <!-- QUICK ADD: registro rápido sin modal -->
+  <div class="card" style="margin-bottom:13px;padding:10px 14px">
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+      <i class="ti ti-bolt" style="color:var(--orange);font-size:16px"></i>
+      <select id="qa-tipo" style="width:90px;padding:5px 7px;font-size:12px">
+        <option value="egreso">Egreso</option>
+        <option value="ingreso">Ingreso</option>
+      </select>
+      <select id="qa-sub" style="width:130px;padding:5px 7px;font-size:12px">
+        <option>Honorarios</option><option>Viáticos</option><option>Comisión</option>
+        <option>Transporte</option><option>Mantenimiento</option><option>Pantallas</option>
+        <option>Tarima</option><option>Sonido</option><option>DJ</option><option>Otros</option>
+      </select>
+      <input id="qa-concepto" type="text" placeholder="Concepto / persona" style="width:170px;padding:5px 7px;font-size:12px">
+      <input id="qa-monto" type="number" placeholder="Monto $" style="width:90px;padding:5px 7px;font-size:12px">
+      <input id="qa-codigo" type="text" placeholder="Código evento (opcional)" style="width:150px;padding:5px 7px;font-size:12px">
+      <select id="qa-resp" style="width:140px;padding:5px 7px;font-size:12px">
+        <option>Gustavo Briceño</option><option>Eduardo Behrens</option><option>Francisco Massari</option>
+      </select>
+      <select id="qa-estado" style="width:110px;padding:5px 7px;font-size:12px">
+        <option>Pagado</option><option>Por pagar</option><option>Cobrado</option><option>Por cobrar</option>
+      </select>
+      <button class="btn btn-blue btn-sm" onclick="quickAddTx()"><i class="ti ti-plus"></i>Agregar</button>
+    </div>
+  </div>
+
   <div class="btn-row" style="margin-bottom:8px">
     <select id="f-tx-estado" style="width:auto;padding:5px 9px;font-size:12px" onchange="filtrarRegistro()"><option value="">Todos los estados</option><option>Cobrado</option><option>Pagado</option><option>Por cobrar</option><option>Por pagar</option><option>Exonerado</option></select>
     <select id="f-tx-cat" style="width:auto;padding:5px 9px;font-size:12px" onchange="filtrarRegistro()"><option value="">Todas las categorías</option><option>Evento</option><option>Equipos</option><option>Dividendos</option><option>Cambio divisas</option><option>Reserva</option><option>Préstamo</option></select>
@@ -499,21 +527,21 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
     <div class="ctitle">Datos del evento</div>
     <div class="cot-grid">
       <div class="fg">
-        <div class="fgrp"><label class="flabel">Cliente</label><input type="text" id="cc" placeholder="Nombre del cliente" oninput="updateCotCode()"></div>
-        <div class="fgrp"><label class="flabel">Tipo de evento</label><select id="ctype" onchange="checkOtroTipo()"><option>Fiesta</option><option>Matrimonio</option><option>Corporativo</option><option>Graduación</option><option>Conferencia</option><option>Institucional</option><option>Concierto</option><option>Otro</option></select>
+        <div class="fgrp"><label class="flabel">Cliente</label><input type="text" id="cc" placeholder="Nombre del cliente" oninput="updateCotCode()" oninput="scheduleCotAutosave()"></div>
+        <div class="fgrp"><label class="flabel">Tipo de evento</label><select id="ctype" onchange="checkOtroTipo()" onchange="scheduleCotAutosave()"><option>Fiesta</option><option>Matrimonio</option><option>Corporativo</option><option>Graduación</option><option>Conferencia</option><option>Institucional</option><option>Concierto</option><option>Otro</option></select>
         <input type="text" id="ctype-otro" placeholder="Especifica el tipo de evento..." style="display:none;margin-top:5px" oninput="agregarTipoPersonalizado()"></div>
-        <div class="fgrp"><label class="flabel">Fecha</label><input type="date" id="cdate" oninput="updateCotCode()"></div>
+        <div class="fgrp"><label class="flabel">Fecha</label><input type="date" id="cdate" oninput="updateCotCode()" onchange="scheduleCotAutosave()"></div>
         <div class="fgrp"><label class="flabel">Hora inicio</label><input type="time" id="ctime-start" oninput="calcDuracion()"></div>
         <div class="fgrp"><label class="flabel">Hora fin</label><input type="time" id="ctime-end" oninput="calcDuracion()"></div>
         <input type="hidden" id="ctime" value="">
         <input type="hidden" id="ctime-duracion" value="">
-        <div class="fgrp"><label class="flabel">Lugar</label><input type="text" id="cplace" placeholder="Nombre del recinto"></div>
-        <div class="fgrp"><label class="flabel">Invitados aprox.</label><input type="number" id="cguests" placeholder="300"></div>
+        <div class="fgrp"><label class="flabel">Lugar</label><input type="text" id="cplace" placeholder="Nombre del recinto" oninput="scheduleCotAutosave()"></div>
+        <div class="fgrp"><label class="flabel">Invitados aprox.</label><input type="number" id="cguests" placeholder="300" oninput="scheduleCotAutosave()"></div>
       </div>
       <div class="cot-code-box">
         <div class="ctitle">Código</div>
         <div class="cot-code" id="ccode">COT ——</div>
-        <div class="fgrp" style="margin-bottom:9px"><label class="flabel">Responsable</label><select id="cresp"><option>Gustavo Briceño</option><option>Eduardo Behrens</option><option>Francisco Massari</option></select></div>
+        <div class="fgrp" style="margin-bottom:9px"><label class="flabel">Responsable</label><select id="cresp" onchange="scheduleCotAutosave()"><option>Gustavo Briceño</option><option>Eduardo Behrens</option><option>Francisco Massari</option></select></div>
         <div class="fgrp"><label class="flabel">Moneda</label><select id="ccurr"><option>USD ($)</option><option>Euros (€)</option></select></div>
         <div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border);font-size:10px;color:var(--w4)">Duración: <b id="cot-duracion" style="color:var(--blue)">—</b></div>
         <div style="margin-top:5px;font-size:10px;color:var(--w4)">Tasa BCV: <b id="cot-bcv" style="color:var(--blue)">—</b> Bs/$</div>
@@ -530,6 +558,7 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
     <div class="ctotals">
       <div class="ctr"><span>Sub total</span><span id="c-sub">$0</span></div>
       <div class="ctr"><span>Descuento</span><span style="display:flex;align-items:center;gap:5px"><input type="number" id="c-desc" value="0" min="0" max="100" oninput="calcCot()" style="width:48px;padding:3px 6px;font-size:12px;text-align:center"> %</span></div>
+      <div class="ctr"><span>Moneda</span><span style="display:flex;align-items:center;gap:5px"><select id="c-moneda" onchange="calcCot()" style="padding:3px 6px;font-size:12px"><option value="USD">USD ($)</option><option value="EUR">EUR (€)</option></select></span></div>
       <div class="ctr"><span>IVA 16%</span><span style="display:flex;align-items:center;gap:5px"><input type="checkbox" id="c-iva" onchange="calcCot()"> aplicar</span></div>
       <div class="ctr fin"><span>TOTAL</span><span id="c-total">$0</span></div>
     </div>
@@ -538,6 +567,7 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
     <div class="ctitle">Descripción automática · Blast Assistant</div>
     <div class="btn-row" style="margin-bottom:9px">
       <button class="btn btn-blue btn-sm" onclick="genIA()"><i class="ti ti-sparkles"></i>Generar descripción</button>
+      <button class="btn btn-ghost btn-sm" id="btn-guardar-cot" onclick="guardarCotizacionManual()"><i class="ti ti-device-floppy"></i>Guardar</button>
       <button class="btn btn-ghost btn-sm" onclick="exportPDF()"><i class="ti ti-file-download"></i>Ver / Imprimir PDF</button>
       <button class="btn btn-drive btn-sm" onclick="exportarADriveConGuardado()" id="btn-drive">
         <img src="https://upload.wikimedia.org/wikipedia/commons/1/12/Google_Drive_icon_%282020%29.svg" style="width:15px;height:15px" alt=""> Guardar en Drive
@@ -809,6 +839,47 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
   </div>
 </div>
 
+<!-- MODAL: NUEVO EVENTO (CHECKLIST) -->
+<div class="modal-bg" id="modal-checklist">
+  <div class="modal" style="width:640px">
+    <div class="modal-title"><i class="ti ti-list-check" style="color:var(--blue)"></i> Nuevo evento — checklist</div>
+    <div style="font-size:12px;color:var(--w4);margin-bottom:14px">Marca los roles que aplican a este evento. El sistema creará las filas vacías para que solo llenes el monto.</div>
+
+    <div class="fg" style="margin-bottom:12px">
+      <div class="fgrp"><label class="flabel">Cliente</label><input type="text" id="chk-cliente"></div>
+      <div class="fgrp"><label class="flabel">Código de evento</label><input type="text" id="chk-codigo" placeholder="DDMMAA-XX"></div>
+    </div>
+    <div class="fg" style="margin-bottom:12px">
+      <div class="fgrp"><label class="flabel">Fecha del evento</label><input type="date" id="chk-fecha"></div>
+      <div class="fgrp"><label class="flabel">Categoría</label>
+        <select id="chk-categoria" onchange="actualizarChecklistRoles()">
+          <option>Privado</option><option>Corporativo</option><option>Institucional</option><option>Club</option><option>Matrimonio</option>
+        </select>
+      </div>
+    </div>
+    <div class="fgrp" style="margin-bottom:12px">
+      <label class="flabel">Usar plantilla guardada</label>
+      <select id="chk-plantilla" onchange="aplicarPlantilla()"><option value="">— Sin plantilla, roles manuales —</option></select>
+    </div>
+
+    <div style="font-size:9px;color:var(--w4);letter-spacing:1.5px;text-transform:uppercase;font-weight:600;margin-bottom:8px">Cobro al cliente</div>
+    <div class="fg" style="margin-bottom:14px">
+      <div class="fgrp"><label class="flabel">Monto a cobrar</label><input type="number" id="chk-monto-cliente" placeholder="0"></div>
+      <div class="fgrp"><label class="flabel">Responsable del dinero</label>
+        <select id="chk-resp-cliente"><option>Gustavo Briceño</option><option>Eduardo Behrens</option><option>Francisco Massari</option></select>
+      </div>
+    </div>
+
+    <div style="font-size:9px;color:var(--w4);letter-spacing:1.5px;text-transform:uppercase;font-weight:600;margin-bottom:8px">Roles del evento</div>
+    <div id="chk-roles" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px"></div>
+
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="document.getElementById('modal-checklist').classList.remove('show')">Cancelar</button>
+      <button class="btn btn-blue" onclick="crearEventoChecklist()"><i class="ti ti-check"></i>Crear evento</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL: REGISTRAR CON IA -->
 <div class="modal-bg" id="modal-ia">
   <div class="modal" style="width:600px">
@@ -1026,6 +1097,7 @@ async function cargarTX() {
   computeEventos();
   renderDashboard();
   renderRegistro(TX);
+  if ($('v-clientes') && $('v-clientes').classList.contains('on')) renderClientes();
 }
 
 // ─── COMPUTE EVENTOS FROM TX ───
@@ -1140,7 +1212,7 @@ function renderEventos(data) {
   if (sub) sub.textContent = data.length.toLocaleString() + ' eventos' + (data.length < EVS.length ? ' (filtrados de ' + EVS.length + ')' : '');
   const tbody = $('ev-tbody');
   if (!data.length) {
-    tbody.innerHTML = '<tr><td colspan="10" style="color:var(--w4);text-align:center;padding:18px">Sin eventos con esos filtros</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="11" style="color:var(--w4);text-align:center;padding:18px">Sin eventos con esos filtros</td></tr>';
     return;
   }
   const rows = [];
@@ -1150,6 +1222,7 @@ function renderEventos(data) {
     const uc   = util < 0 ? 'var(--red)' : 'var(--green)';
     const bc   = e.estado === 'Cobrado' ? 'b-green' : 'b-orange';
     const cc   = e.categoria === 'Privado' ? 'b-blue' : e.categoria === 'Corporativo' ? 'b-magenta' : 'b-orange';
+    const safeCod = (e.codigo||'').replace(/'/g, "\\'");
     rows.push('<tr>'
       + '<td class="mono">' + esc(e.codigo) + '</td>'
       + '<td>' + fDate(e.fecha) + '</td>'
@@ -1161,6 +1234,10 @@ function renderEventos(data) {
       + '<td style="color:' + uc + ';font-weight:600">' + fmt(util) + '</td>'
       + '<td style="color:var(--w4)">' + mrg + '</td>'
       + '<td><span class="badge ' + bc + '">' + e.estado + '</span></td>'
+      + '<td><div style="display:flex;gap:3px">'
+      +   '<button class="btn btn-ghost btn-sm" style="padding:3px 7px;font-size:10px" onclick="duplicarEvento(\'' + safeCod + '\')" title="Duplicar evento"><i class="ti ti-copy"></i></button>'
+      +   '<button class="btn btn-ghost btn-sm" style="padding:3px 7px;font-size:10px" onclick="guardarComoPlantilla(\'' + safeCod + '\')" title="Guardar como plantilla"><i class="ti ti-bookmark"></i></button>'
+      + '</div></td>'
       + '</tr>');
   });
   tbody.innerHTML = rows.join('');
@@ -2005,20 +2082,23 @@ function addCotRow() {
 }
 
 function calcCot() {
+  const moneda = $('c-moneda') ? $('c-moneda').value : 'USD';
+  const simbolo = moneda === 'EUR' ? '€' : '$';
   let sub = 0;
   document.querySelectorAll('.cir').forEach(r => {
     const q = parseFloat(r.querySelector('.xqty').value) || 0;
     const p = parseFloat(r.querySelector('.xpri').value) || 0;
     const t = q * p;
-    r.querySelector('.xsub').textContent = t > 0 ? '$' + t.toFixed(0) : '—';
+    r.querySelector('.xsub').textContent = t > 0 ? simbolo + t.toFixed(0) : '—';
     sub += t;
   });
   const desc  = parseFloat($('c-desc').value) || 0;
   const iva   = $('c-iva').checked;
   const after = sub * (1 - desc/100);
   const total = iva ? after * 1.16 : after;
-  $('c-sub').textContent   = '$' + sub.toFixed(0);
-  $('c-total').textContent = '$' + Math.round(total).toLocaleString();
+  $('c-sub').textContent   = simbolo + sub.toFixed(0);
+  $('c-total').textContent = simbolo + Math.round(total).toLocaleString();
+  scheduleCotAutosave();
 }
 
 async function genIA() {
@@ -2096,6 +2176,8 @@ function buildPDFHTML() {
   const sub      = $('c-sub').textContent;
   const descPct  = parseFloat($('c-desc').value)||0;
   const ivaOn    = $('c-iva').checked;
+  const moneda   = $('c-moneda') ? $('c-moneda').value : 'USD';
+  const simbolo  = moneda === 'EUR' ? '€' : '$';
   const aiText   = $('ai-out').textContent;
   const incluirAI= $('ai-include') ? $('ai-include').checked : true;
   const showAI   = incluirAI && aiText && aiText.length > 10 && !aiText.includes('aparecerá');
@@ -2112,7 +2194,7 @@ function buildPDFHTML() {
     const t2  = (parseFloat(qty)||0)*(parseFloat(pri)||0);
     if(con&&pri){
       const bg = idx2%2===0?'#ffffff':'#f9f9f9';
-      itemsHTML += '<tr style="background:'+bg+'"><td style="padding:8px 12px;border-bottom:1px solid #eee;font-size:12px">'+cat+'</td><td style="padding:8px 12px;border-bottom:1px solid #eee;font-size:12px">'+con+'</td><td style="padding:8px 12px;border-bottom:1px solid #eee;font-size:12px;text-align:center">'+qty+'</td><td style="padding:8px 12px;border-bottom:1px solid #eee;font-size:12px;text-align:right">$'+parseFloat(pri).toFixed(0)+'</td><td style="padding:8px 12px;border-bottom:1px solid #eee;font-size:12px;font-weight:bold;text-align:right">$'+t2.toFixed(0)+'</td></tr>';
+      itemsHTML += '<tr style="background:'+bg+'"><td style="padding:8px 12px;border-bottom:1px solid #eee;font-size:12px">'+cat+'</td><td style="padding:8px 12px;border-bottom:1px solid #eee;font-size:12px">'+con+'</td><td style="padding:8px 12px;border-bottom:1px solid #eee;font-size:12px;text-align:center">'+qty+'</td><td style="padding:8px 12px;border-bottom:1px solid #eee;font-size:12px;text-align:right">'+simbolo+parseFloat(pri).toFixed(0)+'</td><td style="padding:8px 12px;border-bottom:1px solid #eee;font-size:12px;font-weight:bold;text-align:right">'+simbolo+t2.toFixed(0)+'</td></tr>';
       idx2++;
     }
   });
@@ -2279,25 +2361,54 @@ async function exportarADrive(){
   });
 }
 
-async function guardarCotizacionDB(){
+async function guardarCotizacionDB(silencioso){
   const codigo=$('ccode').textContent, cliente=$('cc').value;
-  if(!cliente||codigo==='COT ——') return;
+  if(!cliente||codigo==='COT ——') return false;
   const items=[];
   document.querySelectorAll('.cir').forEach(r=>{
     const con=r.querySelector('.xcon').value, cat=r.dataset.cat||'—';
     const qty=parseFloat(r.querySelector('.xqty').value)||0, pri=parseFloat(r.querySelector('.xpri').value)||0;
     if(con&&pri) items.push({concepto:con,categoria:cat,cantidad:qty,precio:pri,total:qty*pri});
   });
-  await supa.from('cotizaciones').upsert({
+  if (!items.length) return false;
+  const moneda = $('c-moneda') ? $('c-moneda').value : 'USD';
+  // Get current estado from DB if exists, default to Borrador
+  const {data: existing} = await supa.from('cotizaciones').select('estado').eq('codigo', codigo).maybeSingle();
+  const estadoActual = existing ? existing.estado : 'Borrador';
+  const {error} = await supa.from('cotizaciones').upsert({
     codigo,cliente,tipo_evento:$('ctype').value,
     fecha_evento:$('cdate').value||null,lugar:$('cplace').value,horario:getCotHorario(),duracion:getCotDuracion(),
     invitados:parseInt($('cguests').value)||null,responsable:$('cresp').value,
-    subtotal:parseFloat($('c-sub').textContent.replace(/[$,]/g,''))||0,
+    moneda,
+    subtotal:parseFloat($('c-sub').textContent.replace(/[$€,]/g,''))||0,
     descuento:parseFloat($('c-desc').value)||0,iva:$('c-iva').checked,
-    total:parseFloat($('c-total').textContent.replace(/[$,]/g,''))||0,
+    total:parseFloat($('c-total').textContent.replace(/[$€,]/g,''))||0,
     descripcion_ia:$('ai-out').textContent.includes('aparecerá')?null:$('ai-out').textContent,
+    estado: estadoActual,
     items
   },{onConflict:'codigo'});
+  if (!silencioso) await cargarHistorial();
+  return !error;
+}
+
+let _cotAutosaveTimer = null;
+function scheduleCotAutosave() {
+  if (_cotAutosaveTimer) clearTimeout(_cotAutosaveTimer);
+  _cotAutosaveTimer = setTimeout(() => guardarCotizacionDB(true), 2500);
+}
+
+async function guardarCotizacionManual() {
+  const ok = await guardarCotizacionDB(false);
+  if (ok) {
+    const btn = $('btn-guardar-cot');
+    if (btn) {
+      const orig = btn.innerHTML;
+      btn.innerHTML = '<i class="ti ti-check"></i> Guardada';
+      setTimeout(() => { btn.innerHTML = orig; }, 1800);
+    }
+  } else {
+    alert('Completa cliente y al menos un ítem antes de guardar.');
+  }
 }
 
 async function exportarADriveConGuardado(){
@@ -2636,11 +2747,10 @@ function renderClientes() {
   const tbody = $('cli-tbody');
   const sub   = $('cli-sub');
   const q     = ($('f-cli-q') ? $('f-cli-q').value : '').toLowerCase().trim();
+  if (!tbody) return;
 
-  // Wait for EVS to be computed from TX
   if (!EVS.length) {
-    if (tbody) tbody.innerHTML = '<tr><td colspan="9" style="color:var(--w4);text-align:center;padding:18px">Cargando...</td></tr>';
-    setTimeout(renderClientes, 500);
+    tbody.innerHTML = '<tr><td colspan="9" style="color:var(--w4);text-align:center;padding:18px">Cargando datos...</td></tr>';
     return;
   }
 
@@ -2948,6 +3058,280 @@ function renderHistorial() {
 }
 
 // ─── REGISTRO CON IA ───
+// ─── PLANTILLAS DE EVENTO ───
+async function guardarComoPlantilla(codigo) {
+  const filas = TX.filter(t => t.codigo_evento === codigo);
+  if (!filas.length) { alert('No se encontraron filas para ese código.'); return; }
+
+  const nombre = prompt('Nombre para esta plantilla (ej: "Boda estándar", "Corporativo mensual"):', '');
+  if (!nombre) return;
+
+  const plantillaItems = filas.map(t => ({
+    categoria:    t.categoria,
+    subcategoria: t.subcategoria,
+    concepto:     t.ingreso > 0 ? '' : t.concepto, // clear client name, keep provider names
+    metodo_pago:  t.metodo_pago,
+    responsable:  t.responsable,
+    ingreso:      t.ingreso || 0,
+    egreso:       t.egreso  || 0,
+    es_cliente:   t.ingreso > 0
+  }));
+
+  const {error} = await supa.from('plantillas_evento').insert({
+    nombre,
+    items: plantillaItems
+  });
+
+  if (error) {
+    if (error.message.includes('does not exist')) {
+      alert('Falta crear la tabla plantillas_evento en Supabase. Ejecuta el SQL que te indicaré.');
+    } else {
+      alert('Error al guardar plantilla: ' + error.message);
+    }
+    return;
+  }
+  alert('✓ Plantilla "' + nombre + '" guardada con ' + plantillaItems.length + ' ítems.');
+}
+
+let _plantillasCache = [];
+async function cargarPlantillas() {
+  const {data, error} = await supa.from('plantillas_evento').select('*').order('nombre');
+  if (!error && data) _plantillasCache = data;
+  renderPlantillasSelect();
+}
+
+function renderPlantillasSelect() {
+  const sel = $('chk-plantilla');
+  if (!sel) return;
+  sel.innerHTML = '<option value="">— Sin plantilla, roles manuales —</option>'
+    + _plantillasCache.map(p => '<option value="' + p.id + '">' + esc(p.nombre) + '</option>').join('');
+}
+
+function aplicarPlantilla() {
+  const id = $('chk-plantilla').value;
+  if (!id) { actualizarChecklistRoles(); return; }
+  const plantilla = _plantillasCache.find(p => p.id == id);
+  if (!plantilla) return;
+
+  const cont = $('chk-roles');
+  cont.innerHTML = plantilla.items.filter(it => !it.es_cliente).map((it, i) => {
+    const checkId = 'chk-rol-' + i;
+    return '<div style="display:flex;align-items:center;gap:6px;padding:6px 8px;background:var(--black3);border-radius:6px">'
+      + '<input type="checkbox" id="' + checkId + '" data-rol="' + esc(it.subcategoria) + '" data-concepto="' + esc(it.concepto||'') + '" data-monto="' + (it.egreso||0) + '" checked style="accent-color:var(--blue)">'
+      + '<label for="' + checkId + '" style="font-size:12px;color:var(--w3);cursor:pointer;flex:1">' + esc(it.subcategoria) + (it.concepto?' — '+esc(it.concepto):'') + '</label>'
+      + '</div>';
+  }).join('');
+
+  // Pre-fill cliente amount if template has one
+  const clienteItem = plantilla.items.find(it => it.es_cliente);
+  if (clienteItem && clienteItem.ingreso > 0 && !$('chk-monto-cliente').value) {
+    $('chk-monto-cliente').value = clienteItem.ingreso;
+  }
+}
+
+async function guardarPlantilla() {
+  const checks = document.querySelectorAll('#chk-roles input[type="checkbox"]:checked');
+  if (!checks.length) { alert('Marca al menos un rol antes de guardar la plantilla.'); return; }
+
+  const nombre = prompt('Nombre para esta plantilla (ej: "DJ + Sonido básico"):', $('chk-categoria').value + ' estándar');
+  if (!nombre) return;
+
+  const items = Array.from(checks).map(chk => ({
+    subcategoria: chk.dataset.rol,
+    concepto:     chk.dataset.concepto || '',
+    egreso:       parseFloat(chk.dataset.monto) || 0,
+    es_cliente:   false
+  }));
+
+  const {error} = await supa.from('plantillas_evento').insert({
+    nombre,
+    categoria: $('chk-categoria').value,
+    items
+  });
+
+  if (error) { alert('Error al guardar plantilla: ' + error.message); return; }
+
+  await cargarPlantillas();
+  alert('✓ Plantilla "' + nombre + '" guardada. Ya aparece en el selector.');
+}
+
+// ─── CHECKLIST DE EVENTO ───
+const ROLES_POR_CATEGORIA = {
+  'Privado':       ['Sonido','DJ','Honorarios','Viáticos','Transporte','Pantallas','Tarima','Efectos'],
+  'Corporativo':   ['Sonido','Honorarios','Viáticos','Transporte','Pantallas','Tarima','Estructura'],
+  'Institucional': ['Sonido','Honorarios','Viáticos','Transporte'],
+  'Club':          ['Sonido','DJ','Honorarios','Viáticos'],
+  'Matrimonio':    ['Sonido','DJ','Honorarios','Viáticos','Transporte','Pantallas','Tarima','Estructura','Efectos','Comisión'],
+};
+
+function actualizarChecklistRoles() {
+  const cat = $('chk-categoria').value;
+  const roles = ROLES_POR_CATEGORIA[cat] || ROLES_POR_CATEGORIA['Privado'];
+  const cont = $('chk-roles');
+  cont.innerHTML = roles.map((rol, i) => {
+    const id = 'chk-rol-' + i;
+    return '<div style="display:flex;align-items:center;gap:6px;padding:6px 8px;background:var(--black3);border-radius:6px">'
+      + '<input type="checkbox" id="' + id + '" data-rol="' + rol + '" style="accent-color:var(--blue)">'
+      + '<label for="' + id + '" style="font-size:12px;color:var(--w3);cursor:pointer;flex:1">' + rol + '</label>'
+      + '</div>';
+  }).join('');
+}
+
+function abrirModalChecklist() {
+  $('chk-cliente').value = '';
+  $('chk-codigo').value  = '';
+  $('chk-fecha').value   = '';
+  $('chk-monto-cliente').value = '';
+  $('chk-categoria').value = 'Privado';
+  if ($('chk-plantilla')) $('chk-plantilla').value = '';
+  renderPlantillasSelect();
+  actualizarChecklistRoles();
+  $('modal-checklist').classList.add('show');
+}
+
+async function crearEventoChecklist() {
+  const cliente  = $('chk-cliente').value.trim();
+  const codigo   = $('chk-codigo').value.trim();
+  const fecha    = $('chk-fecha').value;
+  const montoCli = parseFloat($('chk-monto-cliente').value) || 0;
+  const respCli  = $('chk-resp-cliente').value;
+
+  if (!cliente || !codigo || !fecha) {
+    alert('Completa cliente, código y fecha del evento.');
+    return;
+  }
+
+  const filas = [];
+
+  // Cobro al cliente
+  if (montoCli > 0) {
+    filas.push({
+      fecha_evento: fecha, fecha_pago: null, categoria: 'Evento', subcategoria: $('chk-categoria').value,
+      estado: 'Por cobrar', concepto: cliente, codigo_evento: codigo, metodo_pago: null,
+      responsable: respCli, referente: null, ingreso: montoCli, egreso: 0, descripcion: null
+    });
+  }
+
+  // Roles marcados — usa monto/concepto de plantilla si existen, sino filas vacías
+  document.querySelectorAll('#chk-roles input[type="checkbox"]:checked').forEach(chk => {
+    const rol      = chk.dataset.rol;
+    const concepto = chk.dataset.concepto || '';
+    const monto    = parseFloat(chk.dataset.monto) || 0;
+    filas.push({
+      fecha_evento: fecha, fecha_pago: null, categoria: 'Evento', subcategoria: rol,
+      estado: 'Por pagar', concepto, codigo_evento: codigo, metodo_pago: null,
+      responsable: respCli, referente: null, ingreso: 0, egreso: monto, descripcion: null
+    });
+  });
+
+  if (!filas.length) {
+    alert('Agrega el monto a cobrar o marca al menos un rol.');
+    return;
+  }
+
+  const {error} = await supa.from('transacciones').insert(filas);
+  if (error) { alert('Error al crear evento: ' + error.message); return; }
+
+  $('modal-checklist').classList.remove('show');
+  await cargarTX();
+  alert('✓ Evento creado con ' + filas.length + ' fila' + (filas.length>1?'s':'') + '. Edita cada una para completar concepto y monto.');
+}
+
+async function duplicarEvento(codigo) {
+  const filas = TX.filter(t => t.codigo_evento === codigo);
+  if (!filas.length) { alert('No se encontraron filas para ese código.'); return; }
+
+  const nuevaFecha = prompt('Nueva fecha del evento (YYYY-MM-DD):', '');
+  if (!nuevaFecha) return;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(nuevaFecha)) {
+    alert('Formato de fecha inválido. Usa YYYY-MM-DD.');
+    return;
+  }
+
+  const nuevoCodigoSugerido = nuevaFecha.split('-').reverse().join('').slice(0,8) + '-' + (filas[0].concepto||'EV').slice(0,2).toUpperCase();
+  const nuevoCodigo = prompt('Código para el nuevo evento:', nuevoCodigoSugerido);
+  if (!nuevoCodigo) return;
+
+  if (!confirm('Se crearán ' + filas.length + ' transacciones nuevas con código "' + nuevoCodigo + '" y fecha ' + nuevaFecha + '. ¿Continuar?')) return;
+
+  const nuevasFilas = filas.map(t => ({
+    fecha_evento:  nuevaFecha,
+    fecha_pago:    null,
+    categoria:     t.categoria,
+    subcategoria:  t.subcategoria,
+    estado:        t.ingreso > 0 ? 'Por cobrar' : 'Por pagar',
+    concepto:      t.concepto,
+    codigo_evento: nuevoCodigo,
+    metodo_pago:   t.metodo_pago,
+    responsable:   t.responsable,
+    referente:     t.referente,
+    ingreso:       t.ingreso || 0,
+    egreso:        t.egreso  || 0,
+    descripcion:   t.descripcion
+  }));
+
+  const {error} = await supa.from('transacciones').insert(nuevasFilas);
+  if (error) { alert('Error al duplicar: ' + error.message); return; }
+
+  await cargarTX();
+  alert('✓ Evento duplicado: ' + nuevasFilas.length + ' transacciones creadas con código ' + nuevoCodigo + '.');
+}
+
+async function quickAddTx() {
+  const tipo     = $('qa-tipo').value;
+  const sub      = $('qa-sub').value;
+  const concepto = $('qa-concepto').value.trim();
+  const monto    = parseFloat($('qa-monto').value) || 0;
+  const codigo   = $('qa-codigo').value.trim();
+  const resp     = $('qa-resp').value;
+  const estado   = $('qa-estado').value;
+
+  if (!concepto || monto <= 0) {
+    alert('Completa al menos el concepto y el monto.');
+    return;
+  }
+
+  const hoy = new Date().toISOString().slice(0,10);
+  const row = {
+    fecha_evento:  codigo ? null : hoy,
+    fecha_pago:    hoy,
+    categoria:     'Evento',
+    subcategoria:  sub,
+    estado,
+    concepto,
+    codigo_evento: codigo || null,
+    metodo_pago:   'Efectivo $',
+    responsable:   resp,
+    referente:     null,
+    ingreso:       tipo === 'ingreso' ? monto : 0,
+    egreso:        tipo === 'egreso'  ? monto : 0,
+    descripcion:   null
+  };
+
+  // If codigo exists, try to inherit fecha_evento from an existing row with that code
+  if (codigo) {
+    const existing = TX.find(t => t.codigo_evento === codigo && t.fecha_evento);
+    row.fecha_evento = existing ? existing.fecha_evento : hoy;
+  }
+
+  const {error} = await supa.from('transacciones').insert(row);
+  if (error) { alert('Error al guardar: ' + error.message); return; }
+
+  // Clear fields except tipo/sub/resp/estado (keep for fast repeated entry)
+  $('qa-concepto').value = '';
+  $('qa-monto').value    = '';
+  $('qa-codigo').value   = '';
+
+  await cargarTX();
+  // Flash feedback
+  const btn = document.querySelector('button[onclick="quickAddTx()"]');
+  if (btn) {
+    const orig = btn.innerHTML;
+    btn.innerHTML = '<i class="ti ti-check"></i> Agregado';
+    setTimeout(() => { btn.innerHTML = orig; }, 1200);
+  }
+}
+
 function abrirModalIA() {
   $('ia-texto').value = '';
   $('ia-imagen').value = '';
@@ -3149,7 +3533,7 @@ async function init() {
   loadBCV();
   addCotRow();
   await cargarTX();
-  await Promise.all([cargarClientesDB(), cargarHistorial()]);
+  await Promise.all([cargarClientesDB(), cargarHistorial(), cargarPlantillas()]);
   await cargarProveedores();
 }
 
