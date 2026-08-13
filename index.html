@@ -179,11 +179,6 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
 .pagar-grupo-row:last-child{border-bottom:none}
 .pagar-grupo-row:hover{background:rgba(67,189,237,.025)}
 
-/* ─── TASA PILL RESPONSIVE ─── */
-.tasa-mini{display:none}
-.tasa-full{display:inline}
-@media(max-width:768px){.tasa-full{display:none}.tasa-mini{display:inline-flex;align-items:center;gap:3px}}
-
 /* ─── RESPONSIVE ─── */
 @media (max-width: 768px) {
   .nav { display: none }
@@ -277,15 +272,7 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
     <div class="brand"><img id="logo-img" src="https://blastprosound.github.io/blast-sistema/logo-white.png" style="height:26px;width:auto;display:block" alt="Blast ProSound"></div>
   </div>
   <div class="topbar-right">
-    <div class="tasa-pill" id="tasa-pill" onclick="toggleTasasDropdown()" style="cursor:pointer;position:relative">
-    <span class="tasa-full">Euro <b id="t-eur">—</b> Bs &nbsp;·&nbsp; BCV <b id="t-usd">—</b> Bs &nbsp;·&nbsp; USDT <b id="t-usdt">—</b> Bs</span>
-    <span class="tasa-mini">Euro <b id="t-eur-mini">—</b> Bs <i class="ti ti-chevron-down" style="font-size:10px;margin-left:2px"></i></span>
-    <div id="tasas-dropdown" style="display:none;position:absolute;top:calc(100% + 6px);right:0;background:var(--black2);border:1px solid var(--border2);border-radius:8px;padding:10px 14px;min-width:180px;z-index:400;font-size:12px;white-space:nowrap;box-shadow:0 8px 24px rgba(0,0,0,.4)">
-      <div style="margin-bottom:5px">Euro &nbsp;<b id="t-eur-dd" style="color:var(--blue)">—</b> Bs</div>
-      <div style="margin-bottom:5px">BCV &nbsp;&nbsp;<b id="t-usd-dd" style="color:var(--w3)">—</b> Bs</div>
-      <div>USDT &nbsp;<b id="t-usdt-dd" style="color:var(--w3)">—</b> Bs</div>
-    </div>
-  </div>
+    <div class="tasa-pill" id="tasa-pill">Euro <b id="t-eur">—</b> Bs &nbsp;·&nbsp; BCV <b id="t-usd">—</b> Bs &nbsp;·&nbsp; USDT <b id="t-usdt">—</b> Bs</div>
     <button class="btn btn-ghost btn-sm" onclick="toggleDarkMode()" style="padding:4px 8px;border:none" title="Modo claro/oscuro"><i class="ti ti-moon" id="dm-icon"></i></button>
   <div class="user-chip" onclick="toggleUserMenu()" id="user-chip">
     <div class="user-dot"></div>
@@ -364,8 +351,8 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
   </div>
   <div class="card np">
     <div class="twrap"><table>
-      <thead><tr><th>Código</th><th>Fecha</th><th>Cliente</th><th>Categoría</th><th>Referente</th><th>Ingreso</th><th>Gasto</th><th>Utilidad</th><th>%</th><th>Estado</th><th></th></tr></thead>
-      <tbody id="ev-tbody"><tr><td colspan="11" style="color:var(--w4);text-align:center;padding:18px">Cargando...</td></tr></tbody>
+      <thead><tr><th>Código</th><th>Fecha</th><th>Cliente</th><th>Categoría</th><th>Referente</th><th>Ingreso</th><th>Gasto</th><th>Utilidad</th><th>%</th><th>Estado</th></tr></thead>
+      <tbody id="ev-tbody"><tr><td colspan="10" style="color:var(--w4);text-align:center;padding:18px">Cargando...</td></tr></tbody>
     </table></div>
   </div>
 </div>
@@ -376,11 +363,7 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
     <div><div class="aline"></div><div class="ptitle">Registro</div><div class="psub" id="reg-sub">Cargando...</div></div>
     <div class="btn-row">
       <button class="btn btn-ghost btn-sm" onclick="exportarExcel()"><i class="ti ti-file-spreadsheet"></i>Exportar Excel</button>
-      <div class="btn-row">
-      <button class="btn btn-ghost btn-sm" onclick="abrirModalIA()"><i class="ti ti-sparkles"></i>Registrar con IA</button>
-      <button class="btn btn-ghost btn-sm" onclick="abrirModalChecklist()"><i class="ti ti-list-check"></i>Nuevo evento (checklist)</button>
       <button class="btn btn-blue btn-sm" onclick="abrirModalTx(null)"><i class="ti ti-plus"></i>Nueva transacción</button>
-    </div>
     </div>
   </div>
   <div id="reg-totals" style="display:flex;gap:16px;margin-bottom:8px;font-size:12px;font-family:'Archivo',sans-serif;padding:8px 12px;background:var(--black3);border-radius:6px;border:1px solid var(--border)">
@@ -389,33 +372,6 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
     <span style="color:var(--w4)">Total egresos: <b id="reg-total-egr" style="color:var(--red)">$0</b></span>
     <span style="color:var(--w4)">Neto: <b id="reg-total-neto" style="color:var(--blue)">$0</b></span>
   </div>
-
-  <!-- QUICK ADD: registro rápido sin modal -->
-  <div class="card" style="margin-bottom:13px;padding:10px 14px">
-    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-      <i class="ti ti-bolt" style="color:var(--orange);font-size:16px"></i>
-      <select id="qa-tipo" style="width:90px;padding:5px 7px;font-size:12px">
-        <option value="egreso">Egreso</option>
-        <option value="ingreso">Ingreso</option>
-      </select>
-      <select id="qa-sub" style="width:130px;padding:5px 7px;font-size:12px">
-        <option>Honorarios</option><option>Viáticos</option><option>Comisión</option>
-        <option>Transporte</option><option>Mantenimiento</option><option>Pantallas</option>
-        <option>Tarima</option><option>Sonido</option><option>DJ</option><option>Otros</option>
-      </select>
-      <input id="qa-concepto" type="text" placeholder="Concepto / persona" style="width:170px;padding:5px 7px;font-size:12px">
-      <input id="qa-monto" type="number" placeholder="Monto $" style="width:90px;padding:5px 7px;font-size:12px">
-      <input id="qa-codigo" type="text" placeholder="Código evento (opcional)" style="width:150px;padding:5px 7px;font-size:12px">
-      <select id="qa-resp" style="width:140px;padding:5px 7px;font-size:12px">
-        <option>Gustavo Briceño</option><option>Eduardo Behrens</option><option>Francisco Massari</option>
-      </select>
-      <select id="qa-estado" style="width:110px;padding:5px 7px;font-size:12px">
-        <option>Pagado</option><option>Por pagar</option><option>Cobrado</option><option>Por cobrar</option>
-      </select>
-      <button class="btn btn-blue btn-sm" onclick="quickAddTx()"><i class="ti ti-plus"></i>Agregar</button>
-    </div>
-  </div>
-
   <div class="btn-row" style="margin-bottom:8px">
     <select id="f-tx-estado" style="width:auto;padding:5px 9px;font-size:12px" onchange="filtrarRegistro()"><option value="">Todos los estados</option><option>Cobrado</option><option>Pagado</option><option>Por cobrar</option><option>Por pagar</option><option>Exonerado</option></select>
     <select id="f-tx-cat" style="width:auto;padding:5px 9px;font-size:12px" onchange="filtrarRegistro()"><option value="">Todas las categorías</option><option>Evento</option><option>Equipos</option><option>Dividendos</option><option>Cambio divisas</option><option>Reserva</option><option>Préstamo</option></select>
@@ -527,22 +483,22 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
     <div class="ctitle">Datos del evento</div>
     <div class="cot-grid">
       <div class="fg">
-        <div class="fgrp"><label class="flabel">Cliente</label><input type="text" id="cc" placeholder="Nombre del cliente" oninput="updateCotCode()" oninput="scheduleCotAutosave()"></div>
-        <div class="fgrp"><label class="flabel">Tipo de evento</label><select id="ctype" onchange="checkOtroTipo()" onchange="scheduleCotAutosave()"><option>Fiesta</option><option>Matrimonio</option><option>Corporativo</option><option>Graduación</option><option>Conferencia</option><option>Institucional</option><option>Concierto</option><option>Otro</option></select>
+        <div class="fgrp"><label class="flabel">Cliente</label><input type="text" id="cc" placeholder="Nombre del cliente" oninput="updateCotCode()"></div>
+        <div class="fgrp"><label class="flabel">Tipo de evento</label><select id="ctype" onchange="checkOtroTipo()"><option>Fiesta</option><option>Matrimonio</option><option>Corporativo</option><option>Graduación</option><option>Conferencia</option><option>Institucional</option><option>Concierto</option><option>Otro</option></select>
         <input type="text" id="ctype-otro" placeholder="Especifica el tipo de evento..." style="display:none;margin-top:5px" oninput="agregarTipoPersonalizado()"></div>
-        <div class="fgrp"><label class="flabel">Fecha</label><input type="date" id="cdate" oninput="updateCotCode()" onchange="scheduleCotAutosave()"></div>
+        <div class="fgrp"><label class="flabel">Fecha</label><input type="date" id="cdate" oninput="updateCotCode()"></div>
         <div class="fgrp"><label class="flabel">Hora inicio</label><input type="time" id="ctime-start" oninput="calcDuracion()"></div>
         <div class="fgrp"><label class="flabel">Hora fin</label><input type="time" id="ctime-end" oninput="calcDuracion()"></div>
         <input type="hidden" id="ctime" value="">
         <input type="hidden" id="ctime-duracion" value="">
-        <div class="fgrp"><label class="flabel">Lugar</label><input type="text" id="cplace" placeholder="Nombre del recinto" oninput="scheduleCotAutosave()"></div>
-        <div class="fgrp"><label class="flabel">Invitados aprox.</label><input type="number" id="cguests" placeholder="300" oninput="scheduleCotAutosave()"></div>
+        <div class="fgrp"><label class="flabel">Lugar</label><input type="text" id="cplace" placeholder="Nombre del recinto"></div>
+        <div class="fgrp"><label class="flabel">Invitados aprox.</label><input type="number" id="cguests" placeholder="300"></div>
       </div>
       <div class="cot-code-box">
         <div class="ctitle">Código</div>
         <div class="cot-code" id="ccode">COT ——</div>
-        <div class="fgrp" style="margin-bottom:9px"><label class="flabel">Responsable</label><select id="cresp" onchange="scheduleCotAutosave()"><option>Gustavo Briceño</option><option>Eduardo Behrens</option><option>Francisco Massari</option></select></div>
-        <div class="fgrp"><label class="flabel">Moneda</label><select id="ccurr"><option>USD ($)</option><option>Euros (€)</option></select></div>
+        <div class="fgrp" style="margin-bottom:9px"><label class="flabel">Responsable</label><select id="cresp"><option>Gustavo Briceño</option><option>Eduardo Behrens</option><option>Francisco Massari</option></select></div>
+        <div class="fgrp"><label class="flabel">Moneda</label><select id="ccurr" onchange="calcCot()"><option value="USD">USD ($)</option><option value="EUR">Euros (€)</option></select></div>
         <div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border);font-size:10px;color:var(--w4)">Duración: <b id="cot-duracion" style="color:var(--blue)">—</b></div>
         <div style="margin-top:5px;font-size:10px;color:var(--w4)">Tasa BCV: <b id="cot-bcv" style="color:var(--blue)">—</b> Bs/$</div>
       </div>
@@ -550,7 +506,7 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
   </div>
   <div class="card">
     <div class="ctitle">Ítems · escribe para buscar en la base de precios</div>
-    <div class="cih"><div>Concepto</div><div>Cant.</div><div>P. Unitario</div><div>Total</div><div></div></div>
+    <div class="cih"><div>Concepto</div><div>Cant.</div><div id="cih-punit">P. Unitario</div><div>Total</div><div></div></div>
     <div id="cot-items"></div>
     <div class="btn-row" style="margin-top:9px">
       <button class="btn btn-ghost btn-sm" onclick="addCotRow()"><i class="ti ti-plus"></i>Agregar ítem</button>
@@ -558,7 +514,6 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
     <div class="ctotals">
       <div class="ctr"><span>Sub total</span><span id="c-sub">$0</span></div>
       <div class="ctr"><span>Descuento</span><span style="display:flex;align-items:center;gap:5px"><input type="number" id="c-desc" value="0" min="0" max="100" oninput="calcCot()" style="width:48px;padding:3px 6px;font-size:12px;text-align:center"> %</span></div>
-      <div class="ctr"><span>Moneda</span><span style="display:flex;align-items:center;gap:5px"><select id="c-moneda" onchange="calcCot()" style="padding:3px 6px;font-size:12px"><option value="USD">USD ($)</option><option value="EUR">EUR (€)</option></select></span></div>
       <div class="ctr"><span>IVA 16%</span><span style="display:flex;align-items:center;gap:5px"><input type="checkbox" id="c-iva" onchange="calcCot()"> aplicar</span></div>
       <div class="ctr fin"><span>TOTAL</span><span id="c-total">$0</span></div>
     </div>
@@ -567,12 +522,13 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
     <div class="ctitle">Descripción automática · Blast Assistant</div>
     <div class="btn-row" style="margin-bottom:9px">
       <button class="btn btn-blue btn-sm" onclick="genIA()"><i class="ti ti-sparkles"></i>Generar descripción</button>
-      <button class="btn btn-ghost btn-sm" id="btn-guardar-cot" onclick="guardarCotizacionManual()"><i class="ti ti-device-floppy"></i>Guardar</button>
+      <button class="btn btn-ghost btn-sm" onclick="guardarCotizacionManual()"><i class="ti ti-device-floppy"></i>Guardar</button>
       <button class="btn btn-ghost btn-sm" onclick="exportPDF()"><i class="ti ti-file-download"></i>Ver / Imprimir PDF</button>
       <button class="btn btn-drive btn-sm" onclick="exportarADriveConGuardado()" id="btn-drive">
         <img src="https://upload.wikimedia.org/wikipedia/commons/1/12/Google_Drive_icon_%282020%29.svg" style="width:15px;height:15px" alt=""> Guardar en Drive
       </button>
       <span id="drive-status" class="drive-status" style="display:none"></span>
+      <span id="cot-save-status" style="display:none;font-size:11px;color:var(--w4);align-self:center"></span>
       <button class="btn btn-ghost btn-sm" onclick="copiarDescripcion()"><i class="ti ti-copy"></i>Copiar</button>
     </div>
     <div style="display:flex;align-items:center;gap:8px;margin-top:10px;margin-bottom:6px">
@@ -603,7 +559,7 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
 <!-- CLIENTES -->
 <div id="v-clientes" class="view">
   <div class="ph">
-    <div><div class="aline"></div><div class="ptitle">Clientes</div><div class="psub" id="cli-sub">Ordenados por utilidad</div></div>
+    <div><div class="aline"></div><div class="ptitle">Clientes</div><div class="psub" id="cli-sub">Ordenados por facturación total</div></div>
     <button class="btn btn-blue btn-sm" onclick="document.getElementById('modal-cli').classList.add('show')"><i class="ti ti-plus"></i>Nuevo cliente</button>
   </div>
   <div class="btn-row" style="margin-bottom:13px">
@@ -675,7 +631,7 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
   <div class="card np">
     <div class="twrap"><table>
       <thead><tr><th>Código</th><th>Fecha</th><th>Cliente</th><th>Tipo</th><th>Lugar</th><th>Horario</th><th>Responsable</th><th>Total</th><th>Estado</th><th></th></tr></thead>
-      <tbody id="hist-tbody"><tr><td colspan="9" style="color:var(--w4);text-align:center;padding:18px">Cargando...</td></tr></tbody>
+      <tbody id="hist-tbody"><tr><td colspan="10" style="color:var(--w4);text-align:center;padding:18px">Cargando...</td></tr></tbody>
     </table></div>
   </div>
 </div>
@@ -689,6 +645,24 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
     <div class="sc"><div class="sc-top" style="background:var(--magenta)"></div><div class="slabel">Promedio/evento</div><div class="sval" id="est-prom" style="color:var(--magenta)">—</div></div>
     <div class="sc"><div class="sc-top" style="background:var(--orange)"></div><div class="slabel">Utilidad total</div><div class="sval" id="est-util" style="color:var(--orange)">—</div></div>
   </div>
+  <div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:10px">
+      <div class="ctitle" style="margin:0">Ingresos por mes · comparativa anual</div>
+      <div style="display:flex;gap:6px;align-items:center">
+        <select id="est-chart-metrica" style="width:auto;padding:4px 8px;font-size:11px">
+          <option value="ing">Ingresos</option>
+          <option value="gst">Egresos</option>
+          <option value="util">Utilidad</option>
+        </select>
+        <select id="est-chart-modo" style="width:auto;padding:4px 8px;font-size:11px">
+          <option value="mes">Mensual</option>
+          <option value="acum">Acumulado</option>
+        </select>
+      </div>
+    </div>
+    <div id="est-chart-legend" style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:8px;font-size:11px"></div>
+    <div id="est-chart-wrap" style="width:100%;overflow-x:auto"></div>
+  </div>
   <div class="two eq">
     <div class="card"><div class="ctitle">Ingresos por año</div>
       <div class="twrap"><table><thead><tr><th>Año</th><th>Eventos</th><th>Ingresos</th><th>Egresos</th><th>Utilidad</th><th>%</th></tr></thead>
@@ -699,6 +673,34 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
       <tbody id="est-trim"></tbody></table></div>
     </div>
   </div>
+  <div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:4px">
+      <div class="ctitle" style="margin:0">Estructura de costo del evento</div>
+      <span style="font-size:10px;color:var(--w4)">% de cada dólar facturado que se va en cada partida</span>
+    </div>
+    <div id="est-estructura"></div>
+  </div>
+
+  <div class="ph" style="margin-top:6px">
+    <div><div class="aline"></div><div class="ptitle" style="font-size:17px">Análisis</div></div>
+    <select id="est-anio" style="width:auto;padding:5px 9px;font-size:12px"></select>
+  </div>
+
+  <div class="card">
+    <div class="ctitle">Gastos por categoría y subcategoría</div>
+    <div id="est-gastos-cat"></div>
+  </div>
+
+  <div class="two eq">
+    <div class="card"><div class="ctitle">Rentabilidad por tipo de evento</div><div id="est-por-tipo"></div></div>
+    <div class="card"><div class="ctitle">Margen según tamaño del evento</div><div class="bc" id="est-por-tamano"></div></div>
+  </div>
+
+  <div class="two eq">
+    <div class="card"><div class="ctitle">Concentración de clientes</div><div class="bc" id="est-concentracion"></div></div>
+    <div class="card"><div class="ctitle">Rentabilidad por referente</div><div id="est-por-referente"></div></div>
+  </div>
+
   <div class="two eq">
     <div class="card"><div class="ctitle">Honorarios por persona</div><div class="bc" id="est-honor-bars"></div></div>
     <div class="card"><div class="ctitle">Detalle honorarios</div>
@@ -839,88 +841,6 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
   </div>
 </div>
 
-<!-- MODAL: NUEVO EVENTO (CHECKLIST) -->
-<div class="modal-bg" id="modal-checklist">
-  <div class="modal" style="width:640px">
-    <div class="modal-title"><i class="ti ti-list-check" style="color:var(--blue)"></i> Nuevo evento — checklist</div>
-    <div style="font-size:12px;color:var(--w4);margin-bottom:14px">Marca los roles que aplican a este evento. El sistema creará las filas vacías para que solo llenes el monto.</div>
-
-    <div class="fg" style="margin-bottom:12px">
-      <div class="fgrp"><label class="flabel">Cliente</label><input type="text" id="chk-cliente"></div>
-      <div class="fgrp"><label class="flabel">Código de evento</label><input type="text" id="chk-codigo" placeholder="DDMMAA-XX"></div>
-    </div>
-    <div class="fg" style="margin-bottom:12px">
-      <div class="fgrp"><label class="flabel">Fecha del evento</label><input type="date" id="chk-fecha"></div>
-      <div class="fgrp"><label class="flabel">Categoría</label>
-        <select id="chk-categoria" onchange="actualizarChecklistRoles()">
-          <option>Privado</option><option>Corporativo</option><option>Institucional</option><option>Club</option><option>Matrimonio</option>
-        </select>
-      </div>
-    </div>
-    <div class="fgrp" style="margin-bottom:12px">
-      <label class="flabel">Usar plantilla guardada</label>
-      <select id="chk-plantilla" onchange="aplicarPlantilla()"><option value="">— Sin plantilla, roles manuales —</option></select>
-    </div>
-
-    <div style="font-size:9px;color:var(--w4);letter-spacing:1.5px;text-transform:uppercase;font-weight:600;margin-bottom:8px">Cobro al cliente</div>
-    <div class="fg" style="margin-bottom:14px">
-      <div class="fgrp"><label class="flabel">Monto a cobrar</label><input type="number" id="chk-monto-cliente" placeholder="0"></div>
-      <div class="fgrp"><label class="flabel">Responsable del dinero</label>
-        <select id="chk-resp-cliente"><option>Gustavo Briceño</option><option>Eduardo Behrens</option><option>Francisco Massari</option></select>
-      </div>
-    </div>
-
-    <div style="font-size:9px;color:var(--w4);letter-spacing:1.5px;text-transform:uppercase;font-weight:600;margin-bottom:8px">Roles del evento</div>
-    <div id="chk-roles" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px"></div>
-
-    <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="document.getElementById('modal-checklist').classList.remove('show')">Cancelar</button>
-      <button class="btn btn-blue" onclick="crearEventoChecklist()"><i class="ti ti-check"></i>Crear evento</button>
-    </div>
-  </div>
-</div>
-
-<!-- MODAL: REGISTRAR CON IA -->
-<div class="modal-bg" id="modal-ia">
-  <div class="modal" style="width:600px">
-    <div class="modal-title"><i class="ti ti-sparkles" style="color:var(--blue)"></i> Registrar con IA</div>
-    <div style="font-size:12px;color:var(--w4);margin-bottom:14px">Describe el registro en texto libre o sube una foto. La IA extraerá los datos y pre-llenará el formulario para que lo revises.</div>
-
-    <!-- Text input -->
-    <div class="fgrp" style="margin-bottom:11px">
-      <label class="flabel">Descripción del registro</label>
-      <textarea id="ia-texto" rows="4" placeholder='Ej: "Evento Circle Tha Jungle el 11 julio, cobré $3,970 por Zelle, referente Gustavo, código 11072026-CTJ" o "Pagué $180 en honorarios a Luis García por el evento del 5 de junio"'></textarea>
-    </div>
-
-    <!-- Image upload -->
-    <div class="fgrp" style="margin-bottom:14px">
-      <label class="flabel">O sube una imagen (comprobante, WhatsApp, papel...)</label>
-      <input type="file" id="ia-imagen" accept="image/*" style="padding:6px;font-size:12px" onchange="previewIAImage()">
-      <div id="ia-img-preview" style="margin-top:8px;display:none">
-        <img id="ia-img-el" style="max-width:100%;max-height:180px;border-radius:6px;border:1px solid var(--border)">
-      </div>
-    </div>
-
-    <div id="ia-status" style="display:none;padding:10px 12px;background:var(--black3);border-radius:6px;font-size:12px;color:var(--w3);margin-bottom:11px">
-      <i class="ti ti-loader-2" style="animation:spin 1s linear infinite"></i> Analizando...
-    </div>
-
-    <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
-
-    <!-- Extracted transactions preview -->
-    <div id="ia-extracted-wrap" style="display:none;margin-bottom:11px">
-      <div style="font-size:9px;color:var(--w4);letter-spacing:1.5px;text-transform:uppercase;font-weight:600;margin-bottom:8px">Transacciones extraídas — revisa antes de guardar</div>
-      <div id="ia-extracted"></div>
-    </div>
-
-    <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="document.getElementById('modal-ia').classList.remove('show')">Cancelar</button>
-      <button class="btn btn-ghost" onclick="procesarConIA()"><i class="ti ti-sparkles"></i>Extraer datos</button>
-      <button class="btn btn-blue" id="btn-guardar-ia" onclick="guardarIATxs()" style="display:none"><i class="ti ti-check"></i>Guardar todo</button>
-    </div>
-  </div>
-</div>
-
 <!-- MODAL: NUEVO PROVEEDOR -->
 <div class="modal-bg" id="modal-prov">
   <div class="modal">
@@ -980,8 +900,10 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
 // BLAST PROSOUND · Sistema de Gestión v5.0
 // ═══════════════════════════════════════════════
 
+// ─── REFERENTE MAP (CSV data from 23/08/2025) ───
+const REFERENTE_MAP = {"23082025-ME": "Gustavo Briceño", "30082025-AV": "Eduardo Behrens", "30082025-MG": "Eduardo Behrens", "02092025-WA": "Francisco Massari", "05092025-RP": "Gustavo Briceño", "06092025-GU": "Gustavo Briceño", "20092025-NC": "Gustavo Briceño", "24092025-IE": "Gustavo Briceño", "27092025-SM": "Gustavo Briceño", "03102025-RA": "Gustavo Briceño", "04102025-JR": "Gustavo Briceño", "11072026-GU": "Gustavo Briceño", "16102025-TF": "Francisco Massari", "24102025-DR": "Gustavo Briceño", "24102025-MEM": "Francisco Massari", "24102025-JR": "Eduardo Behrens", "25102025-SM": "Gustavo Briceño", "31102025-SM": "Gustavo Briceño", "01112025-JSB": "Gustavo Briceño", "14112025-BS": "Gustavo Briceño", "14112025-SM": "Gustavo Briceño", "15112025-US": "Gustavo Briceño", "21112025-SM": "Gustavo Briceño", "22112025-AK": "Gustavo Briceño", "22112025-ED": "Francisco Massari", "30112025-CSI": "Eduardo Behrens", "04122025-AW": "Eduardo Behrens", "05122025-CA": "Eduardo Behrens", "05122025-AC": "Francisco Massari", "05122025-SM": "Gustavo Briceño", "06122025-A2": "Eduardo Behrens", "06122025-AW": "Eduardo Behrens", "06122025-SP": "Francisco Massari", "12122025-AW": "Eduardo Behrens", "12122025-CS": "Eduardo Behrens", "12122025-SM": "Gustavo Briceño", "13122025-SM": "Gustavo Briceño", "15122025-CA": "Eduardo Behrens", "15122025-RA": "Gustavo Briceño", "19122025-SM": "Gustavo Briceño", "20122025-BS": "Gustavo Briceño", "21122025-GS": "Francisco Massari", "24122025-NE": "Eduardo Behrens", "27122025-ALP": "Francisco Massari", "13012026-CSI": "Eduardo Behrens", "23012026-CSI": "Eduardo Behrens", "24012026-SM": "Gustavo Briceño", "31012026-EDL": "Francisco Massari", "07022026-CSI": "Eduardo Behrens", "07022026-P100": "Eduardo Behrens", "16022026-NDS": "Gustavo Briceño", "21022026-SM": "Gustavo Briceño", "24022026-LF": "Eduardo Behrens", "28022026-XE": "Francisco Massari", "21032026-ICC": "Eduardo Behrens", "21032026-TP": "Gustavo Briceño", "25032026-AY": "Eduardo Behrens", "26032026-ICC": "Eduardo Behrens", "26032026-CLL": "Eduardo Behrens", "26032026-NE": "Eduardo Behrens", "26032026-AC": "Eduardo Behrens", "10042026-ICC": "Eduardo Behrens", "25042026-CM": "Gustavo Briceño", "26042026-CSI": "Eduardo Behrens", "01052026-VP": "Francisco Massari", "08052026-AW": "Eduardo Behrens", "09052026-DR": "Gustavo Briceño", "13052026-TO": "Eduardo Behrens", "16052026-RA": "Francisco Massari", "21052026-CSI": "Eduardo Behrens", "22052026-SM": "Gustavo Briceño", "23052026-SM": "Gustavo Briceño", "23052026-BS": "Gustavo Briceño", "23052026-DM": "Eduardo Behrens", "28052026-PB": "Eduardo Behrens", "29052026-AW": "Eduardo Behrens", "30052026-TNC": "Eduardo Behrens", "05062026-JS": "Gustavo Briceño", "07062026-LL": "Eduardo Behrens"};
+
 // ─── CONFIG ───
-const ANTHROPIC_KEY = ['sk-ant-api03-EL8RTen','PLNfG4IbTfbdxnW4PnJca4QDFzFhmR8xBM95V8Js','ET6cTpO3tY0uB-eCTAx6emhyH6YhamAnaRf3gmw-fWZ6jwAA'].join('');
 const SUPA_URL = 'https://bfnjiobiymexguqhltft.supabase.co';
 const SUPA_KEY = 'sb_publishable_st_DvrbnUNe4ZmRbeQtMwQ_SK0rWDgT';
 const supa     = supabase.createClient(SUPA_URL, SUPA_KEY);
@@ -1022,6 +944,7 @@ function sv(id, btn) {
   if (id === 'estadisticas') renderEstadisticas();
   if (id === 'historial')    renderHistorial();
   if (id === 'proveedores')  cargarProveedores();
+  if (id === 'clientes')     renderClientes();
   if (id === 'dashboard')    renderDashboard();
 }
 
@@ -1042,8 +965,9 @@ async function loadBCV() {
       const usd = parseFloat(d.promedio || d.venta || d.compra) || 0;
       if (usd > 0) {
         window._tasaUSD = usd;
-        ['t-usd','t-usd-dd'].forEach(id=>{const e=$(id);if(e)e.textContent=usd.toFixed(2);});
-        $('d-bcv').textContent='USD: '+usd.toFixed(2)+' Bs'; $('cot-bcv').textContent=usd.toFixed(2);
+        $('t-usd').textContent   = usd.toFixed(2);
+        $('d-bcv').textContent   = 'USD: ' + usd.toFixed(2) + ' Bs';
+        $('cot-bcv').textContent = usd.toFixed(2);
       }
     }
     if (rEUR.ok) {
@@ -1051,7 +975,7 @@ async function loadBCV() {
       const eur = parseFloat(d.promedio || d.venta || d.compra) || 0;
       if (eur > 0) {
         window._tasaEUR = eur;
-        ['t-eur','t-eur-mini','t-eur-dd'].forEach(id=>{const e=$( id);if(e)e.textContent=eur.toFixed(2);});
+        $('t-eur').textContent = eur.toFixed(2);
         $('d-eur').textContent = eur.toFixed(2) + ' Bs/€';
       }
     }
@@ -1097,7 +1021,6 @@ async function cargarTX() {
   computeEventos();
   renderDashboard();
   renderRegistro(TX);
-  if ($('v-clientes') && $('v-clientes').classList.contains('on')) renderClientes();
 }
 
 // ─── COMPUTE EVENTOS FROM TX ───
@@ -1119,7 +1042,10 @@ function computeEventos() {
       // Capture cliente from first ingreso row (including exonerado)
       if (!e.cliente && t.concepto) e.cliente = t.concepto;
       // Referente: from CSV map first, then from tx.referente field, NEVER from responsable
-      if (!e.referente && t.referente) e.referente = t.referente;
+      if (!e.referente) {
+        if (REFERENTE_MAP[cod]) e.referente = REFERENTE_MAP[cod];
+        else if (t.referente)   e.referente = t.referente;
+      }
       if (t.estado === 'Por cobrar') e.estado = 'Por cobrar';
       if (t.estado === 'Exonerado')  e.estado = 'Exonerado';
     }
@@ -1212,7 +1138,7 @@ function renderEventos(data) {
   if (sub) sub.textContent = data.length.toLocaleString() + ' eventos' + (data.length < EVS.length ? ' (filtrados de ' + EVS.length + ')' : '');
   const tbody = $('ev-tbody');
   if (!data.length) {
-    tbody.innerHTML = '<tr><td colspan="11" style="color:var(--w4);text-align:center;padding:18px">Sin eventos con esos filtros</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="10" style="color:var(--w4);text-align:center;padding:18px">Sin eventos con esos filtros</td></tr>';
     return;
   }
   const rows = [];
@@ -1222,7 +1148,6 @@ function renderEventos(data) {
     const uc   = util < 0 ? 'var(--red)' : 'var(--green)';
     const bc   = e.estado === 'Cobrado' ? 'b-green' : 'b-orange';
     const cc   = e.categoria === 'Privado' ? 'b-blue' : e.categoria === 'Corporativo' ? 'b-magenta' : 'b-orange';
-    const safeCod = (e.codigo||'').replace(/'/g, "\\'");
     rows.push('<tr>'
       + '<td class="mono">' + esc(e.codigo) + '</td>'
       + '<td>' + fDate(e.fecha) + '</td>'
@@ -1234,10 +1159,6 @@ function renderEventos(data) {
       + '<td style="color:' + uc + ';font-weight:600">' + fmt(util) + '</td>'
       + '<td style="color:var(--w4)">' + mrg + '</td>'
       + '<td><span class="badge ' + bc + '">' + e.estado + '</span></td>'
-      + '<td><div style="display:flex;gap:3px">'
-      +   '<button class="btn btn-ghost btn-sm" style="padding:3px 7px;font-size:10px" onclick="duplicarEvento(\'' + safeCod + '\')" title="Duplicar evento"><i class="ti ti-copy"></i></button>'
-      +   '<button class="btn btn-ghost btn-sm" style="padding:3px 7px;font-size:10px" onclick="guardarComoPlantilla(\'' + safeCod + '\')" title="Guardar como plantilla"><i class="ti ti-bookmark"></i></button>'
-      + '</div></td>'
       + '</tr>');
   });
   tbody.innerHTML = rows.join('');
@@ -1300,7 +1221,7 @@ function renderRegistro(data) {
     return;
   }
 
-  // Group by codigo_evento to keep event rows together
+  // Group by codigo_evento, then sort within each group
   const grouped = {};
   const sinCodigo = [];
   data.forEach(t => {
@@ -1313,40 +1234,21 @@ function renderRegistro(data) {
     }
   });
 
-  // Sort within each event group by subcategoria order
+  // Sort within each group
   Object.keys(grouped).forEach(cod => {
     grouped[cod].sort((a, b) => {
       const oa = ordenSubcat(a), ob = ordenSubcat(b);
-      return oa - ob;
+      if (oa !== ob) return oa - ob;
+      return (a.fecha_evento||'').localeCompare(b.fecha_evento||'');
     });
   });
 
-  // Build a flat list sorted by fecha_evento DESC
-  // Each event group gets the date of its first tx
-  const groups = Object.entries(grouped).map(([cod, txs]) => ({
-    cod,
-    fecha: txs.map(t => t.fecha_evento||'').filter(Boolean).sort().reverse()[0] || '',
-    txs
-  }));
-  groups.sort((a, b) => b.fecha.localeCompare(a.fecha));
-
-  // sinCodigo sorted by fecha_evento DESC
-  sinCodigo.sort((a, b) => (b.fecha_evento||'').localeCompare(a.fecha_evento||''));
-
-  // Merge groups and sinCodigo by fecha — interleave by date
-  const allItems = [];
-  let gi = 0, si = 0;
-  while (gi < groups.length || si < sinCodigo.length) {
-    const gFecha = gi < groups.length ? groups[gi].fecha : '';
-    const sFecha = si < sinCodigo.length ? (sinCodigo[si].fecha_evento||'') : '';
-    if (gFecha >= sFecha && gi < groups.length) {
-      allItems.push({type:'group', data: groups[gi++]});
-    } else if (si < sinCodigo.length) {
-      allItems.push({type:'single', data: sinCodigo[si++]});
-    } else {
-      allItems.push({type:'group', data: groups[gi++]});
-    }
-  }
+  // Sort groups by fecha of first tx (most recent first)
+  const sortedCodes = Object.keys(grouped).sort((a, b) => {
+    const fa = grouped[a][0].fecha_evento || '';
+    const fb = grouped[b][0].fecha_evento || '';
+    return fb.localeCompare(fa);
+  });
 
   // Build rows
   const rows = [];
@@ -1357,30 +1259,14 @@ function renderRegistro(data) {
     const ing = t.ingreso > 0 ? '<td style="color:var(--green);font-weight:600">' + fmt(t.ingreso) + '</td>' : '<td style="color:var(--w4)">—</td>';
     const egr = t.egreso  > 0 ? '<td style="color:var(--red);font-weight:600">'   + fmt(t.egreso)  + '</td>' : '<td style="color:var(--w4)">—</td>';
     const id  = t.id || '';
-    const hasCodigo = (t.codigo_evento || '').trim() !== '';
-    // Referente badge: only on rows with ingreso and no egreso
-    const ref = t.referente || '';
-    const refBadge = (ref && t.ingreso > 0 && !(t.egreso > 0))
-      ? ' <span style="font-size:9px;font-weight:700;color:var(--blue);background:rgba(67,189,237,.13);border-radius:3px;padding:1px 4px">'
-        + (ref.includes('Gustavo')?'GB':ref.includes('Eduardo')?'EB':ref.includes('Francisco')?'FM':ref.slice(0,2).toUpperCase())
-        + '</span>'
-      : '';
-    // Border logic:
-    // - Rows WITHOUT codigo: top+bottom border to isolate each row
-    // - Rows WITH codigo, first of group: top border to separate groups (even single-row groups)
-    let rowStyle = '';
-    if (!hasCodigo) {
-      rowStyle = 'border-top:1px solid var(--border2);border-bottom:1px solid var(--border2);background:rgba(255,255,255,0.02)';
-    } else if (isFirst) {
-      rowStyle = 'border-top:2px solid rgba(67,189,237,0.15)';
-    }
-    const style = rowStyle ? ' style="' + rowStyle + '"' : '';
+    // Visual grouping: top border on first row of group
+    const style = isFirst && groupSize > 1 ? ' style="border-top:2px solid rgba(67,189,237,0.2)"' : '';
     return '<tr data-id="' + id + '"' + style + '>'
       + '<td>' + fe + '</td>'
       + '<td>' + fp + '</td>'
       + '<td>' + esc(t.categoria) + '</td>'
       + '<td>' + esc(t.subcategoria) + '</td>'
-      + '<td>' + esc(t.concepto||'') + refBadge + '</td>'
+      + '<td>' + esc(t.concepto) + '</td>'
       + '<td class="mono" style="font-size:10px;color:var(--w4)">' + esc(t.codigo_evento) + '</td>'
       + '<td>' + esc(t.metodo_pago) + '</td>'
       + '<td>' + esc(t.responsable) + '</td>'
@@ -1394,14 +1280,14 @@ function renderRegistro(data) {
       + '</tr>';
   };
 
-  // Render all items interleaved by fecha
-  allItems.forEach(item => {
-    if (item.type === 'group') {
-      item.data.txs.forEach((t, i) => rows.push(renderRow(t, i === 0, item.data.txs.length)));
-    } else {
-      rows.push(renderRow(item.data, false, 1));
-    }
+  // Add grouped events
+  sortedCodes.forEach(cod => {
+    const group = grouped[cod];
+    group.forEach((t, i) => rows.push(renderRow(t, i === 0, group.length)));
   });
+
+  // Add rows without code at the end
+  sinCodigo.forEach(t => rows.push(renderRow(t, false, 1)));
 
   tbody.innerHTML = rows.join('');
 }
@@ -1435,13 +1321,11 @@ document.addEventListener('click', function(e) {
 function filtrarRegistro() {
   const estado = $('f-tx-estado').value;
   const cat    = $('f-tx-cat').value;
-  const sub    = $('f-tx-sub') ? $('f-tx-sub').value : '';
   const resp   = $('f-tx-resp').value;
   const q      = $('f-tx-q').value.toLowerCase().trim();
   const result = TX.filter(t => {
     if (estado && t.estado !== estado) return false;
     if (cat    && t.categoria !== cat) return false;
-    if (sub    && (t.subcategoria||'') !== sub) return false;
     if (resp   && t.responsable !== resp) return false;
     if (q && !String(t.concepto || '').toLowerCase().includes(q) && !String(t.codigo_evento || '').toLowerCase().includes(q) && !String(t.subcategoria || '').toLowerCase().includes(q)) return false;
     return true;
@@ -1782,11 +1666,7 @@ function renderSocios() {
     const agarro = rows.filter(t => t.estado === 'Cobrado').reduce((sum,t) => sum + (parseFloat(t.ingreso)||0), 0);
     const entrego= rows.filter(t => t.estado === 'Pagado' ).reduce((sum,t) => sum + (parseFloat(t.egreso) ||0), 0);
     const bal    = agarro - entrego;
-    // Count rows where concepto = socio and subcategoria = Honorarios
-    const evs = TX.filter(t =>
-      (t.subcategoria||'').toLowerCase().includes('honorar') &&
-      (t.concepto||'') === s.nombre
-    ).length;
+    const evs    = new Set(rows.filter(t=>t.codigo_evento && (t.subcategoria||'').toLowerCase().includes('honorar')).map(t=>t.codigo_evento)).size;
     $(s.balId).textContent = fmtD(bal);
     $(s.balId).style.color = bal >= 0 ? s.color : 'var(--red)';
     $(s.evsId).textContent = evs;
@@ -1810,17 +1690,6 @@ function renderSocios() {
     + '<div class="ba">' + fmt(v.ing) + '</div></div>'
   ).join('');
 }
-
-// ─── PROVEEDORES ───
-async function cargarProveedores() {
-  const {data, error} = await supa.from('proveedores').select('*').order('nombre');
-  if (error) { console.error(error); return; }
-  $('prov-tbody').innerHTML = data && data.length ? data.map(p =>
-    '<tr><td>' + esc(p.nombre) + '</td><td>' + esc(p.tipo) + '</td><td>' + esc(p.telefono) + '</td><td>' + esc(p.metodo_pago) + '</td><td style="color:var(--w4)">' + esc(p.notas) + '</td></tr>'
-  ).join('') : '<tr><td colspan="5" style="color:var(--w4);text-align:center;padding:16px">Sin proveedores registrados</td></tr>';
-}
-
-// guardarProv moved above
 
 // ─── ESTADÍSTICAS ───
 function renderEstadisticas() {
@@ -1887,6 +1756,444 @@ function renderEstadisticas() {
   $('est-honor-tbody').innerHTML = sorted.map(([p,v]) =>
     '<tr><td>' + esc(p) + '</td><td>' + v.evs.size + '</td><td style="color:var(--blue);font-weight:600">' + fmt(v.total) + '</td><td style="color:var(--w4)">' + fmt(v.total/Math.max(v.evs.size,1)) + '/ev.</td></tr>'
   ).join('');
+
+  renderChartAnual();
+  renderAnalisis();
+}
+
+
+// ─── GRÁFICO: INGRESOS POR MES, COMPARATIVA AÑO A AÑO ───
+const MESES_CORTO = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+const SERIE_COLORS = ['#43bded','#ea5ff2','#f4a93d','#3dca6e','#e05555','#9b8cff','#00c2a8','#ff7ab8'];
+let _seriesOcultas = new Set();
+
+function datosMensualesPorAnio() {
+  const byYr = {};
+  TX.forEach(t => {
+    if (!t.fecha_evento) return;
+    const yr = t.fecha_evento.substring(0,4);
+    const m  = parseInt(t.fecha_evento.substring(5,7), 10) - 1;
+    if (!/^\d{4}$/.test(yr) || isNaN(m) || m < 0 || m > 11) return;
+    if (!byYr[yr]) byYr[yr] = {ing: Array(12).fill(0), gst: Array(12).fill(0)};
+    byYr[yr].ing[m] += parseFloat(t.ingreso) || 0;
+    byYr[yr].gst[m] += parseFloat(t.egreso)  || 0;
+  });
+  return byYr;
+}
+
+function renderChartAnual() {
+  const wrap = $('est-chart-wrap');
+  if (!wrap) return;
+  const metrica = $('est-chart-metrica') ? $('est-chart-metrica').value : 'ing';
+  const modo    = $('est-chart-modo')    ? $('est-chart-modo').value    : 'mes';
+
+  const byYr  = datosMensualesPorAnio();
+  const anios = Object.keys(byYr).sort();
+  if (!anios.length) { wrap.innerHTML = '<div style="color:var(--w4);padding:24px;text-align:center;font-size:12px">Sin datos</div>'; return; }
+
+  // Hasta qué mes hay datos reales en el año en curso (evita la caída a cero al final)
+  const hoy      = new Date();
+  const anioAct  = String(hoy.getFullYear());
+  const mesActual= hoy.getMonth();
+
+  const series = anios.map((yr, i) => {
+    const d = byYr[yr];
+    let vals = d.ing.map((v, m) => metrica === 'ing' ? v : metrica === 'gst' ? d.gst[m] : v - d.gst[m]);
+    if (modo === 'acum') { let acc = 0; vals = vals.map(v => (acc += v)); }
+    // Cortar la línea donde terminan los datos reales (pero sin perder eventos ya agendados a futuro)
+    let ultimoConDato = -1;
+    for (let m = 0; m < 12; m++) if (d.ing[m] || d.gst[m]) ultimoConDato = m;
+    const limite = (yr === anioAct) ? Math.max(mesActual, ultimoConDato, 0) : 11;
+    return {
+      yr,
+      color: SERIE_COLORS[i % SERIE_COLORS.length],
+      vals,
+      limite,
+      total: d.ing.reduce((s,v,m) => s + (metrica === 'ing' ? v : metrica === 'gst' ? d.gst[m] : v - d.gst[m]), 0),
+      visible: !_seriesOcultas.has(yr)
+    };
+  });
+
+  const visibles = series.filter(s => s.visible);
+  const puntos   = visibles.flatMap(s => s.vals.slice(0, s.limite + 1));
+  let maxV = Math.max(0, ...puntos);
+  let minV = Math.min(0, ...puntos);
+  if (maxV === minV) maxV = minV + 1;
+  // Redondear a un escalón limpio
+  const span = maxV - minV;
+  const step = Math.pow(10, Math.floor(Math.log10(span || 1)));
+  maxV = Math.ceil(maxV / step) * step;
+  minV = minV < 0 ? Math.floor(minV / step) * step : 0;
+
+  const W = 860, H = 320, ML = 62, MR = 16, MT = 14, MB = 30;
+  const iw = W - ML - MR, ih = H - MT - MB;
+  const X = m => ML + (iw * m) / 11;
+  const Y = v => MT + ih - ((v - minV) / (maxV - minV)) * ih;
+
+  let svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" style="width:100%;min-width:620px;height:auto;display:block;font-family:Archivo,sans-serif">';
+
+  // Grid + eje Y
+  const TICKS = 5;
+  for (let i = 0; i <= TICKS; i++) {
+    const v = minV + ((maxV - minV) * i) / TICKS;
+    const y = Y(v);
+    svg += '<line x1="' + ML + '" y1="' + y.toFixed(1) + '" x2="' + (W - MR) + '" y2="' + y.toFixed(1)
+        + '" stroke="var(--border)" stroke-width="1" ' + (v === 0 && minV < 0 ? '' : 'stroke-dasharray="3 4"') + ' opacity=".6"/>';
+    svg += '<text x="' + (ML - 8) + '" y="' + (y + 3.5).toFixed(1) + '" text-anchor="end" font-size="10" fill="var(--w4)">'
+        + (v < 0 ? '-' : '') + (Math.abs(v) >= 1000 ? '$' + Math.round(Math.abs(v)/1000) + 'k' : '$' + Math.round(Math.abs(v))) + '</text>';
+  }
+
+  // Eje X
+  MESES_CORTO.forEach((mn, m) => {
+    svg += '<text x="' + X(m).toFixed(1) + '" y="' + (H - 10) + '" text-anchor="middle" font-size="10" fill="var(--w4)">' + mn + '</text>';
+  });
+
+  // Líneas
+  visibles.forEach(s => {
+    const pts = [];
+    for (let m = 0; m <= s.limite; m++) pts.push(X(m).toFixed(1) + ',' + Y(s.vals[m]).toFixed(1));
+    if (pts.length < 1) return;
+    if (pts.length === 1) {
+      svg += '<circle cx="' + pts[0].split(',')[0] + '" cy="' + pts[0].split(',')[1] + '" r="4" fill="' + s.color + '"/>';
+    } else {
+      svg += '<polyline points="' + pts.join(' ') + '" fill="none" stroke="' + s.color
+          + '" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>';
+    }
+    for (let m = 0; m <= s.limite; m++) {
+      svg += '<circle cx="' + X(m).toFixed(1) + '" cy="' + Y(s.vals[m]).toFixed(1) + '" r="3.2" fill="var(--black2)" stroke="' + s.color + '" stroke-width="2">'
+          + '<title>' + s.yr + ' · ' + MESES_CORTO[m] + ': ' + fmt(s.vals[m]) + '</title></circle>';
+    }
+    // Etiqueta del año al final de la línea
+    svg += '<text x="' + (X(s.limite) + 6).toFixed(1) + '" y="' + (Y(s.vals[s.limite]) - 7).toFixed(1)
+        + '" font-size="10" font-weight="600" fill="' + s.color + '">' + s.yr + '</text>';
+  });
+
+  svg += '</svg>';
+  wrap.innerHTML = svg;
+
+  // Leyenda (clic para mostrar/ocultar un año)
+  const leg = $('est-chart-legend');
+  if (leg) {
+    leg.innerHTML = series.map(s =>
+      '<span class="js-serie-toggle" data-yr="' + s.yr + '" style="cursor:pointer;display:inline-flex;align-items:center;gap:5px;opacity:'
+      + (s.visible ? '1' : '.35') + '">'
+      + '<span style="width:11px;height:3px;border-radius:2px;background:' + s.color + ';display:inline-block"></span>'
+      + '<b style="color:var(--w2)">' + s.yr + '</b>'
+      + '<span style="color:var(--w4)">' + fmt(s.total) + '</span></span>'
+    ).join('');
+  }
+}
+
+document.addEventListener('click', function(e) {
+  const t = e.target.closest ? e.target.closest('.js-serie-toggle') : null;
+  if (!t) return;
+  const yr = t.dataset.yr;
+  if (_seriesOcultas.has(yr)) _seriesOcultas.delete(yr); else _seriesOcultas.add(yr);
+  renderChartAnual();
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+  ['est-chart-metrica','est-chart-modo'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('change', renderChartAnual);
+  });
+});
+
+
+// ─── ANÁLISIS DE COSTOS Y RENTABILIDAD ───
+
+// Devuelve los años presentes en TX, descendente
+function aniosDisponibles() {
+  const s = new Set();
+  TX.forEach(t => { if (t.fecha_evento) s.add(t.fecha_evento.substring(0,4)); });
+  return Array.from(s).filter(y => /^\d{4}$/.test(y)).sort().reverse();
+}
+
+function anioFiltroEst() {
+  const el = $('est-anio');
+  return el ? el.value : '';
+}
+
+function txDelAnio(yr) {
+  return yr ? TX.filter(t => t.fecha_evento && t.fecha_evento.startsWith(yr)) : TX.slice();
+}
+
+// Barras horizontales reutilizables
+function barrasHTML(items, colorFn) {
+  if (!items.length) return '<div style="color:var(--w4);font-size:12px;padding:14px;text-align:center">Sin datos</div>';
+  const max = Math.max(...items.map(i => Math.abs(i.valor))) || 1;
+  return items.map((it, i) =>
+    '<div class="br"><div class="bl" title="' + esc(it.label) + '">' + esc(it.label) + '</div>'
+    + '<div class="bt"><div class="bf" style="width:' + Math.max(Math.round((Math.abs(it.valor)/max)*100), 2) + '%;background:'
+    + (colorFn ? colorFn(it, i) : SERIE_COLORS[i % SERIE_COLORS.length]) + '">' + it.texto + '</div></div>'
+    + '<div class="ba">' + (it.aux || '') + '</div></div>'
+  ).join('');
+}
+
+// ── 1. Gastos por categoría → subcategoría ──
+function renderGastosCategoria() {
+  const cont = $('est-gastos-cat');
+  if (!cont) return;
+  const yr   = anioFiltroEst();
+  const data = txDelAnio(yr);
+
+  // categoria -> subcategoria -> {total, n}
+  const cats = {};
+  data.forEach(t => {
+    const eg = parseFloat(t.egreso) || 0;
+    if (eg <= 0) return;
+    const cat = t.categoria    || 'Sin categoría';
+    const sub = t.subcategoria || 'Sin subcategoría';
+    if (!cats[cat]) cats[cat] = {total:0, subs:{}};
+    cats[cat].total += eg;
+    if (!cats[cat].subs[sub]) cats[cat].subs[sub] = {total:0, n:0};
+    cats[cat].subs[sub].total += eg;
+    cats[cat].subs[sub].n++;
+  });
+
+  const orden = Object.entries(cats).sort((a,b) => b[1].total - a[1].total);
+  if (!orden.length) { cont.innerHTML = '<div style="color:var(--w4);font-size:12px;padding:14px">Sin egresos registrados</div>'; return; }
+  const granTotal = orden.reduce((s,[,v]) => s + v.total, 0);
+
+  cont.innerHTML = orden.map(([cat, v], ci) => {
+    const subs = Object.entries(v.subs).sort((a,b) => b[1].total - a[1].total);
+    const maxSub = subs[0] ? subs[0][1].total : 1;
+    const color = SERIE_COLORS[ci % SERIE_COLORS.length];
+    return '<div style="margin-bottom:16px">'
+      + '<div style="display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px solid var(--border);padding-bottom:5px;margin-bottom:7px">'
+      + '<span style="font-size:12px;font-weight:600;color:' + color + '">' + esc(cat) + '</span>'
+      + '<span style="font-size:11px;color:var(--w3)">' + fmt(v.total)
+      + ' <span style="color:var(--w4)">· ' + ((v.total/granTotal)*100).toFixed(1) + '% del gasto</span></span></div>'
+      + subs.map(([sn, sv]) =>
+          '<div style="display:grid;grid-template-columns:130px 1fr 110px;gap:8px;align-items:center;margin-bottom:4px">'
+          + '<div style="font-size:11px;color:var(--w3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="' + esc(sn) + '">' + esc(sn) + '</div>'
+          + '<div style="background:var(--black3);border-radius:3px;height:16px;overflow:hidden">'
+          + '<div style="height:100%;width:' + Math.max(Math.round((sv.total/maxSub)*100),2) + '%;background:' + color + ';opacity:.75"></div></div>'
+          + '<div style="font-size:11px;text-align:right;color:var(--w2)">' + fmt(sv.total)
+          + ' <span style="color:var(--w4)">' + ((sv.total/v.total)*100).toFixed(0) + '%</span></div>'
+          + '</div>'
+        ).join('')
+      + '</div>';
+  }).join('');
+}
+
+// ── 2. Estructura de costo del evento: qué % de cada dólar facturado se va en cada partida ──
+function renderEstructuraCosto() {
+  const cont = $('est-estructura');
+  if (!cont) return;
+  const anios = aniosDisponibles().slice(0, 4).reverse();
+  if (!anios.length) { cont.innerHTML = '<div style="color:var(--w4);font-size:12px;padding:14px">Sin datos</div>'; return; }
+
+  // Solo transacciones de eventos (tienen codigo_evento)
+  const porAnio = {};
+  const partidas = new Set();
+  TX.forEach(t => {
+    if (!t.fecha_evento || !t.codigo_evento) return;
+    const yr = t.fecha_evento.substring(0,4);
+    if (!anios.includes(yr)) return;
+    if (!porAnio[yr]) porAnio[yr] = {ing:0, subs:{}};
+    porAnio[yr].ing += parseFloat(t.ingreso) || 0;
+    const eg = parseFloat(t.egreso) || 0;
+    if (eg > 0) {
+      const sub = t.subcategoria || 'Otros';
+      porAnio[yr].subs[sub] = (porAnio[yr].subs[sub] || 0) + eg;
+      partidas.add(sub);
+    }
+  });
+
+  // Ordenar partidas por gasto total acumulado, quedarse con las 8 mayores
+  const totalPorPartida = {};
+  Object.values(porAnio).forEach(v => Object.entries(v.subs).forEach(([k,n]) => totalPorPartida[k] = (totalPorPartida[k]||0) + n));
+  const top = Object.entries(totalPorPartida).sort((a,b) => b[1]-a[1]).slice(0, 8).map(x => x[0]);
+
+  const pct = (yr, sub) => {
+    const v = porAnio[yr];
+    if (!v || !v.ing) return null;
+    if (sub === '__otros__') {
+      const otros = Object.entries(v.subs).filter(([k]) => !top.includes(k)).reduce((s,[,n]) => s+n, 0);
+      return (otros / v.ing) * 100;
+    }
+    return ((v.subs[sub] || 0) / v.ing) * 100;
+  };
+
+  const filas = top.concat(['__otros__']);
+  const nombre = s => s === '__otros__' ? 'Otros' : s;
+
+  let h = '<div class="twrap"><table><thead><tr><th>Partida</th>'
+    + anios.map(y => '<th style="text-align:right">' + y + '</th>').join('')
+    + '<th style="text-align:right">Δ</th></tr></thead><tbody>';
+
+  filas.forEach(sub => {
+    const vals = anios.map(y => pct(y, sub));
+    if (vals.every(v => !v)) return;
+    const ini = vals.find(v => v !== null), fin = vals.slice().reverse().find(v => v !== null);
+    const delta = (ini !== undefined && fin !== undefined) ? fin - ini : 0;
+    h += '<tr><td style="color:var(--w3)">' + esc(nombre(sub)) + '</td>'
+      + vals.map(v => '<td style="text-align:right">' + (v === null ? '—' : v.toFixed(1) + '%') + '</td>').join('')
+      + '<td style="text-align:right;font-weight:600;color:' + (delta > 0.5 ? 'var(--red)' : delta < -0.5 ? 'var(--green)' : 'var(--w4)') + '">'
+      + (delta > 0 ? '+' : '') + delta.toFixed(1) + '</td></tr>';
+  });
+
+  // Fila de margen
+  const margen = anios.map(y => {
+    const v = porAnio[y];
+    if (!v || !v.ing) return null;
+    const gas = Object.values(v.subs).reduce((s,n) => s+n, 0);
+    return ((v.ing - gas) / v.ing) * 100;
+  });
+  const mIni = margen.find(v => v !== null), mFin = margen.slice().reverse().find(v => v !== null);
+  const mDelta = (mIni !== undefined && mFin !== undefined) ? mFin - mIni : 0;
+  h += '<tr style="border-top:2px solid var(--border)"><td style="font-weight:700;color:var(--w2)">MARGEN</td>'
+    + margen.map(v => '<td style="text-align:right;font-weight:700;color:var(--green)">' + (v === null ? '—' : v.toFixed(1) + '%') + '</td>').join('')
+    + '<td style="text-align:right;font-weight:700;color:' + (mDelta < 0 ? 'var(--red)' : 'var(--green)') + '">'
+    + (mDelta > 0 ? '+' : '') + mDelta.toFixed(1) + '</td></tr>';
+
+  h += '</tbody></table></div>'
+    + '<div style="font-size:10px;color:var(--w4);margin-top:6px">Solo transacciones con código de evento. La columna Δ compara el primer año contra el último; el año en curso está incompleto.</div>';
+  cont.innerHTML = h;
+}
+
+// ── 3. Rentabilidad por tipo de evento ──
+function renderPorTipo() {
+  const cont = $('est-por-tipo');
+  if (!cont) return;
+  const yr = anioFiltroEst();
+  const TIPOS = {Privado:1, Corporativo:1, Institucional:1, Club:1};
+
+  const evs = EVS.filter(e => !yr || (e.fecha && e.fecha.startsWith(yr)));
+  const map = {};
+  evs.forEach(e => {
+    const tipo = TIPOS[e.categoria] ? e.categoria : 'Otro';
+    if (!map[tipo]) map[tipo] = {n:0, ing:0, gas:0};
+    map[tipo].n++;
+    map[tipo].ing += e.ingreso || 0;
+    map[tipo].gas += e.gasto   || 0;
+  });
+
+  const rows = Object.entries(map).sort((a,b) => (b[1].ing - b[1].gas) - (a[1].ing - a[1].gas));
+  if (!rows.length) { cont.innerHTML = '<div style="color:var(--w4);font-size:12px;padding:14px">Sin datos</div>'; return; }
+
+  cont.innerHTML = '<div class="twrap"><table><thead><tr><th>Tipo</th><th>Ev.</th><th>Ticket prom.</th><th>Ingresos</th><th>Utilidad</th><th>Margen</th></tr></thead><tbody>'
+    + rows.map(([tipo, v]) => {
+        const util = v.ing - v.gas;
+        const mg   = v.ing > 0 ? (util/v.ing)*100 : 0;
+        return '<tr><td style="font-weight:600">' + esc(tipo) + '</td>'
+          + '<td>' + v.n + '</td>'
+          + '<td style="color:var(--w3)">' + fmt(v.ing / Math.max(v.n,1)) + '</td>'
+          + '<td style="color:var(--blue);font-weight:600">' + fmt(v.ing) + '</td>'
+          + '<td style="font-weight:600;color:' + (util >= 0 ? 'var(--green)' : 'var(--red)') + '">' + fmt(util) + '</td>'
+          + '<td style="color:' + (mg >= 35 ? 'var(--green)' : mg >= 20 ? 'var(--orange)' : 'var(--red)') + ';font-weight:600">' + mg.toFixed(1) + '%</td></tr>';
+      }).join('')
+    + '</tbody></table></div>';
+}
+
+// ── 4. Margen por rango de ticket: ¿los eventos grandes rinden más o menos? ──
+function renderPorTamano() {
+  const cont = $('est-por-tamano');
+  if (!cont) return;
+  const yr = anioFiltroEst();
+  const RANGOS = [
+    {label:'< $500',        min:0,     max:500},
+    {label:'$500 – $1.5k',  min:500,   max:1500},
+    {label:'$1.5k – $3k',   min:1500,  max:3000},
+    {label:'$3k – $6k',     min:3000,  max:6000},
+    {label:'> $6k',         min:6000,  max:Infinity}
+  ];
+  const evs = EVS.filter(e => (!yr || (e.fecha && e.fecha.startsWith(yr))) && e.ingreso > 0);
+  const acc = RANGOS.map(r => ({...r, n:0, ing:0, gas:0}));
+  evs.forEach(e => {
+    const b = acc.find(r => e.ingreso >= r.min && e.ingreso < r.max);
+    if (!b) return;
+    b.n++; b.ing += e.ingreso; b.gas += e.gasto || 0;
+  });
+
+  const conDatos = acc.filter(r => r.n > 0);
+  if (!conDatos.length) { cont.innerHTML = '<div style="color:var(--w4);font-size:12px;padding:14px">Sin datos</div>'; return; }
+
+  cont.innerHTML = barrasHTML(conDatos.map(r => {
+    const mg = r.ing > 0 ? ((r.ing - r.gas)/r.ing)*100 : 0;
+    return {label: r.label, valor: mg, texto: mg.toFixed(1) + '%', aux: r.n + ' ev. · ' + fmt(r.ing - r.gas)};
+  }), it => it.valor >= 35 ? 'var(--green)' : it.valor >= 20 ? 'var(--orange)' : 'var(--red)');
+}
+
+// ── 5. Concentración de clientes (riesgo) ──
+function renderConcentracion() {
+  const cont = $('est-concentracion');
+  if (!cont) return;
+  const yr = anioFiltroEst();
+  const evs = EVS.filter(e => (!yr || (e.fecha && e.fecha.startsWith(yr))) && e.cliente && e.ingreso > 0);
+  const map = {};
+  evs.forEach(e => {
+    if (!map[e.cliente]) map[e.cliente] = {ing:0, n:0};
+    map[e.cliente].ing += e.ingreso;
+    map[e.cliente].n++;
+  });
+  const rows = Object.entries(map).sort((a,b) => b[1].ing - a[1].ing);
+  if (!rows.length) { cont.innerHTML = '<div style="color:var(--w4);font-size:12px;padding:14px">Sin datos</div>'; return; }
+
+  const total = rows.reduce((s,[,v]) => s + v.ing, 0);
+  const share = k => (rows.slice(0,k).reduce((s,[,v]) => s + v.ing, 0) / total) * 100;
+  const top1 = share(1), top5 = share(5), top10 = share(10);
+  const riesgo = top5 >= 60 ? {t:'Alta', c:'var(--red)'} : top5 >= 40 ? {t:'Media', c:'var(--orange)'} : {t:'Baja', c:'var(--green)'};
+
+  cont.innerHTML =
+    '<div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:11px;font-size:11px">'
+    + '<span style="color:var(--w4)">Top 1: <b style="color:var(--w2)">' + top1.toFixed(1) + '%</b></span>'
+    + '<span style="color:var(--w4)">Top 5: <b style="color:var(--w2)">' + top5.toFixed(1) + '%</b></span>'
+    + '<span style="color:var(--w4)">Top 10: <b style="color:var(--w2)">' + top10.toFixed(1) + '%</b></span>'
+    + '<span style="color:var(--w4)">Clientes: <b style="color:var(--w2)">' + rows.length + '</b></span>'
+    + '<span style="color:var(--w4)">Concentración: <b style="color:' + riesgo.c + '">' + riesgo.t + '</b></span>'
+    + '</div>'
+    + barrasHTML(rows.slice(0,8).map(([n,v]) => ({
+        label: n.split(' ').slice(0,3).join(' '),
+        valor: v.ing,
+        texto: fmt(v.ing),
+        aux: ((v.ing/total)*100).toFixed(1) + '% · ' + v.n + ' ev.'
+      })));
+}
+
+// ── 6. Rentabilidad por referente (quién trae los buenos eventos) ──
+function renderPorReferente() {
+  const cont = $('est-por-referente');
+  if (!cont) return;
+  const yr = anioFiltroEst();
+  const evs = EVS.filter(e => (!yr || (e.fecha && e.fecha.startsWith(yr))) && e.referente);
+  const map = {};
+  evs.forEach(e => {
+    if (!map[e.referente]) map[e.referente] = {n:0, ing:0, gas:0};
+    map[e.referente].n++;
+    map[e.referente].ing += e.ingreso || 0;
+    map[e.referente].gas += e.gasto   || 0;
+  });
+  const rows = Object.entries(map).sort((a,b) => (b[1].ing - b[1].gas) - (a[1].ing - a[1].gas));
+  if (!rows.length) { cont.innerHTML = '<div style="color:var(--w4);font-size:12px;padding:14px">Sin referente registrado en este periodo</div>'; return; }
+
+  cont.innerHTML = '<div class="twrap"><table><thead><tr><th>Referente</th><th>Ev.</th><th>Ticket prom.</th><th>Utilidad</th><th>Margen</th></tr></thead><tbody>'
+    + rows.map(([n,v]) => {
+        const util = v.ing - v.gas;
+        const mg   = v.ing > 0 ? (util/v.ing)*100 : 0;
+        return '<tr><td style="font-weight:600">' + esc(n) + '</td>'
+          + '<td>' + v.n + '</td>'
+          + '<td style="color:var(--w3)">' + fmt(v.ing/Math.max(v.n,1)) + '</td>'
+          + '<td style="color:var(--green);font-weight:600">' + fmt(util) + '</td>'
+          + '<td style="color:var(--w4)">' + mg.toFixed(1) + '%</td></tr>';
+      }).join('')
+    + '</tbody></table></div>';
+}
+
+function renderAnalisis() {
+  const sel = $('est-anio');
+  if (sel && !sel.dataset.listo) {
+    sel.innerHTML = '<option value="">Todos los años</option>' + aniosDisponibles().map(y => '<option>' + y + '</option>').join('');
+    sel.dataset.listo = '1';
+    sel.addEventListener('change', renderAnalisis);
+  }
+  renderGastosCategoria();
+  renderEstructuraCosto();
+  renderPorTipo();
+  renderPorTamano();
+  renderConcentracion();
+  renderPorReferente();
 }
 
 // ─── COTIZACIONES ───
@@ -2062,7 +2369,7 @@ function addCotRow() {
     if (!res.length || !q) { dd.classList.remove('show'); return; }
     dd.innerHTML = res.map(p =>
       '<div class="dd-item" data-concepto="' + esc(p.c) + '" data-cat="' + esc(p.cat) + '" data-precio="' + p.p + '">'
-      + esc(p.c) + '<span class="dd-price">$' + p.p + '</span>'
+      + esc(p.c) + '<span class="dd-price">' + cotMoneda().sym + p.p + '</span>'
       + '<div class="dd-cat">' + esc(p.cat) + '</div></div>'
     ).join('');
     dd.classList.add('show');
@@ -2081,24 +2388,40 @@ function addCotRow() {
   pri.addEventListener('input', calcCot);
 }
 
+// ─── MONEDA DE LA COTIZACIÓN ───
+const COT_MONEDAS = {USD:{sym:'$', code:'USD'}, EUR:{sym:'€', code:'EUR'}};
+function cotMoneda() {
+  const v = $('ccurr') ? $('ccurr').value : 'USD';
+  return COT_MONEDAS[v] || COT_MONEDAS.USD;
+}
+// Formatea un monto con el símbolo de la moneda activa de la cotización
+function fmtCot(n, dec) {
+  const m = cotMoneda();
+  return m.sym + Number(n).toLocaleString('es-VE', {minimumFractionDigits: dec||0, maximumFractionDigits: dec||0});
+}
+
 function calcCot() {
-  const moneda = $('c-moneda') ? $('c-moneda').value : 'USD';
-  const simbolo = moneda === 'EUR' ? '€' : '$';
+  const sym = cotMoneda().sym;
   let sub = 0;
   document.querySelectorAll('.cir').forEach(r => {
     const q = parseFloat(r.querySelector('.xqty').value) || 0;
     const p = parseFloat(r.querySelector('.xpri').value) || 0;
     const t = q * p;
-    r.querySelector('.xsub').textContent = t > 0 ? simbolo + t.toFixed(0) : '—';
+    r.querySelector('.xsub').textContent = t > 0 ? sym + t.toFixed(0) : '—';
     sub += t;
   });
   const desc  = parseFloat($('c-desc').value) || 0;
   const iva   = $('c-iva').checked;
   const after = sub * (1 - desc/100);
   const total = iva ? after * 1.16 : after;
-  $('c-sub').textContent   = simbolo + sub.toFixed(0);
-  $('c-total').textContent = simbolo + Math.round(total).toLocaleString();
-  scheduleCotAutosave();
+  $('c-sub').textContent   = sym + sub.toFixed(0);
+  $('c-total').textContent = sym + Math.round(total).toLocaleString('es-VE');
+  // Etiquetas del formulario que muestran la moneda
+  const lblU = $('cih-punit'); if (lblU) lblU.textContent = 'P. Unitario (' + sym + ')';
+  // Valores numéricos crudos: parsear el textContent rompe con separadores de miles locales
+  $('c-sub').dataset.raw   = sub;
+  $('c-total').dataset.raw = total;
+  if (typeof cotAutosave === 'function') cotAutosave();
 }
 
 async function genIA() {
@@ -2164,6 +2487,8 @@ function generarDescripcionLocal(cliente, tipo, lugar, fecha, horario, total, it
 }
 
 function buildPDFHTML() {
+  const simb     = cotMoneda().sym;
+  const moneda   = cotMoneda().code;
   const cliente  = $('cc').value||'Cliente';
   const codigo   = $('ccode').textContent;
   const tipo     = $('ctype').value === 'Otro' ? ($('ctype-otro') ? $('ctype-otro').value : 'Otro') : $('ctype').value;
@@ -2176,8 +2501,6 @@ function buildPDFHTML() {
   const sub      = $('c-sub').textContent;
   const descPct  = parseFloat($('c-desc').value)||0;
   const ivaOn    = $('c-iva').checked;
-  const moneda   = $('c-moneda') ? $('c-moneda').value : 'USD';
-  const simbolo  = moneda === 'EUR' ? '€' : '$';
   const aiText   = $('ai-out').textContent;
   const incluirAI= $('ai-include') ? $('ai-include').checked : true;
   const showAI   = incluirAI && aiText && aiText.length > 10 && !aiText.includes('aparecerá');
@@ -2194,7 +2517,7 @@ function buildPDFHTML() {
     const t2  = (parseFloat(qty)||0)*(parseFloat(pri)||0);
     if(con&&pri){
       const bg = idx2%2===0?'#ffffff':'#f9f9f9';
-      itemsHTML += '<tr style="background:'+bg+'"><td style="padding:8px 12px;border-bottom:1px solid #eee;font-size:12px">'+cat+'</td><td style="padding:8px 12px;border-bottom:1px solid #eee;font-size:12px">'+con+'</td><td style="padding:8px 12px;border-bottom:1px solid #eee;font-size:12px;text-align:center">'+qty+'</td><td style="padding:8px 12px;border-bottom:1px solid #eee;font-size:12px;text-align:right">'+simbolo+parseFloat(pri).toFixed(0)+'</td><td style="padding:8px 12px;border-bottom:1px solid #eee;font-size:12px;font-weight:bold;text-align:right">'+simbolo+t2.toFixed(0)+'</td></tr>';
+      itemsHTML += '<tr style="background:'+bg+'"><td style="padding:8px 12px;border-bottom:1px solid #eee;font-size:12px">'+cat+'</td><td style="padding:8px 12px;border-bottom:1px solid #eee;font-size:12px">'+con+'</td><td style="padding:8px 12px;border-bottom:1px solid #eee;font-size:12px;text-align:center">'+qty+'</td><td style="padding:8px 12px;border-bottom:1px solid #eee;font-size:12px;text-align:right">'+simb+parseFloat(pri).toFixed(0)+'</td><td style="padding:8px 12px;border-bottom:1px solid #eee;font-size:12px;font-weight:bold;text-align:right">'+simb+t2.toFixed(0)+'</td></tr>';
       idx2++;
     }
   });
@@ -2266,7 +2589,7 @@ function buildPDFHTML() {
     +(descPct>0?'<tr><td style="font-size:12px;color:#e05555">Descuento ('+descPct+'%)</td><td style="font-size:12px;color:#e05555;text-align:right">aplicado</td></tr>':'')
     +(ivaOn?'<tr><td style="font-size:12px;color:#666">IVA (16%)</td><td style="font-size:12px;color:#666;text-align:right">incluido</td></tr>':'')
     +'<tr><td colspan="2" style="padding:6px 0 0"><div style="height:2px;background-color:#43bded;background:#43bded;-webkit-print-color-adjust:exact"></div></td></tr>'
-    +'<tr><td style="font-size:20px;font-weight:900;color:#141414;padding-top:5px">TOTAL</td>'
+    +'<tr><td style="font-size:20px;font-weight:900;color:#141414;padding-top:5px">TOTAL <span style="font-size:11px;font-weight:normal;color:#888">('+moneda+')</span></td>'
     +'<td style="font-size:20px;font-weight:900;color:#43bded;text-align:right;padding-top:5px;-webkit-print-color-adjust:exact">'+total+'</td></tr>'
     +'</table></div>'
     // AI description
@@ -2292,7 +2615,8 @@ async function exportPDF() {
   if(!w){alert('Permite ventanas emergentes en Chrome para exportar el PDF.');return;}
   w.document.open(); w.document.write(buildPDFHTML()); w.document.close();
   // Save and mark as Descargada
-  await guardarCotizacionDB();
+  clearTimeout(_cotSaveTimer);
+  await guardarCotizacionDB(true);
   const codigo = $('ccode').textContent;
   if (codigo && codigo !== 'COT ——') {
     await supa.from('cotizaciones').update({estado:'Descargada'}).eq('codigo', codigo);
@@ -2361,58 +2685,100 @@ async function exportarADrive(){
   });
 }
 
-async function guardarCotizacionDB(silencioso){
-  const codigo=$('ccode').textContent, cliente=$('cc').value;
-  if(!cliente||codigo==='COT ——') return false;
-  const items=[];
-  document.querySelectorAll('.cir').forEach(r=>{
-    const con=r.querySelector('.xcon').value, cat=r.dataset.cat||'—';
-    const qty=parseFloat(r.querySelector('.xqty').value)||0, pri=parseFloat(r.querySelector('.xpri').value)||0;
-    if(con&&pri) items.push({concepto:con,categoria:cat,cantidad:qty,precio:pri,total:qty*pri});
+function cotRecolectar(){
+  const codigo  = $('ccode').textContent.trim();
+  const cliente = $('cc').value.trim();
+  if (!cliente || !codigo || codigo === 'COT ——') return null;
+  const items = [];
+  document.querySelectorAll('.cir').forEach(r => {
+    const con = r.querySelector('.xcon').value.trim(), cat = r.dataset.cat || '—';
+    const qty = parseFloat(r.querySelector('.xqty').value) || 0;
+    const pri = parseFloat(r.querySelector('.xpri').value) || 0;
+    if (con && pri) items.push({concepto:con, categoria:cat, cantidad:qty, precio:pri, total:qty*pri});
   });
-  if (!items.length) return false;
-  const moneda = $('c-moneda') ? $('c-moneda').value : 'USD';
-  // Get current estado from DB if exists, default to Borrador
-  const {data: existing} = await supa.from('cotizaciones').select('estado').eq('codigo', codigo).maybeSingle();
-  const estadoActual = existing ? existing.estado : 'Borrador';
-  const {error} = await supa.from('cotizaciones').upsert({
-    codigo,cliente,tipo_evento:$('ctype').value,
-    fecha_evento:$('cdate').value||null,lugar:$('cplace').value,horario:getCotHorario(),duracion:getCotDuracion(),
-    invitados:parseInt($('cguests').value)||null,responsable:$('cresp').value,
-    moneda,
-    subtotal:parseFloat($('c-sub').textContent.replace(/[$€,]/g,''))||0,
-    descuento:parseFloat($('c-desc').value)||0,iva:$('c-iva').checked,
-    total:parseFloat($('c-total').textContent.replace(/[$€,]/g,''))||0,
-    descripcion_ia:$('ai-out').textContent.includes('aparecerá')?null:$('ai-out').textContent,
-    estado: estadoActual,
+  const descIA = $('ai-out').textContent;
+  return {
+    codigo, cliente,
+    tipo_evento:  $('ctype').value,
+    fecha_evento: $('cdate').value || null,
+    lugar:        $('cplace').value,
+    horario:      getCotHorario(),
+    duracion:     getCotDuracion(),
+    invitados:    parseInt($('cguests').value) || null,
+    responsable:  $('cresp').value,
+    moneda:       cotMoneda().code,
+    subtotal:     parseFloat($('c-sub').dataset.raw)   || 0,
+    descuento:    parseFloat($('c-desc').value)        || 0,
+    iva:          $('c-iva').checked,
+    total:        parseFloat($('c-total').dataset.raw) || 0,
+    descripcion_ia: descIA.includes('aparecerá') ? null : descIA,
     items
-  },{onConflict:'codigo'});
-  if (!silencioso) await cargarHistorial();
-  return !error;
+  };
 }
 
-let _cotAutosaveTimer = null;
-function scheduleCotAutosave() {
-  if (_cotAutosaveTimer) clearTimeout(_cotAutosaveTimer);
-  _cotAutosaveTimer = setTimeout(() => guardarCotizacionDB(true), 2500);
-}
-
-async function guardarCotizacionManual() {
-  const ok = await guardarCotizacionDB(false);
-  if (ok) {
-    const btn = $('btn-guardar-cot');
-    if (btn) {
-      const orig = btn.innerHTML;
-      btn.innerHTML = '<i class="ti ti-check"></i> Guardada';
-      setTimeout(() => { btn.innerHTML = orig; }, 1800);
-    }
-  } else {
-    alert('Completa cliente y al menos un ítem antes de guardar.');
+// Devuelve true si guardó, false si no había nada que guardar, o lanza si falló la DB
+async function guardarCotizacionDB(silencioso){
+  const row = cotRecolectar();
+  if (!row) {
+    if (!silencioso) alert('Falta el cliente o la fecha del evento para generar el código.');
+    return false;
   }
+  // No degradar el estado de una cotización ya descargada
+  const prev = _historialData.find(x => x.codigo === row.codigo);
+  row.estado = (prev && prev.estado === 'Descargada') ? 'Descargada' : 'Borrador';
+
+  const {error} = await supa.from('cotizaciones').upsert(row, {onConflict:'codigo'});
+  if (error) {
+    console.error('cotizacion save error:', error);
+    if (!silencioso) alert('No se pudo guardar la cotización: ' + error.message);
+    cotEstadoGuardado('err', 'Error al guardar');
+    return false;
+  }
+  await cargarHistorial();
+  cotEstadoGuardado('ok', 'Guardado ' + new Date().toLocaleTimeString('es-VE', {hour:'2-digit', minute:'2-digit'}));
+  return true;
+}
+
+function cotEstadoGuardado(tipo, msg){
+  const el = $('cot-save-status');
+  if (!el) return;
+  el.textContent = msg;
+  el.style.color = tipo === 'err' ? 'var(--red)' : tipo === 'wait' ? 'var(--w4)' : 'var(--green)';
+  el.style.display = 'inline';
+}
+
+// Autoguardado con debounce de 2.5s
+let _cotSaveTimer = null;
+function cotAutosave(){
+  if (!cotRecolectar()) return;
+  cotEstadoGuardado('wait', 'Guardando...');
+  clearTimeout(_cotSaveTimer);
+  _cotSaveTimer = setTimeout(() => { guardarCotizacionDB(true); }, 2500);
+}
+
+// Cablea el autoguardado a todos los campos de la cotización
+document.addEventListener('DOMContentLoaded', () => {
+  ['cc','ctype','cdate','ctime-start','ctime-end','cplace','cguests','cresp','ccurr','c-desc','c-iva']
+    .forEach(id => {
+      const el = $(id);
+      if (!el) return;
+      el.addEventListener('change', cotAutosave);
+      el.addEventListener('input',  cotAutosave);
+    });
+  // Los ítems se agregan dinámicamente: delegación en el contenedor
+  const cont = $('cot-items');
+  if (cont) { cont.addEventListener('input', cotAutosave); cont.addEventListener('change', cotAutosave); }
+});
+
+async function guardarCotizacionManual(){
+  clearTimeout(_cotSaveTimer);
+  const ok = await guardarCotizacionDB(false);
+  if (ok) renderHistorial();
 }
 
 async function exportarADriveConGuardado(){
-  await guardarCotizacionDB();
+  clearTimeout(_cotSaveTimer);
+  await guardarCotizacionDB(true);
   await exportarADrive();
 }
 
@@ -2738,66 +3104,87 @@ let DB_CLIENTES_LOCAL = [];
 
 async function cargarClientesDB() {
   const {data, error} = await supa.from('clientes').select('*').order('nombre');
-  if (!error && data) DB_CLIENTES_LOCAL = data;
-  // Only render if we're on the clientes view
-  if ($('v-clientes') && $('v-clientes').classList.contains('on')) renderClientes();
+  if (error) { console.error('clientes load error:', error); }
+  else if (data) DB_CLIENTES_LOCAL = data;
+  renderClientes();
 }
 
 function renderClientes() {
   const tbody = $('cli-tbody');
-  const sub   = $('cli-sub');
-  const q     = ($('f-cli-q') ? $('f-cli-q').value : '').toLowerCase().trim();
   if (!tbody) return;
+  const sub = $('cli-sub');
+  const q   = $('f-cli-q') ? $('f-cli-q').value.toLowerCase().trim() : '';
 
-  if (!EVS.length) {
-    tbody.innerHTML = '<tr><td colspan="9" style="color:var(--w4);text-align:center;padding:18px">Cargando datos...</td></tr>';
-    return;
-  }
-
-  // Build from EVS — same source as Eventos tab
+  // Facturado por cliente desde TX (mismos estados que computeEventos usa como ingreso)
+  const ING_OK = {'Cobrado':1, 'Por cobrar':1, 'Exonerado':1};
   const cliMap = {};
+  const getC = n => (cliMap[n] || (cliMap[n] = {eventos:new Set(), facturado:0, gasto:0}));
+
+  TX.forEach(t => {
+    const ing = parseFloat(t.ingreso) || 0;
+    if (ING_OK[t.estado] && ing > 0 && t.concepto) {
+      const e = getC(t.concepto);
+      e.facturado += ing;
+      if (t.codigo_evento) e.eventos.add(t.codigo_evento);
+    }
+  });
+
+  // Gasto: se atribuye por evento, usando el cliente que computeEventos ya resolvió
   EVS.forEach(e => {
-    const nombre = (e.cliente || '').trim();
-    if (!nombre) return;
-    if (!cliMap[nombre]) cliMap[nombre] = {nombre, eventos:0, ingreso:0, gasto:0};
-    cliMap[nombre].eventos++;
-    cliMap[nombre].ingreso += parseFloat(e.ingreso) || 0;
-    cliMap[nombre].gasto   += parseFloat(e.gasto)   || 0;
+    if (!e.cliente) return;
+    const c = getC(e.cliente);
+    c.gasto += e.gasto || 0;
+    c.eventos.add(e.codigo);
   });
 
-  // Merge with DB contacts if available
-  let rows = Object.values(cliMap).map(c => {
-    const db = DB_CLIENTES_LOCAL.find(d => d.nombre === c.nombre) || {};
-    return {...c, telefono: db.telefono||'', email: db.email||'', contacto: db.contacto||''};
-  });
+  const allNombres = new Set([...Object.keys(cliMap), ...DB_CLIENTES_LOCAL.map(c => c.nombre)]);
+  let rows = Array.from(allNombres).map(nombre => {
+    const stats  = cliMap[nombre] || {eventos:new Set(), facturado:0, gasto:0};
+    const dbData = DB_CLIENTES_LOCAL.find(c => c.nombre === nombre) || {};
+    return {
+      nombre,
+      eventos:   stats.eventos.size,
+      facturado: stats.facturado,
+      gasto:     stats.gasto,
+      telefono:  dbData.telefono || '',
+      email:     dbData.email    || '',
+      contacto:  dbData.contacto || '',
+      enDB:      !!dbData.nombre
+    };
+  }).filter(r => r.facturado > 0 || r.enDB);
 
-  // Sort by utilidad DESC
-  rows.sort((a, b) => (b.ingreso - b.gasto) - (a.ingreso - a.gasto));
+  rows.sort((a,b) => (b.facturado - b.gasto) - (a.facturado - a.gasto));
+  if (q) rows = rows.filter(r => (r.nombre||'').toLowerCase().includes(q));
 
-  if (q) rows = rows.filter(r => r.nombre.toLowerCase().includes(q));
   if (sub) sub.textContent = rows.length + ' clientes';
-
   if (!rows.length) {
-    tbody.innerHTML = '<tr><td colspan="9" style="color:var(--w4);text-align:center;padding:18px">Sin clientes registrados</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="10" style="color:var(--w4);text-align:center;padding:18px">Sin clientes registrados</td></tr>';
     return;
   }
 
   tbody.innerHTML = rows.map((r, i) => {
-    const util   = r.ingreso - r.gasto;
-    const margen = r.ingreso > 0 ? ((util / r.ingreso) * 100).toFixed(1) + '%' : '—';
+    const util   = r.facturado - r.gasto;
+    const margen = r.facturado > 0 ? ((util / r.facturado) * 100).toFixed(1) + '%' : '—';
     return '<tr>'
       + '<td style="color:var(--w4);font-size:11px">' + (i+1) + '</td>'
       + '<td style="font-weight:600">' + esc(r.nombre) + '</td>'
-      + '<td style="color:var(--w4)">' + esc(r.telefono||'—') + '</td>'
-      + '<td style="color:var(--w4)">' + esc(r.email||'—') + '</td>'
-      + '<td style="color:var(--w4)">' + esc(r.contacto||'—') + '</td>'
+      + '<td style="color:var(--w4)">' + esc(r.telefono || '—') + '</td>'
+      + '<td style="color:var(--w4)">' + esc(r.email    || '—') + '</td>'
+      + '<td style="color:var(--w4)">' + esc(r.contacto || '—') + '</td>'
       + '<td style="text-align:center">' + r.eventos + '</td>'
-      + '<td style="color:var(--blue);font-weight:600;text-align:right">' + fmt(r.ingreso) + '</td>'
-      + '<td style="color:' + (util >= 0 ? 'var(--green)' : 'var(--red)') + ';font-weight:600;text-align:right">' + fmt(util) + '</td>'
-      + '<td style="color:var(--w3);text-align:right">' + margen + '</td>'
+      + '<td style="color:var(--blue);font-weight:600">' + fmt(r.facturado) + '</td>'
+      + '<td style="font-weight:600;color:' + (util >= 0 ? 'var(--green)' : 'var(--red)') + '">' + fmt(util) + '</td>'
+      + '<td style="color:var(--w4)">' + margen + '</td>'
+      + '<td><button class="btn btn-ghost btn-sm js-edit-cli" data-nombre="' + esc(r.nombre) + '" style="padding:2px 6px;font-size:10px"><i class="ti ti-pencil"></i></button></td>'
       + '</tr>';
   }).join('');
 }
+
+// Event delegation para editar cliente (regla: nunca onclick con strings interpolados)
+document.addEventListener('click', function(e) {
+  const btn = e.target.closest ? e.target.closest('.js-edit-cli') : null;
+  if (btn) editarCliente('', btn.dataset.nombre);
+});
 
 
 async function guardarCliente() {
@@ -2892,7 +3279,7 @@ function renderProveedores() {
       + '<td style="text-align:center">' + target + '</td>'
       + '<td style="color:var(--orange)">' + stars + '</td>'
       + '<td style="color:var(--w4);font-size:11px">' + esc(r.notas||'—') + '</td>'
-      + '<td><button class="btn btn-ghost btn-sm" style="padding:2px 6px;font-size:10px" onclick="editarProveedor(\'' + esc(r.nombre) + '\')"><i class="ti ti-pencil"></i></button></td>'
+      + '<td><button class="btn btn-ghost btn-sm js-edit-prov" data-nombre="' + esc(r.nombre) + '" style="padding:2px 6px;font-size:10px"><i class="ti ti-pencil"></i></button></td>'
       + '</tr>';
   }).join('');
 }
@@ -2929,6 +3316,11 @@ function editarProveedor(nombre) {
 
 // ─── DARK / LIGHT MODE ───
 let _darkMode = true;
+document.addEventListener('click', function(e) {
+  const b = e.target.closest ? e.target.closest('.js-edit-prov') : null;
+  if (b) editarProveedor(b.dataset.nombre);
+});
+
 function toggleDarkMode() {
   _darkMode = !_darkMode;
   const root = document.documentElement;
@@ -2967,8 +3359,19 @@ function initDarkMode() {
 let _historialData = [];
 
 async function cargarHistorial() {
-  const {data, error} = await supa.from('cotizaciones').select('*').order('created_at', {ascending: false});
-  if (!error && data) _historialData = data;
+  const acc = [];
+  let from = 0;
+  while (true) {
+    const {data, error} = await supa.from('cotizaciones').select('*')
+      .order('created_at', {ascending:false})
+      .range(from, from + 999);
+    if (error) { console.error('historial load error:', error); break; }
+    if (!data || !data.length) break;
+    acc.push(...data);
+    if (data.length < 1000) break;
+    from += 1000;
+  }
+  if (acc.length || !_historialData.length) _historialData = acc;
   renderHistorial();
 }
 
@@ -2992,6 +3395,7 @@ function cargarCotizacion(codigo) {
     }
     if($('cguests')) $('cguests').value = c.invitados || '';
     if($('cresp'))   $('cresp').value   = c.responsable || 'Gustavo Briceño';
+    if($('ccurr'))   $('ccurr').value   = c.moneda || 'USD';
     if($('c-desc'))  $('c-desc').value  = parseFloat(c.descuento)||0;
     if($('c-iva'))   $('c-iva').checked = c.iva || false;
     if($('ai-out') && c.descripcion_ia) { $('ai-out').textContent = c.descripcion_ia; $('ai-out').className = 'ai-box'; }
@@ -3032,16 +3436,17 @@ function renderHistorial() {
 
   const tbody = $('hist-tbody');
   if (!data.length) {
-    tbody.innerHTML = '<tr><td colspan="9" style="color:var(--w4);text-align:center;padding:18px">Sin cotizaciones registradas aún</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="10" style="color:var(--w4);text-align:center;padding:18px">Sin cotizaciones registradas aún</td></tr>';
     return;
   }
 
   tbody.innerHTML = data.map(c => {
     const fecha = c.created_at ? new Date(c.created_at).toLocaleDateString('es-VE',{day:'2-digit',month:'short',year:'2-digit'}) : '—';
-    const total = c.total ? '$'+parseFloat(c.total).toLocaleString() : '—';
+    const simb  = (c.moneda === 'EUR') ? '€' : '$';
+    const total = c.total ? simb + Math.round(parseFloat(c.total)).toLocaleString('es-VE') : '—';
     const estado = c.estado || 'Borrador';
     const bc = estado === 'Descargada' ? 'b-green' : estado === 'Borrador' ? 'b-orange' : 'b-blue';
-    const editBtn = '<button class="btn btn-ghost btn-sm" style="padding:2px 7px;font-size:10px" onclick="cargarCotizacion(\'' + c.codigo + '\')"><i class="ti ti-edit"></i> Editar</button>';
+    const editBtn = '<button class="btn btn-ghost btn-sm js-edit-cot" data-codigo="' + esc(c.codigo) + '" style="padding:2px 7px;font-size:10px"><i class="ti ti-edit"></i> Editar</button>';
     return '<tr>'
       + '<td class="mono">' + esc(c.codigo||'—') + '</td>'
       + '<td>' + fecha + '</td>'
@@ -3057,453 +3462,9 @@ function renderHistorial() {
   }).join('');
 }
 
-// ─── REGISTRO CON IA ───
-// ─── PLANTILLAS DE EVENTO ───
-async function guardarComoPlantilla(codigo) {
-  const filas = TX.filter(t => t.codigo_evento === codigo);
-  if (!filas.length) { alert('No se encontraron filas para ese código.'); return; }
-
-  const nombre = prompt('Nombre para esta plantilla (ej: "Boda estándar", "Corporativo mensual"):', '');
-  if (!nombre) return;
-
-  const plantillaItems = filas.map(t => ({
-    categoria:    t.categoria,
-    subcategoria: t.subcategoria,
-    concepto:     t.ingreso > 0 ? '' : t.concepto, // clear client name, keep provider names
-    metodo_pago:  t.metodo_pago,
-    responsable:  t.responsable,
-    ingreso:      t.ingreso || 0,
-    egreso:       t.egreso  || 0,
-    es_cliente:   t.ingreso > 0
-  }));
-
-  const {error} = await supa.from('plantillas_evento').insert({
-    nombre,
-    items: plantillaItems
-  });
-
-  if (error) {
-    if (error.message.includes('does not exist')) {
-      alert('Falta crear la tabla plantillas_evento en Supabase. Ejecuta el SQL que te indicaré.');
-    } else {
-      alert('Error al guardar plantilla: ' + error.message);
-    }
-    return;
-  }
-  alert('✓ Plantilla "' + nombre + '" guardada con ' + plantillaItems.length + ' ítems.');
-}
-
-let _plantillasCache = [];
-async function cargarPlantillas() {
-  const {data, error} = await supa.from('plantillas_evento').select('*').order('nombre');
-  if (!error && data) _plantillasCache = data;
-  renderPlantillasSelect();
-}
-
-function renderPlantillasSelect() {
-  const sel = $('chk-plantilla');
-  if (!sel) return;
-  sel.innerHTML = '<option value="">— Sin plantilla, roles manuales —</option>'
-    + _plantillasCache.map(p => '<option value="' + p.id + '">' + esc(p.nombre) + '</option>').join('');
-}
-
-function aplicarPlantilla() {
-  const id = $('chk-plantilla').value;
-  if (!id) { actualizarChecklistRoles(); return; }
-  const plantilla = _plantillasCache.find(p => p.id == id);
-  if (!plantilla) return;
-
-  const cont = $('chk-roles');
-  cont.innerHTML = plantilla.items.filter(it => !it.es_cliente).map((it, i) => {
-    const checkId = 'chk-rol-' + i;
-    return '<div style="display:flex;align-items:center;gap:6px;padding:6px 8px;background:var(--black3);border-radius:6px">'
-      + '<input type="checkbox" id="' + checkId + '" data-rol="' + esc(it.subcategoria) + '" data-concepto="' + esc(it.concepto||'') + '" data-monto="' + (it.egreso||0) + '" checked style="accent-color:var(--blue)">'
-      + '<label for="' + checkId + '" style="font-size:12px;color:var(--w3);cursor:pointer;flex:1">' + esc(it.subcategoria) + (it.concepto?' — '+esc(it.concepto):'') + '</label>'
-      + '</div>';
-  }).join('');
-
-  // Pre-fill cliente amount if template has one
-  const clienteItem = plantilla.items.find(it => it.es_cliente);
-  if (clienteItem && clienteItem.ingreso > 0 && !$('chk-monto-cliente').value) {
-    $('chk-monto-cliente').value = clienteItem.ingreso;
-  }
-}
-
-async function guardarPlantilla() {
-  const checks = document.querySelectorAll('#chk-roles input[type="checkbox"]:checked');
-  if (!checks.length) { alert('Marca al menos un rol antes de guardar la plantilla.'); return; }
-
-  const nombre = prompt('Nombre para esta plantilla (ej: "DJ + Sonido básico"):', $('chk-categoria').value + ' estándar');
-  if (!nombre) return;
-
-  const items = Array.from(checks).map(chk => ({
-    subcategoria: chk.dataset.rol,
-    concepto:     chk.dataset.concepto || '',
-    egreso:       parseFloat(chk.dataset.monto) || 0,
-    es_cliente:   false
-  }));
-
-  const {error} = await supa.from('plantillas_evento').insert({
-    nombre,
-    categoria: $('chk-categoria').value,
-    items
-  });
-
-  if (error) { alert('Error al guardar plantilla: ' + error.message); return; }
-
-  await cargarPlantillas();
-  alert('✓ Plantilla "' + nombre + '" guardada. Ya aparece en el selector.');
-}
-
-// ─── CHECKLIST DE EVENTO ───
-const ROLES_POR_CATEGORIA = {
-  'Privado':       ['Sonido','DJ','Honorarios','Viáticos','Transporte','Pantallas','Tarima','Efectos'],
-  'Corporativo':   ['Sonido','Honorarios','Viáticos','Transporte','Pantallas','Tarima','Estructura'],
-  'Institucional': ['Sonido','Honorarios','Viáticos','Transporte'],
-  'Club':          ['Sonido','DJ','Honorarios','Viáticos'],
-  'Matrimonio':    ['Sonido','DJ','Honorarios','Viáticos','Transporte','Pantallas','Tarima','Estructura','Efectos','Comisión'],
-};
-
-function actualizarChecklistRoles() {
-  const cat = $('chk-categoria').value;
-  const roles = ROLES_POR_CATEGORIA[cat] || ROLES_POR_CATEGORIA['Privado'];
-  const cont = $('chk-roles');
-  cont.innerHTML = roles.map((rol, i) => {
-    const id = 'chk-rol-' + i;
-    return '<div style="display:flex;align-items:center;gap:6px;padding:6px 8px;background:var(--black3);border-radius:6px">'
-      + '<input type="checkbox" id="' + id + '" data-rol="' + rol + '" style="accent-color:var(--blue)">'
-      + '<label for="' + id + '" style="font-size:12px;color:var(--w3);cursor:pointer;flex:1">' + rol + '</label>'
-      + '</div>';
-  }).join('');
-}
-
-function abrirModalChecklist() {
-  $('chk-cliente').value = '';
-  $('chk-codigo').value  = '';
-  $('chk-fecha').value   = '';
-  $('chk-monto-cliente').value = '';
-  $('chk-categoria').value = 'Privado';
-  if ($('chk-plantilla')) $('chk-plantilla').value = '';
-  renderPlantillasSelect();
-  actualizarChecklistRoles();
-  $('modal-checklist').classList.add('show');
-}
-
-async function crearEventoChecklist() {
-  const cliente  = $('chk-cliente').value.trim();
-  const codigo   = $('chk-codigo').value.trim();
-  const fecha    = $('chk-fecha').value;
-  const montoCli = parseFloat($('chk-monto-cliente').value) || 0;
-  const respCli  = $('chk-resp-cliente').value;
-
-  if (!cliente || !codigo || !fecha) {
-    alert('Completa cliente, código y fecha del evento.');
-    return;
-  }
-
-  const filas = [];
-
-  // Cobro al cliente
-  if (montoCli > 0) {
-    filas.push({
-      fecha_evento: fecha, fecha_pago: null, categoria: 'Evento', subcategoria: $('chk-categoria').value,
-      estado: 'Por cobrar', concepto: cliente, codigo_evento: codigo, metodo_pago: null,
-      responsable: respCli, referente: null, ingreso: montoCli, egreso: 0, descripcion: null
-    });
-  }
-
-  // Roles marcados — usa monto/concepto de plantilla si existen, sino filas vacías
-  document.querySelectorAll('#chk-roles input[type="checkbox"]:checked').forEach(chk => {
-    const rol      = chk.dataset.rol;
-    const concepto = chk.dataset.concepto || '';
-    const monto    = parseFloat(chk.dataset.monto) || 0;
-    filas.push({
-      fecha_evento: fecha, fecha_pago: null, categoria: 'Evento', subcategoria: rol,
-      estado: 'Por pagar', concepto, codigo_evento: codigo, metodo_pago: null,
-      responsable: respCli, referente: null, ingreso: 0, egreso: monto, descripcion: null
-    });
-  });
-
-  if (!filas.length) {
-    alert('Agrega el monto a cobrar o marca al menos un rol.');
-    return;
-  }
-
-  const {error} = await supa.from('transacciones').insert(filas);
-  if (error) { alert('Error al crear evento: ' + error.message); return; }
-
-  $('modal-checklist').classList.remove('show');
-  await cargarTX();
-  alert('✓ Evento creado con ' + filas.length + ' fila' + (filas.length>1?'s':'') + '. Edita cada una para completar concepto y monto.');
-}
-
-async function duplicarEvento(codigo) {
-  const filas = TX.filter(t => t.codigo_evento === codigo);
-  if (!filas.length) { alert('No se encontraron filas para ese código.'); return; }
-
-  const nuevaFecha = prompt('Nueva fecha del evento (YYYY-MM-DD):', '');
-  if (!nuevaFecha) return;
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(nuevaFecha)) {
-    alert('Formato de fecha inválido. Usa YYYY-MM-DD.');
-    return;
-  }
-
-  const nuevoCodigoSugerido = nuevaFecha.split('-').reverse().join('').slice(0,8) + '-' + (filas[0].concepto||'EV').slice(0,2).toUpperCase();
-  const nuevoCodigo = prompt('Código para el nuevo evento:', nuevoCodigoSugerido);
-  if (!nuevoCodigo) return;
-
-  if (!confirm('Se crearán ' + filas.length + ' transacciones nuevas con código "' + nuevoCodigo + '" y fecha ' + nuevaFecha + '. ¿Continuar?')) return;
-
-  const nuevasFilas = filas.map(t => ({
-    fecha_evento:  nuevaFecha,
-    fecha_pago:    null,
-    categoria:     t.categoria,
-    subcategoria:  t.subcategoria,
-    estado:        t.ingreso > 0 ? 'Por cobrar' : 'Por pagar',
-    concepto:      t.concepto,
-    codigo_evento: nuevoCodigo,
-    metodo_pago:   t.metodo_pago,
-    responsable:   t.responsable,
-    referente:     t.referente,
-    ingreso:       t.ingreso || 0,
-    egreso:        t.egreso  || 0,
-    descripcion:   t.descripcion
-  }));
-
-  const {error} = await supa.from('transacciones').insert(nuevasFilas);
-  if (error) { alert('Error al duplicar: ' + error.message); return; }
-
-  await cargarTX();
-  alert('✓ Evento duplicado: ' + nuevasFilas.length + ' transacciones creadas con código ' + nuevoCodigo + '.');
-}
-
-async function quickAddTx() {
-  const tipo     = $('qa-tipo').value;
-  const sub      = $('qa-sub').value;
-  const concepto = $('qa-concepto').value.trim();
-  const monto    = parseFloat($('qa-monto').value) || 0;
-  const codigo   = $('qa-codigo').value.trim();
-  const resp     = $('qa-resp').value;
-  const estado   = $('qa-estado').value;
-
-  if (!concepto || monto <= 0) {
-    alert('Completa al menos el concepto y el monto.');
-    return;
-  }
-
-  const hoy = new Date().toISOString().slice(0,10);
-  const row = {
-    fecha_evento:  codigo ? null : hoy,
-    fecha_pago:    hoy,
-    categoria:     'Evento',
-    subcategoria:  sub,
-    estado,
-    concepto,
-    codigo_evento: codigo || null,
-    metodo_pago:   'Efectivo $',
-    responsable:   resp,
-    referente:     null,
-    ingreso:       tipo === 'ingreso' ? monto : 0,
-    egreso:        tipo === 'egreso'  ? monto : 0,
-    descripcion:   null
-  };
-
-  // If codigo exists, try to inherit fecha_evento from an existing row with that code
-  if (codigo) {
-    const existing = TX.find(t => t.codigo_evento === codigo && t.fecha_evento);
-    row.fecha_evento = existing ? existing.fecha_evento : hoy;
-  }
-
-  const {error} = await supa.from('transacciones').insert(row);
-  if (error) { alert('Error al guardar: ' + error.message); return; }
-
-  // Clear fields except tipo/sub/resp/estado (keep for fast repeated entry)
-  $('qa-concepto').value = '';
-  $('qa-monto').value    = '';
-  $('qa-codigo').value   = '';
-
-  await cargarTX();
-  // Flash feedback
-  const btn = document.querySelector('button[onclick="quickAddTx()"]');
-  if (btn) {
-    const orig = btn.innerHTML;
-    btn.innerHTML = '<i class="ti ti-check"></i> Agregado';
-    setTimeout(() => { btn.innerHTML = orig; }, 1200);
-  }
-}
-
-function abrirModalIA() {
-  $('ia-texto').value = '';
-  $('ia-imagen').value = '';
-  $('ia-img-preview').style.display = 'none';
-  $('ia-status').style.display = 'none';
-  $('ia-extracted-wrap').style.display = 'none';
-  $('ia-extracted').innerHTML = '';
-  $('btn-guardar-ia').style.display = 'none';
-  window._iaTxs = null;
-  $('modal-ia').classList.add('show');
-}
-
-function previewIAImage() {
-  const file = $('ia-imagen').files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = e => {
-    $('ia-img-el').src = e.target.result;
-    $('ia-img-preview').style.display = 'block';
-  };
-  reader.readAsDataURL(file);
-}
-
-async function procesarConIA() {
-  const texto   = $('ia-texto').value.trim();
-  const imgFile = $('ia-imagen').files[0];
-  if (!texto && !imgFile) { alert('Escribe una descripción o sube una imagen.'); return; }
-
-  const statusEl = $('ia-status');
-  statusEl.style.display = 'block';
-  statusEl.innerHTML = '<span style="color:var(--blue)"><i class="ti ti-loader-2"></i> Analizando con IA...</span>';
-
-  const PROMPT = `Eres un asistente de Blast ProSound, empresa de sonido en Caracas.
-Analiza el texto o imagen y extrae TODAS las transacciones mencionadas (puede haber varias: el cobro al cliente, pagos a proveedores, honorarios, viáticos, etc.).
-Devuelve SOLO un JSON array válido. Cada objeto tiene estos campos (null si no aplica):
-[{
-  "fecha_evento": "YYYY-MM-DD",
-  "fecha_pago": "YYYY-MM-DD",
-  "categoria": "Evento|Equipos|Dividendos|Cambio divisas",
-  "subcategoria": "Privado|Corporativo|Institucional|Club|Matrimonio|Honorarios|Viáticos|Comisión|DJ|Sonido|Pantallas|Tarima|Locación",
-  "estado": "Cobrado|Pagado|Por cobrar|Por pagar|Exonerado",
-  "concepto": "nombre del cliente o persona",
-  "codigo_evento": "código o null",
-  "metodo_pago": "Efectivo $|Zelle|Bs|Euro",
-  "responsable": "Gustavo Briceño|Eduardo Behrens|Francisco Massari",
-  "referente": "Gustavo Briceño|Eduardo Behrens|Francisco Massari o null",
-  "ingreso": número o 0,
-  "egreso": número o 0,
-  "descripcion": "notas"
-}]
-Reglas:
-- El cobro al cliente va con ingreso > 0 y estado Cobrado/Por cobrar
-- Los pagos a proveedores/personal van con egreso > 0 y estado Pagado/Por pagar
-- responsable = quien físicamente recibió/entregó el dinero
-- referente = quien consiguió el evento (solo si se menciona explícitamente)
-- Si no se menciona fecha de pago, déjala null
-Devuelve SOLO el array JSON, sin texto adicional.`;
-
-  try {
-    let messages;
-    if (imgFile) {
-      const b64 = await new Promise(res => {
-        const r = new FileReader();
-        r.onload = e => res(e.target.result.split(',')[1]);
-        r.readAsDataURL(imgFile);
-      });
-      messages = [{role:'user', content:[
-        {type:'image', source:{type:'base64', media_type: imgFile.type||'image/jpeg', data:b64}},
-        {type:'text',  text: (texto ? texto + '\n\n' : '') + PROMPT}
-      ]}];
-    } else {
-      messages = [{role:'user', content: texto + '\n\n' + PROMPT}];
-    }
-
-    // Use corsproxy to bypass CORS from GitHub Pages
-    // Call Supabase Edge Function (proxy to Anthropic - avoids CORS)
-    const res = await fetch(SUPA_URL + '/functions/v1/anthropic-proxy', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + SUPA_KEY
-      },
-      body: JSON.stringify({messages, model:'claude-haiku-4-5-20251001', max_tokens:1500})
-    });
-    const rawText = await res.text();
-    console.log('Edge status:', res.status, '| body:', rawText.slice(0,400));
-    if (!res.ok) throw new Error('Error IA HTTP ' + res.status + ': ' + rawText.slice(0,150));
-    let data;
-    try { data = JSON.parse(rawText); } catch(e) { throw new Error('JSON invalido: ' + rawText.slice(0,150)); }
-    const raw = data.content
-      ? data.content.map(x => x.text||'').join('')
-      : (data.message || data.text || JSON.stringify(data));
-    console.log('Raw IA:', raw.slice(0,300));
-    if (!raw || raw.length < 5) throw new Error('Respuesta vacia de IA');
-    const match = raw.match(/\[[\s\S]*\]/);
-    if (!match) throw new Error('Respuesta IA (sin array): ' + raw.slice(0,200));
-    const txs = JSON.parse(match[0]);
-
-    if (!Array.isArray(txs) || !txs.length) throw new Error('No se encontraron transacciones');
-
-    statusEl.innerHTML = '<span style="color:var(--green)">✓ ' + txs.length + ' transacción' + (txs.length>1?'es':'') + ' encontrada' + (txs.length>1?'s':'') + '. Revisa y confirma cada una.</span>';
-
-    // Show extracted transactions for review
-    $('ia-extracted').innerHTML = txs.map((tx, i) => {
-      const tipo = tx.ingreso > 0 ? 'Ingreso' : 'Egreso';
-      const monto = tx.ingreso > 0 ? '$'+tx.ingreso : '$'+tx.egreso;
-      const color = tx.ingreso > 0 ? 'var(--green)' : 'var(--red)';
-      return '<div style="background:var(--black3);border:1px solid var(--border);border-radius:8px;padding:11px 13px;margin-bottom:8px">'
-        + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">'
-        + '<span style="font-size:12px;font-weight:600;color:var(--w2)">' + (i+1) + '. ' + esc(tx.concepto||'Sin nombre') + '</span>'
-        + '<span style="font-size:14px;font-weight:700;color:'+color+'">' + monto + '</span>'
-        + '</div>'
-        + '<div style="font-size:11px;color:var(--w4);display:flex;gap:12px;flex-wrap:wrap">'
-        + (tx.fecha_evento ? '<span>📅 ' + tx.fecha_evento + '</span>' : '')
-        + (tx.subcategoria ? '<span>🏷 ' + tx.subcategoria + '</span>' : '')
-        + (tx.estado ? '<span>• ' + tx.estado + '</span>' : '')
-        + (tx.metodo_pago ? '<span>💳 ' + tx.metodo_pago + '</span>' : '')
-        + (tx.responsable ? '<span>👤 ' + tx.responsable + '</span>' : '')
-        + (tx.codigo_evento ? '<span>🔑 ' + tx.codigo_evento + '</span>' : '')
-        + '</div>'
-        + '</div>';
-    }).join('');
-    $('ia-extracted-wrap').style.display = 'block';
-    $('btn-guardar-ia').style.display = 'inline-flex';
-
-    // Store for saving
-    window._iaTxs = txs;
-
-  } catch(e) {
-    statusEl.innerHTML = '<span style="color:var(--red)">Error: ' + e.message + '</span>';
-  }
-}
-
-async function guardarIATxs() {
-  const txs = window._iaTxs;
-  if (!txs || !txs.length) return;
-  let saved = 0, errors = 0;
-  for (const tx of txs) {
-    const {error} = await supa.from('transacciones').insert({
-      fecha_evento:  tx.fecha_evento  || null,
-      fecha_pago:    tx.fecha_pago    || null,
-      categoria:     tx.categoria     || 'Evento',
-      subcategoria:  tx.subcategoria  || null,
-      estado:        tx.estado        || 'Cobrado',
-      concepto:      tx.concepto      || null,
-      codigo_evento: tx.codigo_evento || null,
-      metodo_pago:   tx.metodo_pago   || null,
-      responsable:   tx.responsable   || null,
-      referente:     tx.referente     || null,
-      ingreso:       parseFloat(tx.ingreso) || 0,
-      egreso:        parseFloat(tx.egreso)  || 0,
-      descripcion:   tx.descripcion   || null
-    });
-    if (error) errors++; else saved++;
-  }
-  $('modal-ia').classList.remove('show');
-  await cargarTX();
-  alert('✓ ' + saved + ' transacción' + (saved!==1?'es':'') + ' guardada' + (saved!==1?'s':'') + (errors?' ('+errors+' con error)':'') + '.');
-}
-
-
-// ─── TASAS DROPDOWN ───
-function toggleTasasDropdown(e) {
-  const dd = $('tasas-dropdown');
-  if (!dd) return;
-  dd.style.display = dd.style.display === 'none' ? 'block' : 'none';
-}
 document.addEventListener('click', function(e) {
-  if (!e.target.closest('#tasa-pill')) {
-    const dd = $('tasas-dropdown');
-    if (dd) dd.style.display = 'none';
-  }
+  const b = e.target.closest ? e.target.closest('.js-edit-cot') : null;
+  if (b) cargarCotizacion(b.dataset.codigo);
 });
 
 // ─── MOBILE NAV ───
@@ -3533,7 +3494,7 @@ async function init() {
   loadBCV();
   addCotRow();
   await cargarTX();
-  await Promise.all([cargarClientesDB(), cargarHistorial(), cargarPlantillas()]);
+  await Promise.all([cargarClientesDB(), cargarHistorial()]);
   await cargarProveedores();
 }
 
