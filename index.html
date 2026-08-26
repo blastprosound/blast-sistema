@@ -2578,11 +2578,13 @@ async function exportPDF() {
   if(!w){alert('Permite ventanas emergentes en Chrome para exportar el PDF.');return;}
   w.document.open(); w.document.write(buildPDFHTML()); w.document.close();
   // Save and mark as Descargada
-  await guardarCotizacionDB();
+  const res = await guardarCotizacionDB(true);
   const codigo = $('ccode').textContent;
-  if (codigo && codigo !== 'COT ——') {
+  if (res === 'ok' && codigo && codigo !== 'COT ——') {
     await supa.from('cotizaciones').update({estado:'Descargada'}).eq('codigo', codigo);
     await cargarHistorial();
+  } else if (res === 'error') {
+    alert('El PDF se generó, pero no se pudo guardar en el historial. Revisa la consola.');
   }
 }
 
@@ -2649,14 +2651,14 @@ async function exportarADrive(){
 
 async function guardarCotizacionDB(silencioso){
   const codigo=$('ccode').textContent, cliente=$('cc').value;
-  if(!cliente||codigo==='COT ——') return false;
+  if(!cliente||codigo==='COT ——') return 'incompleto';
   const items=[];
   document.querySelectorAll('.cir').forEach(r=>{
     const con=r.querySelector('.xcon').value, cat=r.dataset.cat||'—';
     const qty=parseFloat(r.querySelector('.xqty').value)||0, pri=parseFloat(r.querySelector('.xpri').value)||0;
     if(con&&pri) items.push({concepto:con,categoria:cat,cantidad:qty,precio:pri,total:qty*pri});
   });
-  if (!items.length) return false;
+  if (!items.length) return 'incompleto';
   const moneda = $('c-moneda') ? $('c-moneda').value : 'USD';
   // Get current estado from DB if exists, default to Borrador
   const {data: existing} = await supa.from('cotizaciones').select('estado').eq('codigo', codigo).maybeSingle();
@@ -2676,10 +2678,10 @@ async function guardarCotizacionDB(silencioso){
   if (error) {
     console.error('Error guardando cotización:', error);
     if (!silencioso) alert('No se pudo guardar: ' + error.message);
-    return false;
+    return 'error';
   }
   if (!silencioso) await cargarHistorial();
-  return true;
+  return 'ok';
 }
 
 let _cotAutosaveTimer = null;
@@ -2689,17 +2691,18 @@ function scheduleCotAutosave() {
 }
 
 async function guardarCotizacionManual() {
-  const ok = await guardarCotizacionDB(false);
-  if (ok) {
+  const res = await guardarCotizacionDB(false);
+  if (res === 'ok') {
     const btn = $('btn-guardar-cot');
     if (btn) {
       const orig = btn.innerHTML;
       btn.innerHTML = '<i class="ti ti-check"></i> Guardada';
       setTimeout(() => { btn.innerHTML = orig; }, 1800);
     }
-  } else {
+  } else if (res === 'incompleto') {
     alert('Completa cliente y al menos un ítem antes de guardar.');
   }
+  // Si res === 'error' el mensaje real ya se mostró en guardarCotizacionDB
 }
 
 async function exportarADriveConGuardado(){
