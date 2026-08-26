@@ -689,6 +689,33 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
     <div class="sc"><div class="sc-top" style="background:var(--magenta)"></div><div class="slabel">Promedio/evento</div><div class="sval" id="est-prom" style="color:var(--magenta)">—</div></div>
     <div class="sc"><div class="sc-top" style="background:var(--orange)"></div><div class="slabel">Utilidad total</div><div class="sval" id="est-util" style="color:var(--orange)">—</div></div>
   </div>
+  <!-- Comparación mensual año contra año -->
+  <div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+      <div class="ctitle" style="margin-bottom:0">Comparación anual de facturación</div>
+      <div id="est-chart-legend" style="display:flex;gap:14px;font-size:10px;color:var(--w4)"></div>
+    </div>
+    <div id="est-chart-mensual" style="width:100%;overflow-x:auto"></div>
+  </div>
+
+  <!-- KPIs de decisión -->
+  <div class="sg" style="margin-bottom:13px">
+    <div class="sc"><div class="sc-top" style="background:var(--blue)"></div><div class="slabel">Margen promedio</div><div class="sval" id="est-margen" style="color:var(--blue)">—</div><div class="ssub" id="est-margen-tend">—</div></div>
+    <div class="sc"><div class="sc-top" style="background:var(--green)"></div><div class="slabel">Ticket promedio</div><div class="sval" id="est-ticket" style="color:var(--green)">—</div><div class="ssub" id="est-ticket-tend">—</div></div>
+    <div class="sc"><div class="sc-top" style="background:var(--orange)"></div><div class="slabel">Mejor mes histórico</div><div class="sval" id="est-mejor-mes" style="color:var(--orange);font-size:17px">—</div><div class="ssub" id="est-mejor-mes-val">—</div></div>
+    <div class="sc"><div class="sc-top" style="background:var(--magenta)"></div><div class="slabel">Eventos/mes promedio</div><div class="sval" id="est-evs-mes" style="color:var(--magenta)">—</div><div class="ssub" id="est-evs-mes-sub">últimos 12 meses</div></div>
+  </div>
+
+  <div class="two eq">
+    <div class="card"><div class="ctitle">Rentabilidad por tipo de evento</div>
+      <div class="twrap"><table><thead><tr><th>Tipo</th><th>Eventos</th><th>Ingresos</th><th>Utilidad</th><th>Margen</th><th>Prom./ev.</th></tr></thead>
+      <tbody id="est-tipo"></tbody></table></div>
+    </div>
+    <div class="card"><div class="ctitle">Estructura de costos</div>
+      <div class="bc" id="est-costos"></div>
+    </div>
+  </div>
+
   <div class="two eq">
     <div class="card"><div class="ctitle">Ingresos por año</div>
       <div class="twrap"><table><thead><tr><th>Año</th><th>Eventos</th><th>Ingresos</th><th>Egresos</th><th>Utilidad</th><th>%</th></tr></thead>
@@ -1056,6 +1083,7 @@ function sv(id, btn) {
   if (id === 'estadisticas') renderEstadisticas();
   if (id === 'historial')    renderHistorial();
   if (id === 'proveedores')  cargarProveedores();
+  if (id === 'clientes')     renderClientes();
   if (id === 'dashboard')    renderDashboard();
 }
 
@@ -1921,7 +1949,231 @@ function renderEstadisticas() {
   $('est-honor-tbody').innerHTML = sorted.map(([p,v]) =>
     '<tr><td>' + esc(p) + '</td><td>' + v.evs.size + '</td><td style="color:var(--blue);font-weight:600">' + fmt(v.total) + '</td><td style="color:var(--w4)">' + fmt(v.total/Math.max(v.evs.size,1)) + '/ev.</td></tr>'
   ).join('');
+
+  // Paneles adicionales
+  renderChartMensual();
+  renderKPIs();
+  renderRentabilidadTipo();
+  renderEstructuraCostos();
 }
+
+// ─── GRÁFICO: comparación mensual año contra año ───
+function renderChartMensual() {
+  const cont = $('est-chart-mensual');
+  if (!cont) return;
+
+  const MESES = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  const COLORES = ['#43bded','#f4a93d','#ea5ff2','#3dca6e','#a0a0a0'];
+
+  // Agrupa ingresos por año y mes
+  const porAnio = {};
+  TX.forEach(t => {
+    if (!t.fecha_evento) return;
+    const ing = parseFloat(t.ingreso) || 0;
+    if (ing <= 0) return;
+    const yr = t.fecha_evento.substring(0,4);
+    const mo = parseInt(t.fecha_evento.substring(5,7), 10) - 1;
+    if (isNaN(mo) || mo < 0 || mo > 11) return;
+    if (!porAnio[yr]) porAnio[yr] = new Array(12).fill(0);
+    porAnio[yr][mo] += ing;
+  });
+
+  const anios = Object.keys(porAnio).sort();
+  if (!anios.length) { cont.innerHTML = '<div style="color:var(--w4);font-size:12px;padding:20px">Sin datos suficientes</div>'; return; }
+
+  // Escala
+  let maxVal = 0;
+  anios.forEach(y => porAnio[y].forEach(v => { if (v > maxVal) maxVal = v; }));
+  if (maxVal <= 0) maxVal = 1;
+  const techo = Math.ceil(maxVal / 5000) * 5000;
+
+  // Dimensiones SVG
+  const W = 900, H = 300, padL = 62, padR = 16, padT = 14, padB = 34;
+  const plotW = W - padL - padR, plotH = H - padT - padB;
+  const xFor = i => padL + (plotW / 11) * i;
+  const yFor = v => padT + plotH - (v / techo) * plotH;
+
+  let svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" style="width:100%;min-width:640px;height:auto;display:block">';
+
+  // Grid horizontal + etiquetas eje Y
+  for (let g = 0; g <= 4; g++) {
+    const val = (techo / 4) * g;
+    const y = yFor(val);
+    svg += '<line x1="' + padL + '" y1="' + y + '" x2="' + (W - padR) + '" y2="' + y + '" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>';
+    svg += '<text x="' + (padL - 8) + '" y="' + (y + 4) + '" text-anchor="end" font-size="10" fill="#606060">$' + (val >= 1000 ? (val/1000) + 'k' : val) + '</text>';
+  }
+
+  // Etiquetas eje X
+  MESES.forEach((m, i) => {
+    svg += '<text x="' + xFor(i) + '" y="' + (H - padB + 18) + '" text-anchor="middle" font-size="10" fill="#606060">' + m + '</text>';
+  });
+
+  // Líneas por año
+  anios.forEach((yr, idx) => {
+    const color = COLORES[idx % COLORES.length];
+    const serie = porAnio[yr];
+    // Solo dibuja hasta el último mes con datos (evita caída a cero del año en curso)
+    let ultimo = 11;
+    for (let i = 11; i >= 0; i--) { if (serie[i] > 0) { ultimo = i; break; } }
+
+    let d = '';
+    for (let i = 0; i <= ultimo; i++) {
+      d += (i === 0 ? 'M' : 'L') + xFor(i) + ',' + yFor(serie[i]);
+    }
+    svg += '<path d="' + d + '" fill="none" stroke="' + color + '" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>';
+    for (let i = 0; i <= ultimo; i++) {
+      svg += '<circle cx="' + xFor(i) + '" cy="' + yFor(serie[i]) + '" r="3" fill="' + color + '"><title>' + yr + ' ' + MESES[i] + ': ' + fmt(serie[i]) + '</title></circle>';
+    }
+  });
+
+  svg += '</svg>';
+  cont.innerHTML = svg;
+
+  // Leyenda
+  const leg = $('est-chart-legend');
+  if (leg) {
+    leg.innerHTML = anios.map((yr, idx) =>
+      '<span style="display:flex;align-items:center;gap:5px">'
+      + '<span style="width:9px;height:9px;border-radius:50%;background:' + COLORES[idx % COLORES.length] + ';display:inline-block"></span>'
+      + yr + '</span>'
+    ).join('');
+  }
+}
+
+// ─── KPIs de decisión ───
+function renderKPIs() {
+  const anioActual = new Date().getFullYear();
+
+  // Margen por año para comparar tendencia
+  const porAnio = {};
+  TX.forEach(t => {
+    if (!t.fecha_evento) return;
+    const yr = t.fecha_evento.substring(0,4);
+    if (!porAnio[yr]) porAnio[yr] = {ing:0, egr:0, evs:new Set()};
+    porAnio[yr].ing += parseFloat(t.ingreso) || 0;
+    porAnio[yr].egr += parseFloat(t.egreso)  || 0;
+    if (t.codigo_evento) porAnio[yr].evs.add(t.codigo_evento);
+  });
+
+  const yrs = Object.keys(porAnio).sort();
+  const cur = porAnio[String(anioActual)] || porAnio[yrs[yrs.length-1]];
+  const prev = porAnio[String(anioActual - 1)] || porAnio[yrs[yrs.length-2]];
+
+  // Margen
+  if (cur) {
+    const margen = cur.ing > 0 ? ((cur.ing - cur.egr) / cur.ing * 100) : 0;
+    $('est-margen').textContent = margen.toFixed(1) + '%';
+    if (prev && prev.ing > 0) {
+      const margenPrev = (prev.ing - prev.egr) / prev.ing * 100;
+      const dif = margen - margenPrev;
+      const el = $('est-margen-tend');
+      el.textContent = (dif >= 0 ? '▲ ' : '▼ ') + Math.abs(dif).toFixed(1) + ' pts vs año anterior';
+      el.style.color = dif >= 0 ? 'var(--green)' : 'var(--red)';
+    }
+  }
+
+  // Ticket promedio
+  if (cur && cur.evs.size > 0) {
+    const ticket = cur.ing / cur.evs.size;
+    $('est-ticket').textContent = fmt(ticket);
+    if (prev && prev.evs.size > 0) {
+      const ticketPrev = prev.ing / prev.evs.size;
+      const pct = ticketPrev > 0 ? ((ticket - ticketPrev) / ticketPrev * 100) : 0;
+      const el = $('est-ticket-tend');
+      el.textContent = (pct >= 0 ? '▲ ' : '▼ ') + Math.abs(pct).toFixed(0) + '% vs año anterior';
+      el.style.color = pct >= 0 ? 'var(--green)' : 'var(--red)';
+    }
+  }
+
+  // Mejor mes histórico
+  const MESES_L = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  const porMes = {};
+  TX.forEach(t => {
+    if (!t.fecha_evento) return;
+    const ing = parseFloat(t.ingreso) || 0;
+    if (ing <= 0) return;
+    const k = t.fecha_evento.substring(0,7);
+    porMes[k] = (porMes[k] || 0) + ing;
+  });
+  const mejorMes = Object.entries(porMes).sort((a,b) => b[1] - a[1])[0];
+  if (mejorMes) {
+    const [ym, val] = mejorMes;
+    const mi = parseInt(ym.substring(5,7), 10) - 1;
+    $('est-mejor-mes').textContent = MESES_L[mi] + ' ' + ym.substring(0,4);
+    $('est-mejor-mes-val').textContent = fmt(val) + ' facturados';
+  }
+
+  // Eventos por mes últimos 12
+  const hace12 = new Date();
+  hace12.setMonth(hace12.getMonth() - 12);
+  const cutoff = hace12.toISOString().slice(0,10);
+  const evsRecientes = new Set();
+  TX.forEach(t => {
+    if (t.codigo_evento && t.fecha_evento && t.fecha_evento >= cutoff) evsRecientes.add(t.codigo_evento);
+  });
+  $('est-evs-mes').textContent = (evsRecientes.size / 12).toFixed(1);
+}
+
+// ─── Rentabilidad por tipo de evento ───
+function renderRentabilidadTipo() {
+  const tbody = $('est-tipo');
+  if (!tbody) return;
+
+  const tipos = {};
+  EVS.forEach(e => {
+    const cat = e.categoria || 'Sin categoría';
+    if (!tipos[cat]) tipos[cat] = {evs:0, ing:0, egr:0};
+    tipos[cat].evs++;
+    tipos[cat].ing += parseFloat(e.ingreso) || 0;
+    tipos[cat].egr += parseFloat(e.gasto)   || 0;
+  });
+
+  const rows = Object.entries(tipos)
+    .map(([cat, v]) => ({cat, ...v, util: v.ing - v.egr}))
+    .sort((a,b) => b.util - a.util);
+
+  tbody.innerHTML = rows.map(r => {
+    const margen = r.ing > 0 ? ((r.util / r.ing) * 100).toFixed(1) + '%' : '—';
+    const prom   = r.evs > 0 ? r.ing / r.evs : 0;
+    return '<tr>'
+      + '<td style="font-weight:600">' + esc(r.cat) + '</td>'
+      + '<td>' + r.evs + '</td>'
+      + '<td>' + fmt(r.ing) + '</td>'
+      + '<td style="color:' + (r.util >= 0 ? 'var(--green)' : 'var(--red)') + ';font-weight:600">' + fmt(r.util) + '</td>'
+      + '<td style="color:var(--w4)">' + margen + '</td>'
+      + '<td style="color:var(--w4)">' + fmt(prom) + '</td>'
+      + '</tr>';
+  }).join('');
+}
+
+// ─── Estructura de costos ───
+function renderEstructuraCostos() {
+  const cont = $('est-costos');
+  if (!cont) return;
+
+  const costos = {};
+  TX.forEach(t => {
+    const egr = parseFloat(t.egreso) || 0;
+    if (egr <= 0) return;
+    const sub = t.subcategoria || 'Otros';
+    costos[sub] = (costos[sub] || 0) + egr;
+  });
+
+  const total = Object.values(costos).reduce((s,v) => s+v, 0);
+  const sorted = Object.entries(costos).sort((a,b) => b[1] - a[1]).slice(0, 8);
+  const maxV = sorted[0] ? sorted[0][1] : 1;
+  const COLS = ['var(--blue)','var(--magenta)','var(--orange)','var(--green)','var(--w4)'];
+
+  cont.innerHTML = sorted.map(([sub, val], i) => {
+    const pct = total > 0 ? (val / total * 100).toFixed(1) : 0;
+    return '<div class="br">'
+      + '<div class="bl">' + esc(sub.length > 13 ? sub.slice(0,13) : sub) + '</div>'
+      + '<div class="bt"><div class="bf" style="width:' + Math.round((val/maxV)*100) + '%;background:' + COLS[Math.min(i,4)] + '">' + fmt(val) + '</div></div>'
+      + '<div class="ba">' + pct + '%</div>'
+      + '</div>';
+  }).join('');
+}
+
 
 // ─── COTIZACIONES ───
 const DB_PRECIOS = [
@@ -2421,8 +2673,13 @@ async function guardarCotizacionDB(silencioso){
     estado: estadoActual,
     items
   },{onConflict:'codigo'});
+  if (error) {
+    console.error('Error guardando cotización:', error);
+    if (!silencioso) alert('No se pudo guardar: ' + error.message);
+    return false;
+  }
   if (!silencioso) await cargarHistorial();
-  return !error;
+  return true;
 }
 
 let _cotAutosaveTimer = null;
