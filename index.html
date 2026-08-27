@@ -251,6 +251,10 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
           <div class="login-avatar" style="background:rgba(244,169,61,.15);color:var(--orange)">FM</div>
           <div><div style="font-size:13px;font-weight:600;color:var(--white)">Francisco Massari</div><div style="font-size:10px;color:var(--w4)">Fran</div></div>
         </button>
+        <button class="login-user-btn" onclick="selectUserOtro()" style="border-style:dashed">
+          <div class="login-avatar" style="background:rgba(255,255,255,.06);color:var(--w4)"><i class="ti ti-user"></i></div>
+          <div><div style="font-size:13px;font-weight:600;color:var(--w3)">Otro usuario</div><div style="font-size:10px;color:var(--w4)">Personal de eventos</div></div>
+        </button>
       </div>
     </div>
 
@@ -263,7 +267,10 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
       </div>
       <div class="fgrp" style="margin-bottom:10px">
         <label class="flabel">Contraseña</label>
-        <input type="hidden" id="login-email"><input type="password" id="login-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter') doLogin()">
+        <div class="fgrp" id="login-email-wrap" style="display:none;margin-bottom:10px">
+        <label class="flabel">Email</label>
+        <input type="email" id="login-email" placeholder="tu@correo.com" onkeydown="if(event.key==='Enter') doLogin()">
+      </div><input type="password" id="login-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter') doLogin()">
       </div>
       <button class="login-btn" id="login-btn" onclick="doLogin()">Entrar</button>
     </div>
@@ -315,6 +322,10 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
   <button class="ni" onclick="sv('socios',this)"><i class="ti ti-users"></i>Socios</button>
   <button class="ni" onclick="sv('clientes',this)"><i class="ti ti-address-book"></i>Clientes</button>
   <button class="ni" onclick="sv('proveedores',this)"><i class="ti ti-building-store"></i>Proveedores</button>
+  <div class="ndiv"></div>
+  <div class="nlabel">Logística</div>
+  <button class="ni" onclick="sv('inventario',this)"><i class="ti ti-package"></i>Inventario</button>
+  <button class="ni" onclick="sv('logistica',this)"><i class="ti ti-clipboard-list"></i>Logística evento</button>
   <div class="ndiv"></div>
   <div class="nlabel">Reportes</div>
   <button class="ni" onclick="sv('estadisticas',this)"><i class="ti ti-chart-bar"></i>Estadísticas</button>
@@ -680,6 +691,134 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
   </div>
 </div>
 
+<!-- PORTAL STAFF · vista sin información económica -->
+<div id="v-staff" class="view">
+  <div class="ph">
+    <div><div class="aline"></div><div class="ptitle">Mis eventos</div><div class="psub" id="staff-sub">Equipos asignados y reporte del evento</div></div>
+  </div>
+
+  <div class="card" style="margin-bottom:13px;padding:13px 16px">
+    <div class="fgrp" style="margin:0">
+      <label class="flabel">Selecciona el evento</label>
+      <select id="staff-evento" onchange="cargarStaffEvento()"><option value="">— Selecciona —</option></select>
+    </div>
+    <div id="staff-info" style="font-size:12px;color:var(--w4);margin-top:9px"></div>
+  </div>
+
+  <div id="staff-contenido" style="display:none">
+    <!-- Equipos a llevar -->
+    <div class="card" style="margin-bottom:13px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+        <div class="ctitle" style="margin-bottom:0">Equipos del evento</div>
+        <input id="staff-buscar" type="text" placeholder="Filtrar equipo..." style="width:200px;padding:5px 9px;font-size:12px" oninput="filtrarStaffInv()">
+      </div>
+      <div style="font-size:11px;color:var(--w4);margin-bottom:10px">Marca el estado a medida que cargas y devuelves los equipos.</div>
+      <div class="twrap"><table>
+        <thead><tr><th>Equipo</th><th>Categoría</th><th style="width:80px;text-align:center">Cant.</th><th style="width:140px">Estado</th><th>Notas</th></tr></thead>
+        <tbody id="staff-inv-tbody"></tbody>
+      </table></div>
+      <div style="margin-top:11px;text-align:right">
+        <button class="btn btn-ghost btn-sm" onclick="guardarEstadosStaff()"><i class="ti ti-device-floppy"></i>Guardar estados</button>
+      </div>
+    </div>
+
+    <!-- Reporte del evento -->
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <div class="ctitle" style="margin-bottom:0">Reporte del evento</div>
+        <button class="btn btn-ghost btn-sm" style="padding:3px 9px;font-size:11px" onclick="addFilaStaffPersonal()"><i class="ti ti-plus"></i>Añadir persona</button>
+      </div>
+      <div style="font-size:11px;color:var(--w4);margin-bottom:10px">Registra quién asistió, qué hizo cada uno y los viáticos que se gastaron.</div>
+      <div class="twrap"><table>
+        <thead><tr><th>Nombre</th><th style="width:150px">Rol</th><th style="width:80px;text-align:center">Asistió</th><th style="width:110px;text-align:right">Viáticos</th><th>Qué hizo</th><th style="width:34px"></th></tr></thead>
+        <tbody id="staff-pers-tbody"></tbody>
+      </table></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;flex-wrap:wrap;gap:10px">
+        <div style="font-size:12px;color:var(--w4)">Total viáticos reportados: <b id="staff-tot-viaticos" style="color:var(--orange)">$0</b></div>
+        <button class="btn btn-blue btn-sm" onclick="guardarReporteStaff()"><i class="ti ti-send"></i>Enviar reporte</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- INVENTARIO · catálogo de productos -->
+<div id="v-inventario" class="view">
+  <div class="ph">
+    <div><div class="aline"></div><div class="ptitle">Inventario</div><div class="psub" id="inv-sub">Catálogo de equipos y servicios</div></div>
+    <button class="btn btn-blue btn-sm" onclick="abrirModalProducto(null)"><i class="ti ti-plus"></i>Nuevo producto</button>
+  </div>
+
+  <div class="sg" style="margin-bottom:13px">
+    <div class="sc"><div class="sc-top" style="background:var(--blue)"></div><div class="slabel">Productos</div><div class="sval" id="inv-total" style="color:var(--blue)">—</div><div class="ssub" id="inv-total-sub">—</div></div>
+    <div class="sc"><div class="sc-top" style="background:var(--green)"></div><div class="slabel">Propios (Blast)</div><div class="sval" id="inv-propios" style="color:var(--green)">—</div><div class="ssub" id="inv-unidades">—</div></div>
+    <div class="sc"><div class="sc-top" style="background:var(--orange)"></div><div class="slabel">Tercerizados</div><div class="sval" id="inv-externos" style="color:var(--orange)">—</div><div class="ssub">se subcontratan</div></div>
+    <div class="sc"><div class="sc-top" style="background:var(--magenta)"></div><div class="slabel">Margen promedio</div><div class="sval" id="inv-margen" style="color:var(--magenta)">—</div><div class="ssub">precio vs costo</div></div>
+  </div>
+
+  <div class="btn-row" style="margin-bottom:13px">
+    <select id="f-inv-cat" style="width:auto;padding:5px 9px;font-size:12px" onchange="renderInventario()"><option value="">Todas las categorías</option></select>
+    <select id="f-inv-dueno" style="width:auto;padding:5px 9px;font-size:12px" onchange="renderInventario()"><option value="">Blast y externos</option><option>Blast</option><option>Externo</option></select>
+    <input id="f-inv-q" type="text" placeholder="Buscar producto..." style="width:220px;padding:5px 9px;font-size:12px" oninput="renderInventario()">
+  </div>
+
+  <div class="card np">
+    <div class="twrap"><table>
+      <thead><tr><th>Producto</th><th>Categoría</th><th>Dueño</th><th style="text-align:center">Inventario</th><th style="text-align:right">Costo</th><th style="text-align:right">Precio</th><th style="text-align:right">Margen</th><th></th></tr></thead>
+      <tbody id="inv-tbody"><tr><td colspan="8" style="color:var(--w4);text-align:center;padding:18px">Cargando...</td></tr></tbody>
+    </table></div>
+  </div>
+</div>
+
+<!-- LOGÍSTICA DE EVENTO -->
+<div id="v-logistica" class="view">
+  <div class="ph">
+    <div><div class="aline"></div><div class="ptitle">Logística de evento</div><div class="psub">Equipos asignados, personal y viáticos</div></div>
+  </div>
+
+  <div class="card" style="margin-bottom:13px;padding:13px 16px">
+    <div style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap">
+      <div class="fgrp" style="margin:0;flex:1;min-width:230px">
+        <label class="flabel">Evento</label>
+        <select id="log-evento" onchange="cargarLogisticaEvento()"><option value="">— Selecciona un evento —</option></select>
+      </div>
+      <div id="log-info" style="font-size:12px;color:var(--w4);padding-bottom:8px"></div>
+    </div>
+  </div>
+
+  <div id="log-contenido" style="display:none">
+    <!-- Equipos -->
+    <div class="card" style="margin-bottom:13px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <div class="ctitle" style="margin-bottom:0">Equipos del evento</div>
+        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+          <input id="log-buscar-prod" type="text" placeholder="Buscar equipo para añadir..." style="width:230px;padding:5px 9px;font-size:12px" oninput="buscarProductoLog()" autocomplete="off">
+          <div id="log-sug" style="display:none;position:absolute;z-index:50"></div>
+        </div>
+      </div>
+      <div class="twrap"><table>
+        <thead><tr><th>Equipo</th><th>Categoría</th><th style="width:90px;text-align:center">Cant.</th><th style="width:130px">Estado</th><th>Notas</th><th style="width:34px"></th></tr></thead>
+        <tbody id="log-inv-tbody"></tbody>
+      </table></div>
+    </div>
+
+    <!-- Personal -->
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <div class="ctitle" style="margin-bottom:0">Personal y viáticos</div>
+        <button class="btn btn-ghost btn-sm" style="padding:3px 9px;font-size:11px" onclick="addFilaPersonal()"><i class="ti ti-plus"></i>Añadir persona</button>
+      </div>
+      <div class="twrap"><table>
+        <thead><tr><th>Nombre</th><th style="width:150px">Rol</th><th style="width:80px;text-align:center">Asistió</th><th style="width:100px;text-align:right">Viáticos</th><th>Detalle de lo que hizo</th><th style="width:34px"></th></tr></thead>
+        <tbody id="log-pers-tbody"></tbody>
+      </table></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;flex-wrap:wrap;gap:10px">
+        <div style="font-size:12px;color:var(--w4)">Total viáticos: <b id="log-tot-viaticos" style="color:var(--orange)">$0</b></div>
+        <button class="btn btn-blue btn-sm" onclick="guardarLogistica()"><i class="ti ti-device-floppy"></i>Guardar logística</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- ESTADÍSTICAS -->
 <div id="v-estadisticas" class="view">
   <div class="ph"><div><div class="aline"></div><div class="ptitle">Estadísticas</div><div class="psub">Calculado en tiempo real desde Registro</div></div></div>
@@ -867,6 +1006,30 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
 </div>
 
 <!-- MODAL: NUEVO EVENTO (CHECKLIST) -->
+<!-- MODAL: PRODUCTO -->
+<div class="modal-bg" id="modal-producto">
+  <div class="modal" style="width:560px">
+    <div class="modal-title" id="mp-title">Nuevo producto</div>
+    <input type="hidden" id="mp-id">
+    <div class="fgrp" style="margin-bottom:11px"><label class="flabel">Concepto</label><input type="text" id="mp-concepto" placeholder="Ej: Corneta JBL PRX"></div>
+    <div class="fg" style="margin-bottom:11px">
+      <div class="fgrp"><label class="flabel">Categoría</label><input type="text" id="mp-categoria" list="mp-cats" placeholder="Sonido"><datalist id="mp-cats"></datalist></div>
+      <div class="fgrp"><label class="flabel">Dueño</label><select id="mp-dueno" onchange="toggleInvField()"><option>Blast</option><option>Externo</option></select></div>
+    </div>
+    <div class="fg" style="margin-bottom:11px">
+      <div class="fgrp" id="mp-inv-wrap"><label class="flabel">Unidades en inventario</label><input type="number" id="mp-inventario" placeholder="0"></div>
+      <div class="fgrp"><label class="flabel">Costo unitario</label><input type="number" id="mp-costo" step="0.01" placeholder="0"></div>
+      <div class="fgrp"><label class="flabel">Precio unitario</label><input type="number" id="mp-precio" step="0.01" placeholder="0"></div>
+    </div>
+    <div class="fgrp" style="margin-bottom:4px"><label class="flabel">Notas</label><input type="text" id="mp-notas" placeholder="Opcional"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="document.getElementById('modal-producto').classList.remove('show')">Cancelar</button>
+      <button class="btn btn-ghost" id="mp-del" style="color:var(--red);display:none" onclick="eliminarProducto()"><i class="ti ti-trash"></i>Eliminar</button>
+      <button class="btn btn-blue" onclick="guardarProducto()"><i class="ti ti-check"></i>Guardar</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-bg" id="modal-checklist">
   <div class="modal" style="width:min(1050px,96vw);max-height:92vh;overflow-y:auto">
     <div class="modal-title"><i class="ti ti-calendar-plus" style="color:var(--blue)"></i> Registrar evento completo</div>
@@ -1084,6 +1247,9 @@ function sv(id, btn) {
   if (id === 'historial')    renderHistorial();
   if (id === 'proveedores')  cargarProveedores();
   if (id === 'clientes')     renderClientes();
+  if (id === 'inventario')   { if (!PRODUCTOS.length) cargarProductos(); else renderInventario(); }
+  if (id === 'logistica')    { llenarSelectEventosLog(); if (!PRODUCTOS.length) cargarProductos(); }
+  if (id === 'staff')        llenarSelectEventosStaff();
   if (id === 'dashboard')    renderDashboard();
 }
 
@@ -1955,6 +2121,505 @@ function renderEstadisticas() {
   renderKPIs();
   renderRentabilidadTipo();
   renderEstructuraCostos();
+}
+
+// ═══════════════════════════════════════════════════════════
+// CONTROL DE ACCESO POR ROL
+// ═══════════════════════════════════════════════════════════
+let CURRENT_USER = {email:'', nombre:'', rol:'socio'};
+
+// Vistas visibles para personal de eventos
+const NAV_STAFF = ['staff'];
+
+async function resolverRol(email) {
+  try {
+    const {data} = await supa.from('usuarios').select('nombre,rol,activo').eq('email', email).maybeSingle();
+    if (data && data.activo !== false) return {nombre: data.nombre || email, rol: data.rol || 'staff'};
+  } catch(e) { console.warn('No se pudo leer rol:', e); }
+  // Fallback: los 3 socios hardcodeados siguen entrando aunque falle la tabla
+  if (ALLOWED_EMAILS[email]) return {nombre: ALLOWED_EMAILS[email], rol: 'socio'};
+  return {nombre: email, rol: 'staff'};
+}
+
+function aplicarPermisos() {
+  const esSocio = CURRENT_USER.rol === 'socio';
+  document.querySelectorAll('nav.nav .ni').forEach(btn => {
+    const m = (btn.getAttribute('onclick') || '').match(/sv\('([\w-]+)'/);
+    if (!m) return;
+    const vista = m[1];
+    const permitido = esSocio ? vista !== 'staff' : NAV_STAFF.includes(vista);
+    btn.style.display = permitido ? '' : 'none';
+  });
+  // Oculta separadores de secciones vacías cuando es staff
+  if (!esSocio) {
+    document.querySelectorAll('nav.nav .nlabel, nav.nav .ndiv').forEach(el => el.style.display = 'none');
+    const chip = $('user-chip');
+    if (chip) chip.title = 'Personal de eventos';
+  }
+}
+
+function vistaInicial() {
+  const id  = CURRENT_USER.rol === 'socio' ? 'dashboard' : 'staff';
+  const btn = document.querySelector('nav.nav .ni[onclick*="sv(\'' + id + '\'"]');
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('on'));
+  document.querySelectorAll('nav.nav .ni').forEach(b => b.classList.remove('on'));
+  const view = $('v-' + id);
+  if (view) view.classList.add('on');
+  if (btn)  btn.classList.add('on');
+}
+
+// ═══════════════════════════════════════════════════════════
+// PORTAL STAFF · sin información económica
+// ═══════════════════════════════════════════════════════════
+let _staffEventoActual = '';
+let _staffInvCache = [];
+
+function llenarSelectEventosStaff() {
+  const sel = $('staff-evento');
+  if (!sel) return;
+  // Solo eventos con logística asignada o de los últimos 90 días
+  const hoy = new Date();
+  const limite = new Date(hoy.getTime() - 90*24*60*60*1000).toISOString().slice(0,10);
+  const futuro = new Date(hoy.getTime() + 120*24*60*60*1000).toISOString().slice(0,10);
+  const opts = EVS.filter(e => e.fecha && e.fecha >= limite && e.fecha <= futuro)
+    .map(e => '<option value="' + esc(e.codigo) + '">' + esc(e.codigo) + ' · ' + esc(e.cliente || 'Sin cliente') + (e.fecha ? ' · ' + fDate(e.fecha) : '') + '</option>')
+    .join('');
+  sel.innerHTML = '<option value="">— Selecciona —</option>' + opts;
+}
+
+async function cargarStaffEvento() {
+  const cod = $('staff-evento').value;
+  _staffEventoActual = cod;
+  const cont = $('staff-contenido');
+  if (!cod) { cont.style.display = 'none'; $('staff-info').textContent = ''; return; }
+  cont.style.display = 'block';
+
+  const ev = EVS.find(e => e.codigo === cod);
+  $('staff-info').innerHTML = ev
+    ? 'Cliente: <b style="color:var(--w2)">' + esc(ev.cliente || '—') + '</b> &nbsp;·&nbsp; ' + (ev.fecha ? fDate(ev.fecha) : 'sin fecha')
+    : '';
+
+  const [inv, pers] = await Promise.all([
+    supa.from('evento_inventario').select('*').eq('codigo_evento', cod).order('categoria'),
+    supa.from('evento_personal').select('*').eq('codigo_evento', cod).order('nombre')
+  ]);
+
+  _staffInvCache = inv.data || [];
+  renderStaffInv();
+
+  $('staff-pers-tbody').innerHTML = '';
+  (pers.data || []).forEach(r => addFilaStaffPersonal(r));
+  if (!(pers.data || []).length) addFilaStaffPersonal();
+  calcViaticosStaff();
+}
+
+function renderStaffInv() {
+  const tbody = $('staff-inv-tbody');
+  if (!tbody) return;
+  const q = $('staff-buscar') ? $('staff-buscar').value.toLowerCase().trim() : '';
+  const rows = _staffInvCache.filter(r =>
+    !q || (r.concepto||'').toLowerCase().includes(q) || (r.categoria||'').toLowerCase().includes(q));
+
+  if (!rows.length) {
+    tbody.innerHTML = '<tr><td colspan="5" style="color:var(--w4);text-align:center;padding:16px">' +
+      (_staffInvCache.length ? 'Ningún equipo coincide con la búsqueda' : 'Aún no hay equipos asignados a este evento') + '</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = rows.map(r =>
+      '<tr data-id="' + r.id + '">'
+    + '<td style="font-weight:600">' + esc(r.concepto) + '</td>'
+    + '<td style="color:var(--w4)">' + esc(r.categoria || '—') + '</td>'
+    + '<td style="text-align:center"><b>' + (r.cantidad || 1) + '</b></td>'
+    + '<td><select class="si-estado" style="width:100%;padding:3px 5px;font-size:11px">'
+    +   ESTADOS_INV.map(s => '<option' + (s === (r.estado||'Pendiente') ? ' selected' : '') + '>' + s + '</option>').join('')
+    + '</select></td>'
+    + '<td style="color:var(--w4);font-size:11px">' + esc(r.notas || '') + '</td>'
+    + '</tr>'
+  ).join('');
+}
+
+function filtrarStaffInv() { renderStaffInv(); }
+
+async function guardarEstadosStaff() {
+  const filas = Array.from(document.querySelectorAll('#staff-inv-tbody tr[data-id]'));
+  if (!filas.length) { alert('No hay equipos que actualizar.'); return; }
+  let err = null;
+  for (const tr of filas) {
+    const id = parseInt(tr.dataset.id);
+    const estado = tr.querySelector('.si-estado').value;
+    const r = await supa.from('evento_inventario').update({estado}).eq('id', id);
+    if (r.error) err = r.error;
+  }
+  if (err) { alert('No se pudo guardar: ' + err.message); return; }
+  alert('\u2713 Estados actualizados.');
+}
+
+function addFilaStaffPersonal(d) {
+  d = d || {};
+  const tr = document.createElement('tr');
+  tr.className = 'staff-pers-fila';
+  tr.innerHTML =
+      '<td><input type="text" class="sp-nombre" value="' + esc(d.nombre || '') + '" placeholder="Nombre" style="width:100%;padding:3px 6px;font-size:11px"></td>'
+    + '<td><input type="text" class="sp-rol" list="lp-roles" value="' + esc(d.rol || '') + '" placeholder="Rol" style="width:100%;padding:3px 6px;font-size:11px"></td>'
+    + '<td style="text-align:center"><input type="checkbox" class="sp-asistio" ' + (d.asistio === false ? '' : 'checked') + ' style="accent-color:var(--green)"></td>'
+    + '<td><input type="number" class="sp-viaticos" value="' + (d.viaticos || '') + '" placeholder="0" oninput="calcViaticosStaff()" style="width:100%;padding:3px 6px;font-size:11px;text-align:right"></td>'
+    + '<td><input type="text" class="sp-detalle" value="' + esc(d.detalle || '') + '" placeholder="Qué hizo en el evento" style="width:100%;padding:3px 6px;font-size:11px"></td>'
+    + '<td style="text-align:center"><button onclick="this.closest(\'tr\').remove();calcViaticosStaff()" style="background:none;border:none;color:var(--w4);cursor:pointer"><i class="ti ti-x"></i></button></td>';
+  $('staff-pers-tbody').appendChild(tr);
+  if (!$('lp-roles')) {
+    const dl = document.createElement('datalist');
+    dl.id = 'lp-roles';
+    dl.innerHTML = ROLES_STAFF.map(r => '<option value="' + r + '">').join('');
+    document.body.appendChild(dl);
+  }
+}
+
+function calcViaticosStaff() {
+  let tot = 0;
+  document.querySelectorAll('.staff-pers-fila .sp-viaticos').forEach(i => tot += parseFloat(i.value) || 0);
+  if ($('staff-tot-viaticos')) $('staff-tot-viaticos').textContent = fmt(tot);
+}
+
+async function guardarReporteStaff() {
+  const cod = _staffEventoActual;
+  if (!cod) { alert('Selecciona un evento primero.'); return; }
+
+  const pers = Array.from(document.querySelectorAll('.staff-pers-fila'))
+    .map(tr => ({
+      codigo_evento: cod,
+      nombre:   tr.querySelector('.sp-nombre').value.trim(),
+      rol:      tr.querySelector('.sp-rol').value.trim() || null,
+      asistio:  tr.querySelector('.sp-asistio').checked,
+      viaticos: parseFloat(tr.querySelector('.sp-viaticos').value) || 0,
+      detalle:  tr.querySelector('.sp-detalle').value.trim() || null,
+      reportado_por: CURRENT_USER.nombre || null
+    }))
+    .filter(p => p.nombre);
+
+  if (!pers.length) { alert('Agrega al menos una persona al reporte.'); return; }
+
+  await supa.from('evento_personal').delete().eq('codigo_evento', cod);
+  const {error} = await supa.from('evento_personal').insert(pers);
+  if (error) { alert('No se pudo enviar: ' + error.message); return; }
+  alert('\u2713 Reporte enviado con ' + pers.length + ' persona' + (pers.length>1?'s':'') + '.');
+}
+
+// ═══════════════════════════════════════════════════════════
+// MÓDULO LOGÍSTICA · inventario, equipos y personal por evento
+// ═══════════════════════════════════════════════════════════
+let PRODUCTOS = [];
+let _logEventoActual = '';
+
+// ─── CATÁLOGO DE PRODUCTOS ───
+async function cargarProductos() {
+  const {data, error} = await supa.from('productos').select('*').order('categoria').order('concepto');
+  if (error) { console.error('Error cargando productos:', error); return; }
+  PRODUCTOS = data || [];
+  llenarFiltrosInventario();
+  if ($('v-inventario') && $('v-inventario').classList.contains('on')) renderInventario();
+}
+
+function llenarFiltrosInventario() {
+  const cats = [...new Set(PRODUCTOS.map(p => p.categoria).filter(Boolean))].sort();
+  const sel = $('f-inv-cat');
+  if (sel) {
+    const cur = sel.value;
+    sel.innerHTML = '<option value="">Todas las categorías</option>' + cats.map(x => '<option>' + esc(x) + '</option>').join('');
+    sel.value = cur;
+  }
+  const dl = $('mp-cats');
+  if (dl) dl.innerHTML = cats.map(x => '<option value="' + esc(x) + '">').join('');
+}
+
+function renderInventario() {
+  const tbody = $('inv-tbody');
+  if (!tbody) return;
+  if (!PRODUCTOS.length) {
+    tbody.innerHTML = '<tr><td colspan="8" style="color:var(--w4);text-align:center;padding:18px">Sin productos. Ejecuta el SQL del módulo o crea uno nuevo.</td></tr>';
+    return;
+  }
+
+  const cat   = $('f-inv-cat')   ? $('f-inv-cat').value   : '';
+  const dueno = $('f-inv-dueno') ? $('f-inv-dueno').value : '';
+  const q     = $('f-inv-q')     ? $('f-inv-q').value.toLowerCase().trim() : '';
+
+  let rows = PRODUCTOS.filter(p => {
+    if (cat   && p.categoria !== cat)   return false;
+    if (dueno && p.dueno     !== dueno) return false;
+    if (q && !(p.concepto||'').toLowerCase().includes(q) && !(p.categoria||'').toLowerCase().includes(q)) return false;
+    return true;
+  });
+
+  // KPIs sobre el catálogo completo
+  const propios  = PRODUCTOS.filter(p => p.dueno === 'Blast');
+  const externos = PRODUCTOS.filter(p => p.dueno === 'Externo');
+  const unidades = propios.reduce((s,p) => s + (parseInt(p.inventario) || 0), 0);
+  const conCosto = PRODUCTOS.filter(p => (parseFloat(p.costo)||0) > 0);
+  const margenProm = conCosto.length
+    ? conCosto.reduce((s,p) => {
+        const pr = parseFloat(p.precio)||0, co = parseFloat(p.costo)||0;
+        return s + (pr > 0 ? (pr - co) / pr * 100 : 0);
+      }, 0) / conCosto.length
+    : 0;
+
+  $('inv-total').textContent     = PRODUCTOS.length;
+  $('inv-total-sub').textContent = rows.length + ' mostrados';
+  $('inv-propios').textContent   = propios.length;
+  $('inv-unidades').textContent  = unidades + ' unidades físicas';
+  $('inv-externos').textContent  = externos.length;
+  $('inv-margen').textContent    = margenProm.toFixed(0) + '%';
+  if ($('inv-sub')) $('inv-sub').textContent = PRODUCTOS.length + ' productos en catálogo';
+
+  tbody.innerHTML = rows.map(p => {
+    const costo  = parseFloat(p.costo)  || 0;
+    const precio = parseFloat(p.precio) || 0;
+    const margen = precio > 0 ? ((precio - costo) / precio * 100) : 0;
+    const badge  = p.dueno === 'Blast'
+      ? '<span class="badge b-green">Blast</span>'
+      : '<span class="badge b-orange">Externo</span>';
+    const inv = (p.inventario === null || p.inventario === undefined)
+      ? '<span style="color:var(--w4)">—</span>'
+      : '<b>' + p.inventario + '</b>';
+    return '<tr>'
+      + '<td style="font-weight:600">' + esc(p.concepto) + '</td>'
+      + '<td style="color:var(--w4)">' + esc(p.categoria || '—') + '</td>'
+      + '<td>' + badge + '</td>'
+      + '<td style="text-align:center">' + inv + '</td>'
+      + '<td style="text-align:right;color:var(--w4)">' + (costo > 0 ? fmt(costo) : '—') + '</td>'
+      + '<td style="text-align:right;color:var(--blue);font-weight:600">' + fmt(precio) + '</td>'
+      + '<td style="text-align:right;color:' + (margen >= 50 ? 'var(--green)' : margen > 0 ? 'var(--orange)' : 'var(--w4)') + '">' + (precio > 0 ? margen.toFixed(0) + '%' : '—') + '</td>'
+      + '<td><button class="btn btn-ghost btn-sm" style="padding:2px 7px;font-size:10px" onclick="abrirModalProducto(' + p.id + ')"><i class="ti ti-pencil"></i></button></td>'
+      + '</tr>';
+  }).join('');
+}
+
+function toggleInvField() {
+  const wrap = $('mp-inv-wrap');
+  if (wrap) wrap.style.opacity = $('mp-dueno').value === 'Externo' ? '.45' : '1';
+}
+
+function abrirModalProducto(id) {
+  const p = id ? PRODUCTOS.find(x => x.id === id) : null;
+  $('mp-title').textContent   = p ? 'Editar producto' : 'Nuevo producto';
+  $('mp-id').value            = p ? p.id : '';
+  $('mp-concepto').value      = p ? (p.concepto || '')  : '';
+  $('mp-categoria').value     = p ? (p.categoria || '') : '';
+  $('mp-dueno').value         = p ? (p.dueno || 'Blast'): 'Blast';
+  $('mp-inventario').value    = p && p.inventario !== null ? p.inventario : '';
+  $('mp-costo').value         = p ? (p.costo  || '') : '';
+  $('mp-precio').value        = p ? (p.precio || '') : '';
+  $('mp-notas').value         = p ? (p.notas  || '') : '';
+  $('mp-del').style.display   = p ? 'inline-flex' : 'none';
+  toggleInvField();
+  $('modal-producto').classList.add('show');
+  setTimeout(() => $('mp-concepto').focus(), 120);
+}
+
+async function guardarProducto() {
+  const concepto = $('mp-concepto').value.trim();
+  if (!concepto) { alert('El concepto es obligatorio.'); return; }
+
+  const id  = $('mp-id').value;
+  const inv = $('mp-inventario').value;
+  const row = {
+    concepto,
+    categoria:  $('mp-categoria').value.trim() || null,
+    dueno:      $('mp-dueno').value,
+    inventario: inv === '' ? null : parseInt(inv),
+    costo:      parseFloat($('mp-costo').value)  || 0,
+    precio:     parseFloat($('mp-precio').value) || 0,
+    notas:      $('mp-notas').value.trim() || null
+  };
+
+  const {error} = id
+    ? await supa.from('productos').update(row).eq('id', id)
+    : await supa.from('productos').insert(row);
+
+  if (error) { alert('No se pudo guardar: ' + error.message); return; }
+  $('modal-producto').classList.remove('show');
+  await cargarProductos();
+  renderInventario();
+}
+
+async function eliminarProducto() {
+  const id = $('mp-id').value;
+  if (!id) return;
+  if (!confirm('¿Eliminar este producto del catálogo?')) return;
+  const {error} = await supa.from('productos').delete().eq('id', id);
+  if (error) { alert('No se pudo eliminar: ' + error.message); return; }
+  $('modal-producto').classList.remove('show');
+  await cargarProductos();
+  renderInventario();
+}
+
+// ─── LOGÍSTICA POR EVENTO ───
+function llenarSelectEventosLog() {
+  const sel = $('log-evento');
+  if (!sel) return;
+  const cur = sel.value;
+  const opts = EVS.slice(0, 200).map(e =>
+    '<option value="' + esc(e.codigo) + '">' + esc(e.codigo) + ' · ' + esc(e.cliente || 'Sin cliente') + (e.fecha ? ' · ' + fDate(e.fecha) : '') + '</option>'
+  ).join('');
+  sel.innerHTML = '<option value="">— Selecciona un evento —</option>' + opts;
+  sel.value = cur;
+}
+
+async function cargarLogisticaEvento() {
+  const cod = $('log-evento').value;
+  _logEventoActual = cod;
+  const cont = $('log-contenido');
+  if (!cod) { cont.style.display = 'none'; $('log-info').textContent = ''; return; }
+  cont.style.display = 'block';
+
+  const ev = EVS.find(e => e.codigo === cod);
+  $('log-info').innerHTML = ev
+    ? 'Cliente: <b style="color:var(--w2)">' + esc(ev.cliente || '—') + '</b> &nbsp;·&nbsp; ' + (ev.fecha ? fDate(ev.fecha) : 'sin fecha') + ' &nbsp;·&nbsp; ' + esc(ev.categoria || '')
+    : '';
+
+  const [inv, pers] = await Promise.all([
+    supa.from('evento_inventario').select('*').eq('codigo_evento', cod).order('categoria'),
+    supa.from('evento_personal').select('*').eq('codigo_evento', cod).order('nombre')
+  ]);
+
+  $('log-inv-tbody').innerHTML = '';
+  (inv.data || []).forEach(r => addFilaInvLog(r));
+  if (!(inv.data || []).length) $('log-inv-tbody').innerHTML = '<tr id="log-inv-vacio"><td colspan="6" style="color:var(--w4);text-align:center;padding:14px">Busca un equipo arriba para añadirlo</td></tr>';
+
+  $('log-pers-tbody').innerHTML = '';
+  (pers.data || []).forEach(r => addFilaPersonal(r));
+  if (!(pers.data || []).length) addFilaPersonal();
+  calcViaticos();
+}
+
+function buscarProductoLog() {
+  const inp = $('log-buscar-prod');
+  const q = inp.value.toLowerCase().trim();
+  let box = $('log-sug-box');
+  if (!box) {
+    box = document.createElement('div');
+    box.id = 'log-sug-box';
+    box.style.cssText = 'position:absolute;background:var(--black2);border:1px solid var(--border2);border-radius:8px;max-height:260px;overflow-y:auto;z-index:200;box-shadow:0 8px 24px rgba(0,0,0,.5);min-width:260px';
+    document.body.appendChild(box);
+  }
+  if (q.length < 2) { box.style.display = 'none'; return; }
+
+  const hits = PRODUCTOS.filter(p => (p.concepto||'').toLowerCase().includes(q) || (p.categoria||'').toLowerCase().includes(q)).slice(0, 12);
+  if (!hits.length) { box.style.display = 'none'; return; }
+
+  const r = inp.getBoundingClientRect();
+  box.style.left = (r.left + window.scrollX) + 'px';
+  box.style.top  = (r.bottom + window.scrollY + 4) + 'px';
+  box.style.width = Math.max(r.width, 260) + 'px';
+  box.style.display = 'block';
+  box.innerHTML = hits.map(p =>
+    '<div onclick="seleccionarProductoLog(' + p.id + ')" style="padding:7px 11px;cursor:pointer;font-size:12px;border-bottom:1px solid rgba(255,255,255,.04)" onmouseover="this.style.background=\'rgba(67,189,237,.09)\'" onmouseout="this.style.background=\'\'">'
+    + '<div style="color:var(--w2)">' + esc(p.concepto) + '</div>'
+    + '<div style="font-size:10px;color:var(--w4)">' + esc(p.categoria||'') + ' · ' + (p.dueno === 'Blast' ? (p.inventario !== null ? p.inventario + ' disponibles' : 'propio') : 'externo') + '</div>'
+    + '</div>'
+  ).join('');
+}
+
+function seleccionarProductoLog(id) {
+  const p = PRODUCTOS.find(x => x.id === id);
+  if (!p) return;
+  addFilaInvLog({producto_id: p.id, concepto: p.concepto, categoria: p.categoria, cantidad: 1, estado: 'Pendiente'});
+  $('log-buscar-prod').value = '';
+  const box = $('log-sug-box');
+  if (box) box.style.display = 'none';
+}
+
+document.addEventListener('click', e => {
+  if (!e.target.closest('#log-buscar-prod') && !e.target.closest('#log-sug-box')) {
+    const box = $('log-sug-box');
+    if (box) box.style.display = 'none';
+  }
+});
+
+const ESTADOS_INV = ['Pendiente','Cargado','En sitio','Devuelto'];
+
+function addFilaInvLog(d) {
+  d = d || {};
+  const vacio = $('log-inv-vacio');
+  if (vacio) vacio.remove();
+  const tr = document.createElement('tr');
+  tr.className = 'log-inv-fila';
+  tr.dataset.productoId = d.producto_id || '';
+  tr.innerHTML =
+      '<td style="font-weight:600"><span class="li-concepto">' + esc(d.concepto || '') + '</span></td>'
+    + '<td style="color:var(--w4)"><span class="li-cat">' + esc(d.categoria || '—') + '</span></td>'
+    + '<td style="text-align:center"><input type="number" class="li-cant" value="' + (d.cantidad || 1) + '" min="1" style="width:66px;padding:3px 6px;font-size:11px;text-align:center"></td>'
+    + '<td><select class="li-estado" style="width:100%;padding:3px 5px;font-size:11px">'
+    +   ESTADOS_INV.map(s => '<option' + (s === (d.estado||'Pendiente') ? ' selected' : '') + '>' + s + '</option>').join('')
+    + '</select></td>'
+    + '<td><input type="text" class="li-notas" value="' + esc(d.notas || '') + '" placeholder="Opcional" style="width:100%;padding:3px 6px;font-size:11px"></td>'
+    + '<td style="text-align:center"><button onclick="this.closest(\'tr\').remove()" style="background:none;border:none;color:var(--w4);cursor:pointer"><i class="ti ti-x"></i></button></td>';
+  $('log-inv-tbody').appendChild(tr);
+}
+
+const ROLES_STAFF = ['Operador de sonido','Operador de iluminación','Operador de video','VJ','DJ','Montaje','Coordinador','Transporte','Asistente'];
+
+function addFilaPersonal(d) {
+  d = d || {};
+  const tr = document.createElement('tr');
+  tr.className = 'log-pers-fila';
+  tr.innerHTML =
+      '<td><input type="text" class="lp-nombre" value="' + esc(d.nombre || '') + '" placeholder="Nombre" style="width:100%;padding:3px 6px;font-size:11px"></td>'
+    + '<td><input type="text" class="lp-rol" list="lp-roles" value="' + esc(d.rol || '') + '" placeholder="Rol" style="width:100%;padding:3px 6px;font-size:11px"></td>'
+    + '<td style="text-align:center"><input type="checkbox" class="lp-asistio" ' + (d.asistio === false ? '' : 'checked') + ' style="accent-color:var(--green)"></td>'
+    + '<td><input type="number" class="lp-viaticos" value="' + (d.viaticos || '') + '" placeholder="0" oninput="calcViaticos()" style="width:100%;padding:3px 6px;font-size:11px;text-align:right"></td>'
+    + '<td><input type="text" class="lp-detalle" value="' + esc(d.detalle || '') + '" placeholder="Qué hizo en el evento" style="width:100%;padding:3px 6px;font-size:11px"></td>'
+    + '<td style="text-align:center"><button onclick="this.closest(\'tr\').remove();calcViaticos()" style="background:none;border:none;color:var(--w4);cursor:pointer"><i class="ti ti-x"></i></button></td>';
+  $('log-pers-tbody').appendChild(tr);
+  if (!$('lp-roles')) {
+    const dl = document.createElement('datalist');
+    dl.id = 'lp-roles';
+    dl.innerHTML = ROLES_STAFF.map(r => '<option value="' + r + '">').join('');
+    document.body.appendChild(dl);
+  }
+}
+
+function calcViaticos() {
+  let tot = 0;
+  document.querySelectorAll('.log-pers-fila .lp-viaticos').forEach(i => tot += parseFloat(i.value) || 0);
+  if ($('log-tot-viaticos')) $('log-tot-viaticos').textContent = fmt(tot);
+}
+
+async function guardarLogistica() {
+  const cod = _logEventoActual;
+  if (!cod) { alert('Selecciona un evento primero.'); return; }
+
+  const inv = Array.from(document.querySelectorAll('.log-inv-fila')).map(tr => ({
+    codigo_evento: cod,
+    producto_id: tr.dataset.productoId ? parseInt(tr.dataset.productoId) : null,
+    concepto:  tr.querySelector('.li-concepto').textContent,
+    categoria: tr.querySelector('.li-cat').textContent,
+    cantidad:  parseInt(tr.querySelector('.li-cant').value) || 1,
+    estado:    tr.querySelector('.li-estado').value,
+    notas:     tr.querySelector('.li-notas').value.trim() || null
+  }));
+
+  const pers = Array.from(document.querySelectorAll('.log-pers-fila'))
+    .map(tr => ({
+      codigo_evento: cod,
+      nombre:   tr.querySelector('.lp-nombre').value.trim(),
+      rol:      tr.querySelector('.lp-rol').value.trim() || null,
+      asistio:  tr.querySelector('.lp-asistio').checked,
+      viaticos: parseFloat(tr.querySelector('.lp-viaticos').value) || 0,
+      detalle:  tr.querySelector('.lp-detalle').value.trim() || null,
+      reportado_por: (window.CURRENT_USER && CURRENT_USER.nombre) || null
+    }))
+    .filter(p => p.nombre);
+
+  await supa.from('evento_inventario').delete().eq('codigo_evento', cod);
+  await supa.from('evento_personal').delete().eq('codigo_evento', cod);
+
+  let err = null;
+  if (inv.length)  { const r = await supa.from('evento_inventario').insert(inv);  if (r.error) err = r.error; }
+  if (pers.length) { const r = await supa.from('evento_personal').insert(pers);   if (r.error) err = r.error; }
+
+  if (err) { alert('No se pudo guardar: ' + err.message); return; }
+  alert('\u2713 Logística guardada: ' + inv.length + ' equipos y ' + pers.length + ' personas.');
 }
 
 // ─── GRÁFICO: comparación mensual año contra año ───
@@ -3895,6 +4560,14 @@ document.querySelectorAll('.ni').forEach(btn => {
 // ─── INIT (called after login) ───
 async function init() {
   initDarkMode();
+
+  // Personal de eventos: solo carga lo necesario para su portal
+  if (CURRENT_USER.rol !== 'socio') {
+    await cargarTX();
+    llenarSelectEventosStaff();
+    return;
+  }
+
   const now = new Date();
   $('dash-date').textContent = 'Al ' + now.toLocaleDateString('es-VE', {day:'numeric', month:'long', year:'numeric'});
   loadBCV();
@@ -3902,6 +4575,7 @@ async function init() {
   await cargarTX();
   await Promise.all([cargarClientesDB(), cargarHistorial(), cargarPlantillas()]);
   await cargarProveedores();
+  await cargarProductos();
 }
 
 
@@ -3909,6 +4583,7 @@ async function init() {
 function selectUser(email, nombre, initials) {
   $('login-step1').style.display = 'none';
   $('login-step2').style.display = 'block';
+  const w = $('login-email-wrap'); if (w) w.style.display = 'none';
   $('login-email').value = email;
   $('login-sel-name').textContent = nombre;
   const colors = {GB:'rgba(67,189,237,.15)',EB:'rgba(234,95,242,.15)',FM:'rgba(244,169,61,.15)'};
@@ -3920,9 +4595,23 @@ function selectUser(email, nombre, initials) {
   setTimeout(() => $('login-pass').focus(), 100);
 }
 
+function selectUserOtro() {
+  $('login-step1').style.display = 'none';
+  $('login-step2').style.display = 'block';
+  $('login-email-wrap').style.display = 'block';
+  $('login-email').value = '';
+  $('login-sel-name').textContent = 'Personal de eventos';
+  const av = $('login-sel-avatar');
+  av.innerHTML = '<i class="ti ti-user"></i>';
+  av.style.background = 'rgba(255,255,255,.06)';
+  av.style.color = 'var(--w4)';
+  setTimeout(() => $('login-email').focus(), 100);
+}
+
 function backToUsers() {
   $('login-step1').style.display = 'block';
   $('login-step2').style.display = 'none';
+  const w = $('login-email-wrap'); if (w) w.style.display = 'none';
   $('login-error').style.display = 'none';
   $('login-pass').value = '';
 }
@@ -3953,13 +4642,20 @@ async function doLogin() {
   onLogin(data.user);
 }
 
-function onLogin(user) {
-  const nombre = ALLOWED_EMAILS[user.email.toLowerCase()] || user.email;
-  $('user-name').textContent = nombre;
+async function onLogin(user) {
+  const email = user.email.toLowerCase();
+  const info  = await resolverRol(email);
+  CURRENT_USER = {email, nombre: info.nombre, rol: info.rol};
+
+  $('user-name').textContent = info.nombre;
   $('login-screen').style.display = 'none';
-  // Update "Responsable" defaults to logged user
-  const respSelects = ['tx-resp', 'cresp'];
-  respSelects.forEach(id => { const el = $(id); if(el) el.value = nombre; });
+
+  aplicarPermisos();
+  vistaInicial();
+
+  if (info.rol === 'socio') {
+    ['tx-resp','cresp'].forEach(id => { const el = $(id); if(el) el.value = info.nombre; });
+  }
   init();
 }
 
