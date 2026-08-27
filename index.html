@@ -253,7 +253,7 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
         </button>
         <button class="login-user-btn" onclick="selectUserOtro()" style="border-style:dashed">
           <div class="login-avatar" style="background:rgba(255,255,255,.06);color:var(--w4)"><i class="ti ti-user"></i></div>
-          <div><div style="font-size:13px;font-weight:600;color:var(--w3)">Otro usuario</div><div style="font-size:10px;color:var(--w4)">Personal de eventos</div></div>
+          <div><div style="font-size:13px;font-weight:600;color:var(--w3)">Otro usuario</div><div style="font-size:10px;color:var(--w4)">Entrar con usuario y contraseña</div></div>
         </button>
       </div>
     </div>
@@ -329,6 +329,9 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
   <div class="ndiv"></div>
   <div class="nlabel">Reportes</div>
   <button class="ni" onclick="sv('estadisticas',this)"><i class="ti ti-chart-bar"></i>Estadísticas</button>
+  <div class="ndiv"></div>
+  <div class="nlabel">Sistema</div>
+  <button class="ni" onclick="sv('admin',this)"><i class="ti ti-shield-lock"></i>Administración</button>
   <div class="nav-bottom">
     <div class="ndiv"></div>
     <button class="ni" style="color:var(--w4)"><i class="ti ti-settings"></i>Configuración</button>
@@ -691,6 +694,30 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
   </div>
 </div>
 
+<!-- ADMINISTRACIÓN · usuarios y permisos -->
+<div id="v-admin" class="view">
+  <div class="ph">
+    <div><div class="aline"></div><div class="ptitle">Administración</div><div class="psub" id="adm-sub">Usuarios, roles y permisos</div></div>
+    <button class="btn btn-blue btn-sm" onclick="abrirModalUsuario(null)"><i class="ti ti-user-plus"></i>Nuevo usuario</button>
+  </div>
+
+  <div class="card np">
+    <div class="twrap"><table>
+      <thead><tr><th>Nombre</th><th>Usuario</th><th>Rol</th><th>Accesos</th><th style="text-align:center">Activo</th><th></th></tr></thead>
+      <tbody id="adm-tbody"><tr><td colspan="6" style="color:var(--w4);text-align:center;padding:18px">Cargando...</td></tr></tbody>
+    </table></div>
+  </div>
+
+  <div class="card" style="margin-top:13px;padding:14px 17px">
+    <div style="font-size:9px;color:var(--w4);letter-spacing:1.5px;text-transform:uppercase;font-weight:600;margin-bottom:8px">Cómo funcionan los roles</div>
+    <div style="font-size:12px;color:var(--w3);line-height:1.7">
+      <b style="color:var(--blue)">Administrador</b> ve todo el sistema y es el único que puede crear usuarios y cambiar permisos.<br>
+      <b style="color:var(--green)">Socio</b> ve todo el sistema excepto esta pestaña de administración.<br>
+      <b style="color:var(--orange)">Personal</b> ve solo lo que le asignes. Por defecto, el portal de eventos sin información económica.
+    </div>
+  </div>
+</div>
+
 <!-- PORTAL STAFF · vista sin información económica -->
 <div id="v-staff" class="view">
   <div class="ph">
@@ -758,13 +785,14 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
   <div class="btn-row" style="margin-bottom:13px">
     <select id="f-inv-cat" style="width:auto;padding:5px 9px;font-size:12px" onchange="renderInventario()"><option value="">Todas las categorías</option></select>
     <select id="f-inv-dueno" style="width:auto;padding:5px 9px;font-size:12px" onchange="renderInventario()"><option value="">Blast y externos</option><option>Blast</option><option>Externo</option></select>
+    <select id="f-inv-tipo" style="width:auto;padding:5px 9px;font-size:12px" onchange="renderInventario()"><option value="">Cotizable y montaje</option><option value="Cotizable">Solo cotizable</option><option value="Montaje">Solo montaje</option></select>
     <input id="f-inv-q" type="text" placeholder="Buscar producto..." style="width:220px;padding:5px 9px;font-size:12px" oninput="renderInventario()">
   </div>
 
   <div class="card np">
     <div class="twrap"><table>
-      <thead><tr><th>Producto</th><th>Categoría</th><th>Dueño</th><th style="text-align:center">Inventario</th><th style="text-align:right">Costo</th><th style="text-align:right">Precio</th><th style="text-align:right">Margen</th><th></th></tr></thead>
-      <tbody id="inv-tbody"><tr><td colspan="8" style="color:var(--w4);text-align:center;padding:18px">Cargando...</td></tr></tbody>
+      <thead><tr><th>Producto</th><th>Categoría</th><th>Uso</th><th>Dueño</th><th style="text-align:center">Inv.</th><th style="text-align:right">Costo</th><th style="text-align:right">Precio</th><th style="text-align:right">Margen</th><th></th></tr></thead>
+      <tbody id="inv-tbody"><tr><td colspan="9" style="color:var(--w4);text-align:center;padding:18px">Cargando...</td></tr></tbody>
     </table></div>
   </div>
 </div>
@@ -792,6 +820,8 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
         <div class="ctitle" style="margin-bottom:0">Equipos del evento</div>
         <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
           <input id="log-buscar-prod" type="text" placeholder="Buscar equipo para añadir..." style="width:230px;padding:5px 9px;font-size:12px" oninput="buscarProductoLog()" autocomplete="off">
+          <button class="btn btn-ghost btn-sm" style="padding:4px 9px;font-size:11px" onclick="abrirSelectorMontaje()"><i class="ti ti-checkbox"></i>Lista de montaje</button>
+          <button class="btn btn-ghost btn-sm" style="padding:4px 9px;font-size:11px" onclick="imprimirListaCarga()"><i class="ti ti-printer"></i>Imprimir</button>
           <div id="log-sug" style="display:none;position:absolute;z-index:50"></div>
         </div>
       </div>
@@ -1006,6 +1036,76 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
 </div>
 
 <!-- MODAL: NUEVO EVENTO (CHECKLIST) -->
+<!-- MODAL: SELECTOR LISTA DE MONTAJE -->
+<div class="modal-bg" id="modal-montaje">
+  <div class="modal" style="width:min(880px,96vw);max-height:92vh;overflow-y:auto">
+    <div class="modal-title"><i class="ti ti-checkbox" style="color:var(--blue)"></i> Armar lista de montaje</div>
+    <div style="font-size:12px;color:var(--w4);margin-bottom:12px">Marca los equipos que se llevan al evento. Los que ya están en la lista aparecen marcados.</div>
+
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap">
+      <input id="mm-buscar" type="text" placeholder="Filtrar equipos..." style="width:230px;padding:5px 9px;font-size:12px" oninput="renderSelectorMontaje()">
+      <select id="mm-cat" style="width:auto;padding:5px 9px;font-size:12px" onchange="renderSelectorMontaje()"><option value="">Todas las categorías</option></select>
+      <span style="font-size:11px;color:var(--w4);margin-left:auto">Seleccionados: <b id="mm-count" style="color:var(--blue)">0</b></span>
+    </div>
+
+    <div id="mm-lista" style="max-height:52vh;overflow-y:auto"></div>
+
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="document.getElementById('modal-montaje').classList.remove('show')">Cancelar</button>
+      <button class="btn btn-blue" onclick="aplicarListaMontaje()"><i class="ti ti-check"></i>Agregar a la lista</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: USUARIO -->
+<div class="modal-bg" id="modal-usuario">
+  <div class="modal" style="width:620px;max-height:92vh;overflow-y:auto">
+    <div class="modal-title" id="mu-title">Nuevo usuario</div>
+    <input type="hidden" id="mu-email-original">
+
+    <div class="fg" style="margin-bottom:11px">
+      <div class="fgrp"><label class="flabel">Nombre completo</label><input type="text" id="mu-nombre" placeholder="Luis García" oninput="sugerirUsuario()"></div>
+      <div class="fgrp"><label class="flabel">Usuario para entrar</label><input type="text" id="mu-usuario" placeholder="luisgarcia" autocomplete="off"></div>
+    </div>
+
+    <div class="fg" style="margin-bottom:11px">
+      <div class="fgrp"><label class="flabel">Rol</label>
+        <select id="mu-rol" onchange="rolCambiado()">
+          <option value="staff">Personal de eventos</option>
+          <option value="socio">Socio</option>
+          <option value="admin">Administrador</option>
+        </select>
+      </div>
+      <div class="fgrp"><label class="flabel" id="mu-pass-label">Contraseña</label><input type="text" id="mu-pass" placeholder="Mínimo 6 caracteres"></div>
+    </div>
+
+    <div id="mu-permisos-wrap" style="margin-bottom:11px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:7px">
+        <label class="flabel" style="margin:0">Qué puede ver este usuario</label>
+        <div style="display:flex;gap:6px">
+          <button class="btn btn-ghost btn-sm" style="padding:2px 8px;font-size:10px" onclick="marcarPermisos(true)">Todo</button>
+          <button class="btn btn-ghost btn-sm" style="padding:2px 8px;font-size:10px" onclick="marcarPermisos(false)">Ninguno</button>
+        </div>
+      </div>
+      <div id="mu-permisos" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(178px,1fr));gap:5px"></div>
+    </div>
+
+    <div class="fgrp" style="margin-bottom:11px">
+      <label style="display:flex;align-items:center;gap:7px;font-size:12px;color:var(--w3);cursor:pointer">
+        <input type="checkbox" id="mu-activo" checked style="accent-color:var(--green)"> Usuario activo
+      </label>
+    </div>
+
+    <div id="mu-hint" style="font-size:11px;color:var(--w4);background:var(--black3);padding:9px 12px;border-radius:7px;margin-bottom:6px"></div>
+
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="document.getElementById('modal-usuario').classList.remove('show')">Cancelar</button>
+      <button class="btn btn-ghost" id="mu-del" style="color:var(--red);display:none" onclick="eliminarUsuario()"><i class="ti ti-trash"></i>Eliminar</button>
+      <button class="btn btn-blue" onclick="guardarUsuario()"><i class="ti ti-check"></i>Guardar</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL: PRODUCTO -->
 <div class="modal-bg" id="modal-producto">
   <div class="modal" style="width:560px">
@@ -1015,6 +1115,7 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
     <div class="fg" style="margin-bottom:11px">
       <div class="fgrp"><label class="flabel">Categoría</label><input type="text" id="mp-categoria" list="mp-cats" placeholder="Sonido"><datalist id="mp-cats"></datalist></div>
       <div class="fgrp"><label class="flabel">Dueño</label><select id="mp-dueno" onchange="toggleInvField()"><option>Blast</option><option>Externo</option></select></div>
+      <div class="fgrp"><label class="flabel">Uso</label><select id="mp-tipo"><option value="Cotizable">Cotizable</option><option value="Montaje">Montaje</option><option value="Ambos">Ambos</option></select></div>
     </div>
     <div class="fg" style="margin-bottom:11px">
       <div class="fgrp" id="mp-inv-wrap"><label class="flabel">Unidades en inventario</label><input type="number" id="mp-inventario" placeholder="0"></div>
@@ -1250,6 +1351,7 @@ function sv(id, btn) {
   if (id === 'inventario')   { if (!PRODUCTOS.length) cargarProductos(); else renderInventario(); }
   if (id === 'logistica')    { llenarSelectEventosLog(); if (!PRODUCTOS.length) cargarProductos(); }
   if (id === 'staff')        llenarSelectEventosStaff();
+  if (id === 'admin')        cargarUsuarios();
   if (id === 'dashboard')    renderDashboard();
 }
 
@@ -2124,48 +2226,425 @@ function renderEstadisticas() {
 }
 
 // ═══════════════════════════════════════════════════════════
+// ADMINISTRACIÓN · usuarios, roles y permisos
+// ═══════════════════════════════════════════════════════════
+
+// Dominio interno para usuarios sin correo real
+const DOMINIO_INTERNO = 'blast.local';
+
+// Catálogo de vistas asignables
+const VISTAS = [
+  {id:'staff',        nombre:'Portal de eventos',   grupo:'Personal'},
+  {id:'dashboard',    nombre:'Dashboard',           grupo:'Principal'},
+  {id:'eventos',      nombre:'Eventos',             grupo:'Principal'},
+  {id:'registro',     nombre:'Registro',            grupo:'Principal'},
+  {id:'pendientes',   nombre:'Cuentas pendientes',  grupo:'Principal'},
+  {id:'balance',      nombre:'Balance',             grupo:'Principal'},
+  {id:'estimador',    nombre:'Estimador',           grupo:'Gestión'},
+  {id:'cotizacion',   nombre:'Cotizaciones',        grupo:'Gestión'},
+  {id:'historial',    nombre:'Historial',           grupo:'Gestión'},
+  {id:'socios',       nombre:'Socios',              grupo:'Gestión'},
+  {id:'clientes',     nombre:'Clientes',            grupo:'Gestión'},
+  {id:'proveedores',  nombre:'Proveedores',         grupo:'Gestión'},
+  {id:'inventario',   nombre:'Inventario',          grupo:'Logística'},
+  {id:'logistica',    nombre:'Logística evento',    grupo:'Logística'},
+  {id:'estadisticas', nombre:'Estadísticas',        grupo:'Reportes'},
+];
+
+// Permisos por defecto según rol
+const PERMISOS_DEFECTO = {
+  admin: VISTAS.map(v => v.id).concat('admin'),
+  socio: VISTAS.map(v => v.id).filter(v => v !== 'staff'),
+  staff: ['staff']
+};
+
+let USUARIOS = [];
+
+// Convierte lo que escriba el usuario en un email válido para Supabase
+function normalizarLogin(entrada) {
+  const v = (entrada || '').trim().toLowerCase();
+  if (!v) return '';
+  return v.includes('@') ? v : v + '@' + DOMINIO_INTERNO;
+}
+
+async function cargarUsuarios() {
+  const {data, error} = await supa.from('usuarios').select('*').order('rol').order('nombre');
+  if (error) { console.error('Error cargando usuarios:', error); return; }
+  USUARIOS = data || [];
+  renderUsuarios();
+}
+
+function renderUsuarios() {
+  const tbody = $('adm-tbody');
+  if (!tbody) return;
+  if (!USUARIOS.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="color:var(--w4);text-align:center;padding:18px">Sin usuarios. Ejecuta el SQL del módulo administrador.</td></tr>';
+    return;
+  }
+  if ($('adm-sub')) $('adm-sub').textContent = USUARIOS.length + ' usuarios registrados';
+
+  const badgeRol = r => r === 'admin'
+    ? '<span class="badge b-blue">Administrador</span>'
+    : r === 'socio' ? '<span class="badge b-green">Socio</span>'
+    : '<span class="badge b-orange">Personal</span>';
+
+  tbody.innerHTML = USUARIOS.map(u => {
+    const permisos = Array.isArray(u.permisos) && u.permisos.length ? u.permisos : (PERMISOS_DEFECTO[u.rol] || []);
+    const resumen = u.rol === 'admin' ? 'Todo el sistema'
+      : permisos.length >= VISTAS.length - 1 ? 'Todo el sistema'
+      : permisos.length + ' pestaña' + (permisos.length === 1 ? '' : 's');
+    const login = u.usuario || (u.email || '').split('@')[0];
+    return '<tr>'
+      + '<td style="font-weight:600">' + esc(u.nombre || '—') + '</td>'
+      + '<td class="mono" style="color:var(--w3)">' + esc(login) + '</td>'
+      + '<td>' + badgeRol(u.rol) + '</td>'
+      + '<td style="color:var(--w4);font-size:11px">' + resumen + '</td>'
+      + '<td style="text-align:center">' + (u.activo === false ? '<span style="color:var(--red)">✕</span>' : '<span style="color:var(--green)">✓</span>') + '</td>'
+      + '<td><button class="btn btn-ghost btn-sm" style="padding:2px 7px;font-size:10px" onclick="abrirModalUsuario(\'' + esc(u.email) + '\')"><i class="ti ti-pencil"></i></button></td>'
+      + '</tr>';
+  }).join('');
+}
+
+function sugerirUsuario() {
+  const inp = $('mu-usuario');
+  if (inp.dataset.tocado === 'true') return;
+  const nom = $('mu-nombre').value.trim().toLowerCase();
+  if (!nom) { inp.value = ''; return; }
+  inp.value = nom.normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+                 .replace(/[^a-z0-9\s]/g,'').split(/\s+/).filter(Boolean).join('').slice(0,20);
+}
+
+function rolCambiado() {
+  const rol = $('mu-rol').value;
+  const wrap = $('mu-permisos-wrap');
+  wrap.style.display = rol === 'admin' ? 'none' : 'block';
+  if (rol !== 'admin') pintarPermisos(PERMISOS_DEFECTO[rol] || []);
+  actualizarHint();
+}
+
+function pintarPermisos(sel) {
+  const cont = $('mu-permisos');
+  const grupos = {};
+  VISTAS.forEach(v => { (grupos[v.grupo] = grupos[v.grupo] || []).push(v); });
+  cont.innerHTML = Object.entries(grupos).map(([g, vs]) =>
+    '<div style="grid-column:1/-1;font-size:9px;color:var(--w4);letter-spacing:1.2px;text-transform:uppercase;margin-top:6px">' + g + '</div>'
+    + vs.map(v =>
+        '<label style="display:flex;align-items:center;gap:7px;padding:5px 9px;background:var(--black3);border-radius:6px;font-size:11px;color:var(--w3);cursor:pointer">'
+        + '<input type="checkbox" class="mu-perm" value="' + v.id + '"' + (sel.includes(v.id) ? ' checked' : '') + ' style="accent-color:var(--blue)">'
+        + v.nombre + '</label>'
+      ).join('')
+  ).join('');
+}
+
+function marcarPermisos(todos) {
+  document.querySelectorAll('.mu-perm').forEach(ch => ch.checked = todos);
+}
+
+function actualizarHint() {
+  const rol = $('mu-rol').value;
+  const usr = $('mu-usuario').value.trim() || 'usuario';
+  const esNuevo = !$('mu-email-original').value;
+  const h = $('mu-hint');
+  if (rol === 'admin') {
+    h.innerHTML = 'El administrador ve todo el sistema, incluida esta pestaña.';
+  } else {
+    h.innerHTML = 'Entrará con el usuario <b style="color:var(--w2)">' + esc(usr) + '</b>'
+      + (esNuevo ? ' y la contraseña que escribas arriba.' : '. Deja la contraseña vacía para no cambiarla.');
+  }
+}
+
+function abrirModalUsuario(email) {
+  const u = email ? USUARIOS.find(x => x.email === email) : null;
+  $('mu-title').textContent = u ? 'Editar usuario' : 'Nuevo usuario';
+  $('mu-email-original').value = u ? u.email : '';
+  $('mu-nombre').value  = u ? (u.nombre || '') : '';
+  $('mu-usuario').value = u ? (u.usuario || (u.email||'').split('@')[0]) : '';
+  $('mu-usuario').dataset.tocado = u ? 'true' : 'false';
+  $('mu-rol').value     = u ? (u.rol || 'staff') : 'staff';
+  $('mu-pass').value    = '';
+  $('mu-pass').placeholder = u ? 'Dejar vacío para no cambiarla' : 'Mínimo 6 caracteres';
+  $('mu-activo').checked = u ? u.activo !== false : true;
+  $('mu-del').style.display = (u && u.email !== CURRENT_USER.email) ? 'inline-flex' : 'none';
+
+  const permisos = u && Array.isArray(u.permisos) && u.permisos.length
+    ? u.permisos
+    : PERMISOS_DEFECTO[(u && u.rol) || 'staff'] || [];
+  pintarPermisos(permisos);
+  rolCambiado();
+  $('modal-usuario').classList.add('show');
+  setTimeout(() => $('mu-nombre').focus(), 120);
+}
+
+async function guardarUsuario() {
+  const nombre  = $('mu-nombre').value.trim();
+  const usuario = $('mu-usuario').value.trim().toLowerCase();
+  const rol     = $('mu-rol').value;
+  const pass    = $('mu-pass').value;
+  const activo  = $('mu-activo').checked;
+  const original= $('mu-email-original').value;
+
+  if (!nombre)  { alert('El nombre es obligatorio.'); return; }
+  if (!usuario) { alert('El usuario para entrar es obligatorio.'); return; }
+  if (!/^[a-z0-9._-]+$/.test(usuario) && !usuario.includes('@')) {
+    alert('El usuario solo puede tener letras, números, punto, guion y guion bajo.'); return;
+  }
+
+  const email = normalizarLogin(usuario);
+  const permisos = rol === 'admin'
+    ? null
+    : Array.from(document.querySelectorAll('.mu-perm:checked')).map(ch => ch.value);
+
+  if (rol !== 'admin' && (!permisos || !permisos.length)) {
+    alert('Marca al menos una pestaña que este usuario pueda ver.'); return;
+  }
+
+  // Usuario nuevo: crear cuenta en Supabase Auth
+  if (!original) {
+    if (!pass || pass.length < 6) { alert('La contraseña debe tener al menos 6 caracteres.'); return; }
+    const sesion = (await supa.auth.getSession()).data.session;
+    const {error: errSignUp} = await supa.auth.signUp({email, password: pass});
+    if (sesion) await supa.auth.setSession(sesion);   // recupera la sesión del admin
+    if (errSignUp && !/already registered/i.test(errSignUp.message)) {
+      alert('No se pudo crear la cuenta: ' + errSignUp.message); return;
+    }
+  } else if (pass) {
+    alert('Para cambiar la contraseña de un usuario existente, hazlo desde Supabase → Authentication → Users.\n\nLos demás cambios sí se guardarán.');
+  }
+
+  const fila = {email, nombre, usuario, rol, permisos, activo};
+  const {error} = original && original !== email
+    ? await supa.from('usuarios').update(fila).eq('email', original)
+    : await supa.from('usuarios').upsert(fila, {onConflict:'email'});
+
+  if (error) { alert('No se pudo guardar: ' + error.message); return; }
+
+  $('modal-usuario').classList.remove('show');
+  await cargarUsuarios();
+  alert('\u2713 Usuario guardado.');
+}
+
+async function eliminarUsuario() {
+  const email = $('mu-email-original').value;
+  if (!email) return;
+  if (email === CURRENT_USER.email) { alert('No puedes eliminar tu propio usuario.'); return; }
+  if (!confirm('¿Quitar el acceso de este usuario al sistema?')) return;
+  const {error} = await supa.from('usuarios').delete().eq('email', email);
+  if (error) { alert('No se pudo eliminar: ' + error.message); return; }
+  $('modal-usuario').classList.remove('show');
+  await cargarUsuarios();
+}
+
+// ═══════════════════════════════════════════════════════════
 // CONTROL DE ACCESO POR ROL
 // ═══════════════════════════════════════════════════════════
-let CURRENT_USER = {email:'', nombre:'', rol:'socio'};
+let CURRENT_USER = {email:'', nombre:'', rol:'socio', permisos:[]};
 
 // Vistas visibles para personal de eventos
 const NAV_STAFF = ['staff'];
 
 async function resolverRol(email) {
   try {
-    const {data} = await supa.from('usuarios').select('nombre,rol,activo').eq('email', email).maybeSingle();
-    if (data && data.activo !== false) return {nombre: data.nombre || email, rol: data.rol || 'staff'};
+    const {data} = await supa.from('usuarios').select('nombre,rol,activo,permisos').eq('email', email).maybeSingle();
+    if (data && data.activo !== false) {
+      const rol = data.rol || 'staff';
+      const permisos = Array.isArray(data.permisos) && data.permisos.length
+        ? data.permisos
+        : (PERMISOS_DEFECTO[rol] || ['staff']);
+      return {nombre: data.nombre || email, rol, permisos};
+    }
+    if (data && data.activo === false) return {bloqueado: true};
   } catch(e) { console.warn('No se pudo leer rol:', e); }
-  // Fallback: los 3 socios hardcodeados siguen entrando aunque falle la tabla
-  if (ALLOWED_EMAILS[email]) return {nombre: ALLOWED_EMAILS[email], rol: 'socio'};
-  return {nombre: email, rol: 'staff'};
+  // Respaldo: los socios originales entran aunque falle la tabla
+  if (ALLOWED_EMAILS[email]) {
+    const rol = email === 'gustavobricenob@gmail.com' ? 'admin' : 'socio';
+    return {nombre: ALLOWED_EMAILS[email], rol, permisos: PERMISOS_DEFECTO[rol]};
+  }
+  return {nombre: email, rol: 'staff', permisos: ['staff']};
 }
 
 function aplicarPermisos() {
-  const esSocio = CURRENT_USER.rol === 'socio';
+  const rol = CURRENT_USER.rol;
+  const permitidas = rol === 'admin'
+    ? VISTAS.map(v => v.id).concat('admin')
+    : (CURRENT_USER.permisos || []);
+
   document.querySelectorAll('nav.nav .ni').forEach(btn => {
     const m = (btn.getAttribute('onclick') || '').match(/sv\('([\w-]+)'/);
-    if (!m) return;
-    const vista = m[1];
-    const permitido = esSocio ? vista !== 'staff' : NAV_STAFF.includes(vista);
-    btn.style.display = permitido ? '' : 'none';
+    if (!m) { return; }
+    btn.style.display = permitidas.includes(m[1]) ? '' : 'none';
   });
-  // Oculta separadores de secciones vacías cuando es staff
-  if (!esSocio) {
-    document.querySelectorAll('nav.nav .nlabel, nav.nav .ndiv').forEach(el => el.style.display = 'none');
-    const chip = $('user-chip');
-    if (chip) chip.title = 'Personal de eventos';
-  }
+
+  // Oculta títulos de sección que quedaron sin botones visibles
+  const nav = document.querySelector('nav.nav');
+  if (!nav) return;
+  const hijos = Array.from(nav.children);
+  hijos.forEach((el, idx) => {
+    if (!el.classList.contains('nlabel')) return;
+    let visibles = 0;
+    for (let j = idx + 1; j < hijos.length; j++) {
+      const h = hijos[j];
+      if (h.classList.contains('nlabel') || h.classList.contains('nav-bottom')) break;
+      if (h.classList.contains('ni') && h.style.display !== 'none') visibles++;
+    }
+    el.style.display = visibles ? '' : 'none';
+  });
 }
 
 function vistaInicial() {
-  const id  = CURRENT_USER.rol === 'socio' ? 'dashboard' : 'staff';
+  const p = CURRENT_USER.permisos || [];
+  const id = (CURRENT_USER.rol === 'admin' || p.includes('dashboard')) ? 'dashboard'
+           : (p[0] || 'staff');
   const btn = document.querySelector('nav.nav .ni[onclick*="sv(\'' + id + '\'"]');
   document.querySelectorAll('.view').forEach(v => v.classList.remove('on'));
   document.querySelectorAll('nav.nav .ni').forEach(b => b.classList.remove('on'));
   const view = $('v-' + id);
   if (view) view.classList.add('on');
   if (btn)  btn.classList.add('on');
+}
+
+// ─── SELECTOR DE LISTA DE MONTAJE ───
+function productosMontaje() {
+  return PRODUCTOS.filter(p => {
+    const t = p.tipo_uso || 'Cotizable';
+    return t === 'Montaje' || t === 'Ambos';
+  });
+}
+
+function abrirSelectorMontaje() {
+  if (!_logEventoActual) { alert('Selecciona un evento primero.'); return; }
+  const cats = [...new Set(productosMontaje().map(p => p.categoria).filter(Boolean))].sort();
+  $('mm-cat').innerHTML = '<option value="">Todas las categorías</option>' + cats.map(x => '<option>' + esc(x) + '</option>').join('');
+  $('mm-buscar').value = '';
+  renderSelectorMontaje();
+  $('modal-montaje').classList.add('show');
+}
+
+function renderSelectorMontaje() {
+  const q   = $('mm-buscar').value.toLowerCase().trim();
+  const cat = $('mm-cat').value;
+
+  // Equipos que ya están en la lista del evento
+  const yaEstan = {};
+  document.querySelectorAll('.log-inv-fila').forEach(tr => {
+    yaEstan[tr.querySelector('.li-concepto').textContent] = parseInt(tr.querySelector('.li-cant').value) || 1;
+  });
+
+  let items = productosMontaje().filter(p => {
+    if (cat && p.categoria !== cat) return false;
+    if (q && !(p.concepto||'').toLowerCase().includes(q) && !(p.categoria||'').toLowerCase().includes(q)) return false;
+    return true;
+  });
+
+  const grupos = {};
+  items.forEach(p => { (grupos[p.categoria || 'Sin categoría'] = grupos[p.categoria || 'Sin categoría'] || []).push(p); });
+
+  $('mm-lista').innerHTML = Object.entries(grupos).map(([g, ps]) =>
+      '<div style="font-size:9px;color:var(--w4);letter-spacing:1.4px;text-transform:uppercase;font-weight:600;margin:12px 0 6px">' + esc(g) + '</div>'
+    + '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:5px">'
+    + ps.map(p => {
+        const marcado = yaEstan.hasOwnProperty(p.concepto);
+        const cant = marcado ? yaEstan[p.concepto] : 1;
+        return '<div style="display:flex;align-items:center;gap:7px;padding:6px 9px;background:var(--black3);border-radius:6px">'
+          + '<input type="checkbox" class="mm-chk" data-id="' + p.id + '" data-concepto="' + esc(p.concepto) + '" data-cat="' + esc(p.categoria||'') + '"'
+          + (marcado ? ' checked' : '') + ' onchange="contarMontaje()" style="accent-color:var(--blue)">'
+          + '<span style="flex:1;font-size:11px;color:var(--w3)">' + esc(p.concepto) + '</span>'
+          + '<input type="number" class="mm-cant" value="' + cant + '" min="1" style="width:52px;padding:2px 5px;font-size:11px;text-align:center">'
+          + '</div>';
+      }).join('')
+    + '</div>'
+  ).join('') || '<div style="color:var(--w4);font-size:12px;padding:18px;text-align:center">Sin equipos de montaje. Ejecuta el SQL de inventario de montaje.</div>';
+
+  contarMontaje();
+}
+
+function contarMontaje() {
+  const n = document.querySelectorAll('.mm-chk:checked').length;
+  if ($('mm-count')) $('mm-count').textContent = n;
+}
+
+function aplicarListaMontaje() {
+  const marcados = Array.from(document.querySelectorAll('.mm-chk:checked'));
+
+  // Conserva los equipos que no son de montaje (los del catálogo comercial)
+  const conceptosMontaje = new Set(productosMontaje().map(p => p.concepto));
+  Array.from(document.querySelectorAll('.log-inv-fila')).forEach(tr => {
+    const con = tr.querySelector('.li-concepto').textContent;
+    if (conceptosMontaje.has(con)) tr.remove();
+  });
+
+  marcados.forEach(ch => {
+    const cant = parseInt(ch.closest('div').querySelector('.mm-cant').value) || 1;
+    addFilaInvLog({
+      producto_id: parseInt(ch.dataset.id),
+      concepto:    ch.dataset.concepto,
+      categoria:   ch.dataset.cat,
+      cantidad:    cant,
+      estado:      'Pendiente'
+    });
+  });
+
+  $('modal-montaje').classList.remove('show');
+}
+
+// ─── LISTA DE CARGA IMPRIMIBLE ───
+function imprimirListaCarga() {
+  if (!_logEventoActual) { alert('Selecciona un evento primero.'); return; }
+  const filas = Array.from(document.querySelectorAll('.log-inv-fila'));
+  if (!filas.length) { alert('No hay equipos en la lista.'); return; }
+
+  const ev = EVS.find(e => e.codigo === _logEventoActual);
+  const cliente = ev ? (ev.cliente || '') : '';
+  const fecha   = ev && ev.fecha ? fDate(ev.fecha) : '';
+
+  const grupos = {};
+  filas.forEach(tr => {
+    const cat = tr.querySelector('.li-cat').textContent || 'Sin categoría';
+    (grupos[cat] = grupos[cat] || []).push({
+      concepto: tr.querySelector('.li-concepto').textContent,
+      cantidad: tr.querySelector('.li-cant').value || 1,
+      notas:    tr.querySelector('.li-notas').value || ''
+    });
+  });
+
+  const total = filas.length;
+  let cuerpo = '';
+  Object.entries(grupos).forEach(([cat, items]) => {
+    cuerpo += '<tr><td colspan="4" style="background:#eee;font-weight:bold;font-size:11px;padding:6px 10px;letter-spacing:1px;text-transform:uppercase">' + cat + '</td></tr>';
+    items.forEach(it => {
+      cuerpo += '<tr>'
+        + '<td style="width:34px;text-align:center;border-bottom:1px solid #ddd;padding:7px 4px"><div style="width:15px;height:15px;border:1.5px solid #333;margin:0 auto"></div></td>'
+        + '<td style="border-bottom:1px solid #ddd;padding:7px 10px;font-size:12px">' + it.concepto + '</td>'
+        + '<td style="width:52px;text-align:center;border-bottom:1px solid #ddd;padding:7px 4px;font-weight:bold;font-size:12px">' + it.cantidad + '</td>'
+        + '<td style="border-bottom:1px solid #ddd;padding:7px 10px;font-size:10px;color:#666">' + it.notas + '</td>'
+        + '</tr>';
+    });
+  });
+
+  const html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Lista de carga ' + _logEventoActual + '</title>'
+    + '<style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,Helvetica,sans-serif;color:#111;padding:22px}'
+    + '@media print{.noprint{display:none!important}@page{margin:12mm;size:A4}}</style></head><body>'
+    + '<div class="noprint" style="text-align:right;margin-bottom:14px">'
+    + '<button onclick="window.print()" style="background:#141414;color:#fff;border:none;padding:9px 20px;font-size:13px;font-weight:bold;cursor:pointer;border-radius:4px">IMPRIMIR</button></div>'
+    + '<div style="border-bottom:3px solid #141414;padding-bottom:10px;margin-bottom:14px">'
+    + '<div style="font-size:22px;font-weight:900;letter-spacing:4px">BLAST</div>'
+    + '<div style="font-size:15px;font-weight:bold;margin-top:7px">Lista de carga · ' + _logEventoActual + '</div>'
+    + '<div style="font-size:12px;color:#555;margin-top:3px">' + cliente + (fecha ? ' · ' + fecha : '') + ' · ' + total + ' equipos</div>'
+    + '</div>'
+    + '<table style="width:100%;border-collapse:collapse">'
+    + '<thead><tr style="background:#141414;color:#fff">'
+    + '<th style="width:34px;padding:6px 4px;font-size:10px">✓</th>'
+    + '<th style="padding:6px 10px;text-align:left;font-size:10px;letter-spacing:1px">EQUIPO</th>'
+    + '<th style="width:52px;padding:6px 4px;font-size:10px">CANT</th>'
+    + '<th style="padding:6px 10px;text-align:left;font-size:10px;letter-spacing:1px">NOTAS</th>'
+    + '</tr></thead><tbody>' + cuerpo + '</tbody></table>'
+    + '<div style="margin-top:26px;display:flex;gap:40px">'
+    + '<div style="flex:1"><div style="border-top:1px solid #333;padding-top:5px;font-size:10px;color:#666">Cargado por</div></div>'
+    + '<div style="flex:1"><div style="border-top:1px solid #333;padding-top:5px;font-size:10px;color:#666">Devuelto por</div></div>'
+    + '</div></body></html>';
+
+  const w = window.open('', '_blank');
+  if (!w) { alert('Permite ventanas emergentes para imprimir la lista.'); return; }
+  w.document.open(); w.document.write(html); w.document.close();
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -2342,11 +2821,16 @@ function renderInventario() {
 
   const cat   = $('f-inv-cat')   ? $('f-inv-cat').value   : '';
   const dueno = $('f-inv-dueno') ? $('f-inv-dueno').value : '';
+  const tipo  = $('f-inv-tipo')  ? $('f-inv-tipo').value  : '';
   const q     = $('f-inv-q')     ? $('f-inv-q').value.toLowerCase().trim() : '';
 
   let rows = PRODUCTOS.filter(p => {
     if (cat   && p.categoria !== cat)   return false;
     if (dueno && p.dueno     !== dueno) return false;
+    if (tipo) {
+      const t = p.tipo_uso || 'Cotizable';
+      if (t !== tipo && t !== 'Ambos') return false;
+    }
     if (q && !(p.concepto||'').toLowerCase().includes(q) && !(p.categoria||'').toLowerCase().includes(q)) return false;
     return true;
   });
@@ -2381,9 +2865,14 @@ function renderInventario() {
     const inv = (p.inventario === null || p.inventario === undefined)
       ? '<span style="color:var(--w4)">—</span>'
       : '<b>' + p.inventario + '</b>';
+    const t = p.tipo_uso || 'Cotizable';
+    const badgeTipo = t === 'Montaje' ? '<span class="badge b-blue">Montaje</span>'
+                    : t === 'Ambos'   ? '<span class="badge b-magenta">Ambos</span>'
+                    : '<span style="font-size:10px;color:var(--w4)">Cotizable</span>';
     return '<tr>'
       + '<td style="font-weight:600">' + esc(p.concepto) + '</td>'
       + '<td style="color:var(--w4)">' + esc(p.categoria || '—') + '</td>'
+      + '<td>' + badgeTipo + '</td>'
       + '<td>' + badge + '</td>'
       + '<td style="text-align:center">' + inv + '</td>'
       + '<td style="text-align:right;color:var(--w4)">' + (costo > 0 ? fmt(costo) : '—') + '</td>'
@@ -2406,6 +2895,7 @@ function abrirModalProducto(id) {
   $('mp-concepto').value      = p ? (p.concepto || '')  : '';
   $('mp-categoria').value     = p ? (p.categoria || '') : '';
   $('mp-dueno').value         = p ? (p.dueno || 'Blast'): 'Blast';
+  $('mp-tipo').value          = p ? (p.tipo_uso || 'Cotizable') : 'Cotizable';
   $('mp-inventario').value    = p && p.inventario !== null ? p.inventario : '';
   $('mp-costo').value         = p ? (p.costo  || '') : '';
   $('mp-precio').value        = p ? (p.precio || '') : '';
@@ -2426,6 +2916,7 @@ async function guardarProducto() {
     concepto,
     categoria:  $('mp-categoria').value.trim() || null,
     dueno:      $('mp-dueno').value,
+    tipo_uso:   $('mp-tipo').value,
     inventario: inv === '' ? null : parseInt(inv),
     costo:      parseFloat($('mp-costo').value)  || 0,
     precio:     parseFloat($('mp-precio').value) || 0,
@@ -4562,7 +5053,7 @@ async function init() {
   initDarkMode();
 
   // Personal de eventos: solo carga lo necesario para su portal
-  if (CURRENT_USER.rol !== 'socio') {
+  if (CURRENT_USER.rol === 'staff') {
     await cargarTX();
     llenarSelectEventosStaff();
     return;
@@ -4600,7 +5091,11 @@ function selectUserOtro() {
   $('login-step2').style.display = 'block';
   $('login-email-wrap').style.display = 'block';
   $('login-email').value = '';
-  $('login-sel-name').textContent = 'Personal de eventos';
+  $('login-email').type = 'text';
+  $('login-email').placeholder = 'Tu usuario';
+  const lbl = document.querySelector('#login-email-wrap .flabel');
+  if (lbl) lbl.textContent = 'Usuario';
+  $('login-sel-name').textContent = 'Iniciar sesión';
   const av = $('login-sel-avatar');
   av.innerHTML = '<i class="ti ti-user"></i>';
   av.style.background = 'rgba(255,255,255,.06)';
@@ -4623,7 +5118,7 @@ const ALLOWED_EMAILS = {
 };
 
 async function doLogin() {
-  const email = $('login-email').value.trim().toLowerCase();
+  const email = normalizarLogin($('login-email').value);
   const pass  = $('login-pass').value;
   const btn   = $('login-btn');
   const err   = $('login-error');
@@ -4645,7 +5140,18 @@ async function doLogin() {
 async function onLogin(user) {
   const email = user.email.toLowerCase();
   const info  = await resolverRol(email);
-  CURRENT_USER = {email, nombre: info.nombre, rol: info.rol};
+
+  if (info.bloqueado) {
+    await supa.auth.signOut();
+    const err = $('login-error');
+    err.textContent = 'Tu acceso está desactivado. Contacta al administrador.';
+    err.style.display = 'block';
+    const btn = $('login-btn');
+    btn.disabled = false; btn.textContent = 'Entrar';
+    return;
+  }
+
+  CURRENT_USER = {email, nombre: info.nombre, rol: info.rol, permisos: info.permisos || []};
 
   $('user-name').textContent = info.nombre;
   $('login-screen').style.display = 'none';
@@ -4653,7 +5159,7 @@ async function onLogin(user) {
   aplicarPermisos();
   vistaInicial();
 
-  if (info.rol === 'socio') {
+  if (info.rol !== 'staff') {
     ['tx-resp','cresp'].forEach(id => { const el = $(id); if(el) el.value = info.nombre; });
   }
   init();
