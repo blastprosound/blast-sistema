@@ -703,7 +703,7 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
 
   <div class="card np">
     <div class="twrap"><table>
-      <thead><tr><th>Nombre</th><th>Usuario</th><th>Rol</th><th>Accesos</th><th style="text-align:center">Activo</th><th></th></tr></thead>
+      <thead><tr><th>Nombre</th><th>Correo / usuario</th><th>Rol</th><th>Accesos</th><th style="text-align:center">Activo</th><th></th></tr></thead>
       <tbody id="adm-tbody"><tr><td colspan="6" style="color:var(--w4);text-align:center;padding:18px">Cargando...</td></tr></tbody>
     </table></div>
   </div>
@@ -1065,7 +1065,11 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
 
     <div class="fg" style="margin-bottom:11px">
       <div class="fgrp"><label class="flabel">Nombre completo</label><input type="text" id="mu-nombre" placeholder="Luis García" oninput="sugerirUsuario()"></div>
-      <div class="fgrp"><label class="flabel">Usuario para entrar</label><input type="text" id="mu-usuario" placeholder="luisgarcia" autocomplete="off"></div>
+      <div class="fgrp"><label class="flabel">Correo electrónico</label><input type="email" id="mu-email" placeholder="luis@correo.com" oninput="actualizarHint()"></div>
+    </div>
+    <div class="fg" style="margin-bottom:11px">
+      <div class="fgrp"><label class="flabel">Usuario corto <span style="color:var(--w4);font-weight:400">(opcional)</span></label><input type="text" id="mu-usuario" placeholder="catire" autocomplete="off" oninput="this.dataset.tocado='true';actualizarHint()"></div>
+      <div class="fgrp"><label class="flabel">Teléfono <span style="color:var(--w4);font-weight:400">(opcional)</span></label><input type="text" id="mu-telefono" placeholder="0412..."></div>
     </div>
 
     <div class="fg" style="margin-bottom:11px">
@@ -1076,7 +1080,13 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
           <option value="admin">Administrador</option>
         </select>
       </div>
-      <div class="fgrp"><label class="flabel" id="mu-pass-label">Contraseña</label><input type="text" id="mu-pass" placeholder="Mínimo 6 caracteres"></div>
+      <div class="fgrp"><label class="flabel">Contraseña</label><input type="text" id="mu-pass" placeholder="Mínimo 6 caracteres"></div>
+      <div class="fgrp">
+        <label class="flabel">Notificaciones</label>
+        <label style="display:flex;align-items:center;gap:7px;font-size:12px;color:var(--w3);cursor:pointer;padding-top:7px">
+          <input type="checkbox" id="mu-notif" checked style="accent-color:var(--blue)"> Avisar por correo
+        </label>
+      </div>
     </div>
 
     <div id="mu-permisos-wrap" style="margin-bottom:11px">
@@ -2229,8 +2239,8 @@ function renderEstadisticas() {
 // ADMINISTRACIÓN · usuarios, roles y permisos
 // ═══════════════════════════════════════════════════════════
 
-// Dominio interno para usuarios sin correo real
-const DOMINIO_INTERNO = 'blast.local';
+// Cada usuario tiene su propio correo real, editable desde Administración.
+// El usuario corto es solo un atajo para entrar sin escribir el correo completo.
 
 // Catálogo de vistas asignables
 const VISTAS = [
@@ -2260,11 +2270,17 @@ const PERMISOS_DEFECTO = {
 
 let USUARIOS = [];
 
-// Convierte lo que escriba el usuario en un email válido para Supabase
-function normalizarLogin(entrada) {
+// Traduce lo que se escriba en el login a un correo real.
+// Si escriben un usuario corto, lo busca en la tabla de usuarios.
+async function normalizarLogin(entrada) {
   const v = (entrada || '').trim().toLowerCase();
   if (!v) return '';
-  return v.includes('@') ? v : v + '@' + DOMINIO_INTERNO;
+  if (v.includes('@')) return v;
+  try {
+    const {data} = await supa.from('usuarios').select('email').ilike('usuario', v).maybeSingle();
+    if (data && data.email) return data.email;
+  } catch(e) { console.warn('No se pudo resolver el usuario:', e); }
+  return v;   // se enviará tal cual y Supabase dirá que no existe
 }
 
 async function cargarUsuarios() {
@@ -2293,10 +2309,11 @@ function renderUsuarios() {
     const resumen = u.rol === 'admin' ? 'Todo el sistema'
       : permisos.length >= VISTAS.length - 1 ? 'Todo el sistema'
       : permisos.length + ' pestaña' + (permisos.length === 1 ? '' : 's');
-    const login = u.usuario || (u.email || '').split('@')[0];
     return '<tr>'
       + '<td style="font-weight:600">' + esc(u.nombre || '—') + '</td>'
-      + '<td class="mono" style="color:var(--w3)">' + esc(login) + '</td>'
+      + '<td style="color:var(--w3);font-size:11px">' + esc(u.email || '—')
+      +   (u.usuario ? '<div class="mono" style="font-size:10px;color:var(--w4)">' + esc(u.usuario) + '</div>' : '')
+      + '</td>'
       + '<td>' + badgeRol(u.rol) + '</td>'
       + '<td style="color:var(--w4);font-size:11px">' + resumen + '</td>'
       + '<td style="text-align:center">' + (u.activo === false ? '<span style="color:var(--red)">✕</span>' : '<span style="color:var(--green)">✓</span>') + '</td>'
@@ -2307,11 +2324,12 @@ function renderUsuarios() {
 
 function sugerirUsuario() {
   const inp = $('mu-usuario');
-  if (inp.dataset.tocado === 'true') return;
+  if (inp.dataset.tocado === 'true') { actualizarHint(); return; }
   const nom = $('mu-nombre').value.trim().toLowerCase();
-  if (!nom) { inp.value = ''; return; }
+  if (!nom) { inp.value = ''; actualizarHint(); return; }
   inp.value = nom.normalize('NFD').replace(/[\u0300-\u036f]/g,'')
                  .replace(/[^a-z0-9\s]/g,'').split(/\s+/).filter(Boolean).join('').slice(0,20);
+  actualizarHint();
 }
 
 function rolCambiado() {
@@ -2341,24 +2359,31 @@ function marcarPermisos(todos) {
 }
 
 function actualizarHint() {
-  const rol = $('mu-rol').value;
-  const usr = $('mu-usuario').value.trim() || 'usuario';
-  const esNuevo = !$('mu-email-original').value;
   const h = $('mu-hint');
-  if (rol === 'admin') {
-    h.innerHTML = 'El administrador ve todo el sistema, incluida esta pestaña.';
-  } else {
-    h.innerHTML = 'Entrará con el usuario <b style="color:var(--w2)">' + esc(usr) + '</b>'
-      + (esNuevo ? ' y la contraseña que escribas arriba.' : '. Deja la contraseña vacía para no cambiarla.');
+  if (!h) return;
+  const email   = $('mu-email').value.trim() || 'su correo';
+  const usr     = $('mu-usuario').value.trim();
+  const esNuevo = !$('mu-email-original').value;
+
+  let txt = 'Entrará escribiendo <b style="color:var(--w2)">' + esc(usr || email) + '</b> en el login';
+  if (usr) txt += ' <span style="color:var(--w4)">(o su correo completo)</span>';
+  txt += esNuevo ? ' con la contraseña de arriba.' : '.';
+  if (!esNuevo) txt += '<br><span style="color:var(--w4);font-size:10px">La contraseña se cambia desde Supabase → Authentication → Users.</span>';
+  if ($('mu-rol').value === 'admin') {
+    txt += '<br><span style="color:var(--blue);font-size:10px">Como administrador verá todo el sistema.</span>';
   }
+  h.innerHTML = txt;
 }
 
 function abrirModalUsuario(email) {
   const u = email ? USUARIOS.find(x => x.email === email) : null;
   $('mu-title').textContent = u ? 'Editar usuario' : 'Nuevo usuario';
   $('mu-email-original').value = u ? u.email : '';
-  $('mu-nombre').value  = u ? (u.nombre || '') : '';
-  $('mu-usuario').value = u ? (u.usuario || (u.email||'').split('@')[0]) : '';
+  $('mu-nombre').value   = u ? (u.nombre || '') : '';
+  $('mu-email').value    = u ? (u.email  || '') : '';
+  $('mu-usuario').value  = u ? (u.usuario || '') : '';
+  $('mu-telefono').value = u ? (u.telefono || '') : '';
+  $('mu-notif').checked  = u ? u.notificar !== false : true;
   $('mu-usuario').dataset.tocado = u ? 'true' : 'false';
   $('mu-rol').value     = u ? (u.rol || 'staff') : 'staff';
   $('mu-pass').value    = '';
@@ -2376,20 +2401,23 @@ function abrirModalUsuario(email) {
 }
 
 async function guardarUsuario() {
-  const nombre  = $('mu-nombre').value.trim();
-  const usuario = $('mu-usuario').value.trim().toLowerCase();
-  const rol     = $('mu-rol').value;
-  const pass    = $('mu-pass').value;
-  const activo  = $('mu-activo').checked;
-  const original= $('mu-email-original').value;
+  const nombre   = $('mu-nombre').value.trim();
+  const email    = $('mu-email').value.trim().toLowerCase();
+  const usuario  = $('mu-usuario').value.trim().toLowerCase();
+  const telefono = $('mu-telefono').value.trim();
+  const notificar= $('mu-notif').checked;
+  const rol      = $('mu-rol').value;
+  const pass     = $('mu-pass').value;
+  const activo   = $('mu-activo').checked;
+  const original = $('mu-email-original').value;
 
-  if (!nombre)  { alert('El nombre es obligatorio.'); return; }
-  if (!usuario) { alert('El usuario para entrar es obligatorio.'); return; }
-  if (!/^[a-z0-9._-]+$/.test(usuario) && !usuario.includes('@')) {
-    alert('El usuario solo puede tener letras, números, punto, guion y guion bajo.'); return;
+  if (!nombre) { alert('El nombre es obligatorio.'); return; }
+  if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+    alert('Escribe un correo electrónico válido.'); return;
   }
-
-  const email = normalizarLogin(usuario);
+  if (usuario && !/^[a-z0-9._-]+$/.test(usuario)) {
+    alert('El usuario corto solo puede tener letras, números, punto, guion y guion bajo.'); return;
+  }
   const permisos = rol === 'admin'
     ? null
     : Array.from(document.querySelectorAll('.mu-perm:checked')).map(ch => ch.value);
@@ -2404,14 +2432,25 @@ async function guardarUsuario() {
     const sesion = (await supa.auth.getSession()).data.session;
     const {error: errSignUp} = await supa.auth.signUp({email, password: pass});
     if (sesion) await supa.auth.setSession(sesion);   // recupera la sesión del admin
-    if (errSignUp && !/already registered/i.test(errSignUp.message)) {
-      alert('No se pudo crear la cuenta: ' + errSignUp.message); return;
+    if (errSignUp) {
+      const m = errSignUp.message || '';
+      if (/already registered|already exists/i.test(m)) {
+        // La cuenta ya existía: continuamos y solo guardamos sus datos
+      } else if (/invalid/i.test(m) && /email/i.test(m)) {
+        alert('Supabase rechazó el usuario "' + usuario + '".\n\nUsa solo letras y números, sin espacios ni acentos.');
+        return;
+      } else if (/confirm/i.test(m)) {
+        alert('Cuenta creada, pero Supabase pide confirmación por correo.\n\nDesactiva "Confirm email" en Authentication → Providers → Email.');
+        return;
+      } else {
+        alert('No se pudo crear la cuenta: ' + m); return;
+      }
     }
   } else if (pass) {
     alert('Para cambiar la contraseña de un usuario existente, hazlo desde Supabase → Authentication → Users.\n\nLos demás cambios sí se guardarán.');
   }
 
-  const fila = {email, nombre, usuario, rol, permisos, activo};
+  const fila = {email, nombre, usuario: usuario || null, telefono: telefono || null, notificar, rol, permisos, activo};
   const {error} = original && original !== email
     ? await supa.from('usuarios').update(fila).eq('email', original)
     : await supa.from('usuarios').upsert(fila, {onConflict:'email'});
@@ -5118,8 +5157,9 @@ const ALLOWED_EMAILS = {
 };
 
 async function doLogin() {
-  const email = normalizarLogin($('login-email').value);
-  const pass  = $('login-pass').value;
+  const entrada = $('login-email').value;
+  const pass    = $('login-pass').value;
+  const email   = await normalizarLogin(entrada);
   const btn   = $('login-btn');
   const err   = $('login-error');
   err.style.display = 'none';
