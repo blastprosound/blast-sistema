@@ -129,8 +129,11 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
 .cot-grid{display:grid;grid-template-columns:1fr 250px;gap:13px;margin-bottom:13px}
 .cot-code-box{background:var(--black3);border:1px solid var(--border2);border-radius:var(--r2);padding:14px}
 .cot-code{font-family:'Archivo',sans-serif;font-weight:600;font-size:16px;color:var(--blue);letter-spacing:3px;margin-bottom:10px}
-.cih{display:grid;grid-template-columns:1fr 60px 75px 75px 32px;gap:6px;padding:5px 0 7px;border-bottom:1px solid var(--border);font-size:9px;color:var(--w4);letter-spacing:1.5px;text-transform:uppercase;font-weight:600}
-.cir{display:grid;grid-template-columns:1fr 60px 75px 75px 32px;gap:6px;margin-bottom:5px;align-items:center;position:relative}
+.cih{display:grid;grid-template-columns:24px 1fr 130px 56px 72px 72px 30px;gap:6px;padding:5px 0 7px;border-bottom:1px solid var(--border);font-size:9px;color:var(--w4);letter-spacing:1.5px;text-transform:uppercase;font-weight:600}
+.cir{display:grid;grid-template-columns:24px 1fr 130px 56px 72px 72px 30px;gap:5px;margin-bottom:5px;align-items:center;position:relative}
+.cir-mv{display:flex;flex-direction:column;gap:1px}
+.cir-mv button{background:none;border:none;color:var(--w4);cursor:pointer;padding:0;line-height:1;font-size:9px}
+.cir-mv button:hover{color:var(--blue)}
 .cir input,.cir select{padding:5px 7px;font-size:12px}
 .xsub{font-size:12px;color:var(--blue);text-align:center;font-weight:600}
 .ctotals{background:var(--black3);border-radius:var(--r);padding:12px 15px;margin-top:10px;border:1px solid var(--border)}
@@ -536,12 +539,12 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
 
 <!-- COTIZACIONES -->
 <div id="v-cotizacion" class="view">
-  <div class="ph"><div><div class="aline"></div><div class="ptitle">Cotizaciones</div><div class="psub">Generador con base de datos de precios y descripción por IA</div></div></div>
+  <div class="ph"><div><div class="aline"></div><div class="ptitle">Cotizaciones</div><div class="psub">Generador con base de datos de precios y descripción por IA</div></div><button class="btn btn-blue btn-sm" onclick="nuevaCotizacion()"><i class="ti ti-file-plus"></i>Nueva cotización</button></div>
   <div class="card">
     <div class="ctitle">Datos del evento</div>
     <div class="cot-grid">
       <div class="fg">
-        <div class="fgrp"><label class="flabel">Cliente</label><input type="text" id="cc" placeholder="Nombre del cliente" oninput="updateCotCode()" oninput="scheduleCotAutosave()"></div>
+        <div class="fgrp"><label class="flabel">Cliente</label><input type="text" id="cc" placeholder="Nombre del cliente" oninput="updateCotCode();scheduleCotAutosave()"></div>
         <div class="fgrp"><label class="flabel">Tipo de evento</label><select id="ctype" onchange="checkOtroTipo()" onchange="scheduleCotAutosave()"><option>Fiesta</option><option>Matrimonio</option><option>Corporativo</option><option>Graduación</option><option>Conferencia</option><option>Institucional</option><option>Concierto</option><option>Otro</option></select>
         <input type="text" id="ctype-otro" placeholder="Especifica el tipo de evento..." style="display:none;margin-top:5px" oninput="agregarTipoPersonalizado()"></div>
         <div class="fgrp"><label class="flabel">Fecha</label><input type="date" id="cdate" oninput="updateCotCode()" onchange="scheduleCotAutosave()"></div>
@@ -564,7 +567,8 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
   </div>
   <div class="card">
     <div class="ctitle">Ítems · escribe para buscar en la base de precios</div>
-    <div class="cih"><div>Concepto</div><div>Cant.</div><div>P. Unitario</div><div>Total</div><div></div></div>
+    <div class="cih"><div></div><div>Concepto</div><div>Categoría</div><div>Cant.</div><div>P. Unitario</div><div>Total</div><div></div></div>
+    <datalist id="cot-cats"></datalist>
     <div id="cot-items"></div>
     <div class="btn-row" style="margin-top:9px">
       <button class="btn btn-ghost btn-sm" onclick="addCotRow()"><i class="ti ti-plus"></i>Agregar ítem</button>
@@ -1362,6 +1366,7 @@ function sv(id, btn) {
   if (id === 'logistica')    { llenarSelectEventosLog(); if (!PRODUCTOS.length) cargarProductos(); }
   if (id === 'staff')        llenarSelectEventosStaff();
   if (id === 'admin')        cargarUsuarios();
+  if (id === 'estimador')    runEstimador();
   if (id === 'dashboard')    renderDashboard();
 }
 
@@ -2835,7 +2840,15 @@ async function cargarProductos() {
   if (error) { console.error('Error cargando productos:', error); return; }
   PRODUCTOS = data || [];
   llenarFiltrosInventario();
+  llenarCatsCotizacion();
   if ($('v-inventario') && $('v-inventario').classList.contains('on')) renderInventario();
+}
+
+function llenarCatsCotizacion() {
+  const dl = $('cot-cats');
+  if (!dl) return;
+  const cats = [...new Set(fuentePrecios().map(p => p.cat).filter(Boolean))].sort();
+  dl.innerHTML = cats.map(x => '<option value="' + esc(x) + '">').join('');
 }
 
 function llenarFiltrosInventario() {
@@ -3517,30 +3530,40 @@ function updateCotCode() {
   }
 }
 
-function addCotRow() {
+function addCotRow(data) {
+  data = data || {};
   const id = 'cr' + cotRowIdx++;
   const div = document.createElement('div');
   div.className = 'cir';
   div.id = id;
-  div.innerHTML = '<div style="position:relative">'
-    + '<input type="text" class="xcon" placeholder="Escribe para buscar..." autocomplete="off" style="width:100%">'
-    + '<div class="dd-list" id="dd-' + id + '"></div>'
+  if (data.categoria) div.dataset.cat = data.categoria;
+  div.innerHTML =
+      '<div class="cir-mv">'
+    +   '<button onclick="moverItem(this,-1)" title="Subir"><i class="ti ti-chevron-up"></i></button>'
+    +   '<button onclick="moverItem(this,1)" title="Bajar"><i class="ti ti-chevron-down"></i></button>'
     + '</div>'
-    + '<input type="number" class="xqty" value="1" min="1" style="text-align:center">'
-    + '<input type="number" class="xpri" placeholder="0" style="color:var(--blue);font-weight:600">'
+    + '<div style="position:relative">'
+    +   '<input type="text" class="xcon" placeholder="Escribe para buscar..." autocomplete="off" style="width:100%" value="' + esc(data.concepto || '') + '">'
+    +   '<div class="dd-list" id="dd-' + id + '"></div>'
+    + '</div>'
+    + '<input type="text" class="xcat" placeholder="Categoría" list="cot-cats" style="width:100%;font-size:11px;color:var(--w3)" value="' + esc(data.categoria || '') + '">'
+    + '<input type="number" class="xqty" value="' + (data.cantidad || 1) + '" min="1" style="text-align:center">'
+    + '<input type="number" class="xpri" placeholder="0" style="color:var(--blue);font-weight:600" value="' + (data.precio || '') + '">'
     + '<div class="xsub" style="text-align:center;font-size:12px;color:var(--blue);font-weight:600">—</div>'
-    + '<button class="btn btn-ghost btn-sm" style="padding:3px 6px" onclick="this.closest(\'.cir\').remove();calcCot()"><i class="ti ti-trash"></i></button>';
+    + '<button class="btn btn-ghost btn-sm" style="padding:3px 5px" onclick="this.closest(\'.cir\').remove();calcCot()"><i class="ti ti-trash"></i></button>';
   $('cot-items').appendChild(div);
 
   const input = div.querySelector('.xcon');
+  const cat   = div.querySelector('.xcat');
   const dd    = div.querySelector('.dd-list');
   const qty   = div.querySelector('.xqty');
   const pri   = div.querySelector('.xpri');
 
   input.addEventListener('input', function() {
-    const q = this.value.toLowerCase();
-    const res = DB_PRECIOS.filter(p => p.c.toLowerCase().includes(q)).slice(0,10);
-    if (!res.length || !q) { dd.classList.remove('show'); return; }
+    const q = this.value.toLowerCase().trim();
+    if (!q) { dd.classList.remove('show'); return; }
+    const res = fuentePrecios().filter(p => p.c.toLowerCase().includes(q)).slice(0, 12);
+    if (!res.length) { dd.classList.remove('show'); return; }
     dd.innerHTML = res.map(p =>
       '<div class="dd-item" data-concepto="' + esc(p.c) + '" data-cat="' + esc(p.cat) + '" data-precio="' + p.p + '">'
       + esc(p.c) + '<span class="dd-price">$' + p.p + '</span>'
@@ -3553,13 +3576,57 @@ function addCotRow() {
     if (!item) return;
     input.value = item.dataset.concepto;
     pri.value   = item.dataset.precio;
+    cat.value   = item.dataset.cat;
     div.dataset.cat = item.dataset.cat;
     dd.classList.remove('show');
     calcCot();
   });
   input.addEventListener('blur', () => setTimeout(() => dd.classList.remove('show'), 200));
+  cat.addEventListener('input', function(){ div.dataset.cat = this.value; });
   qty.addEventListener('input', calcCot);
   pri.addEventListener('input', calcCot);
+  calcCot();
+}
+
+// Une la lista base con el inventario cargado en Supabase, sin duplicar
+function fuentePrecios() {
+  const base = DB_PRECIOS.map(p => ({c:p.c, cat:p.cat, p:p.p}));
+  const yaEsta = new Set(base.map(p => p.c.toLowerCase()));
+  (typeof PRODUCTOS !== 'undefined' ? PRODUCTOS : []).forEach(pr => {
+    const t = pr.tipo_uso || 'Cotizable';
+    if (t === 'Montaje') return;                      // los de solo montaje no se cotizan
+    const nombre = (pr.concepto || '').trim();
+    if (!nombre || yaEsta.has(nombre.toLowerCase())) return;
+    base.push({c: nombre, cat: pr.categoria || '', p: parseFloat(pr.precio) || 0});
+    yaEsta.add(nombre.toLowerCase());
+  });
+  return base;
+}
+
+function moverItem(btn, dir) {
+  const fila = btn.closest('.cir');
+  if (!fila) return;
+  if (dir < 0 && fila.previousElementSibling) {
+    fila.parentNode.insertBefore(fila, fila.previousElementSibling);
+  } else if (dir > 0 && fila.nextElementSibling) {
+    fila.parentNode.insertBefore(fila.nextElementSibling, fila);
+  }
+}
+
+function nuevaCotizacion() {
+  if (document.querySelectorAll('.cir').length && !confirm('¿Empezar una cotización nueva? Se limpiará lo que tengas en pantalla.')) return;
+  ['cc','cplace','cguests'].forEach(id => { const e = $(id); if (e) e.value = ''; });
+  if ($('ctype'))  $('ctype').value  = 'Matrimonio';
+  if ($('cdate'))  $('cdate').value  = '';
+  if ($('c-desc')) $('c-desc').value = 0;
+  if ($('c-iva'))  $('c-iva').checked = false;
+  if ($('ai-out')) { $('ai-out').textContent = 'La descripción generada aparecerá aquí...'; $('ai-out').className = 'ai-box ai-dim'; }
+  if ($('ccode'))  { $('ccode').textContent = 'COT ——'; delete $('ccode').dataset.manual; }
+  $('cot-items').innerHTML = '';
+  cotRowIdx = 0;
+  addCotRow();
+  calcCot();
+  if ($('cc')) $('cc').focus();
 }
 
 function calcCot() {
@@ -3592,7 +3659,8 @@ async function genIA() {
   const items = [];
   document.querySelectorAll('.cir').forEach(r => {
     const con = r.querySelector('.xcon').value;
-    const cat = r.dataset.cat || '';
+    const catEl2 = r.querySelector('.xcat');
+    const cat = (catEl2?catEl2.value:'') || r.dataset.cat || '';
     const qty = r.querySelector('.xqty').value;
     const pri = r.querySelector('.xpri').value;
     if (con && pri) items.push((cat?cat+': ':'')+con+' x'+qty+' ($'+pri+')');
@@ -3669,7 +3737,8 @@ function buildPDFHTML() {
   let itemsHTML = ''; let idx2 = 0;
   document.querySelectorAll('.cir').forEach(r => {
     const con = r.querySelector('.xcon').value;
-    const cat = r.dataset.cat||'—';
+    const catEl3 = r.querySelector('.xcat');
+    const cat = (catEl3?catEl3.value:'') || r.dataset.cat || '—';
     const qty = r.querySelector('.xqty').value;
     const pri = r.querySelector('.xpri').value;
     const t2  = (parseFloat(qty)||0)*(parseFloat(pri)||0);
@@ -3849,7 +3918,9 @@ async function guardarCotizacionDB(silencioso){
   if(!cliente||codigo==='COT ——') return 'incompleto';
   const items=[];
   document.querySelectorAll('.cir').forEach(r=>{
-    const con=r.querySelector('.xcon').value, cat=r.dataset.cat||'—';
+    const con=r.querySelector('.xcon').value;
+    const catEl=r.querySelector('.xcat');
+    const cat=(catEl?catEl.value:'')||r.dataset.cat||'—';
     const qty=parseFloat(r.querySelector('.xqty').value)||0, pri=parseFloat(r.querySelector('.xpri').value)||0;
     if(con&&pri) items.push({concepto:con,categoria:cat,cantidad:qty,precio:pri,total:qty*pri});
   });
@@ -4026,7 +4097,7 @@ function runEstimador() {
   let similares = EVS.filter(e => {
     // Match tipo/categoria
     const catMatch = tipo === 'Matrimonio'
-      ? e.cliente.toLowerCase().includes('matrimon') || e.categoria === 'Privado'
+      ? (e.cliente||'').toLowerCase().includes('matrimon') || e.categoria === 'Privado'
       : e.categoria === tipo || (tipo === 'Privado' && e.categoria === 'Privado');
     return catMatch && e.ingreso > 0;
   });
@@ -4104,6 +4175,30 @@ function runEstimador() {
     + '<div style="font-size:13px;color:var(--white);font-weight:600">' + fmt(mediana) + ' – ' + fmt(p75) + '</div>'
     + '<div style="font-size:10px;color:var(--w4);margin-top:2px">Precio sugerido según eventos más similares</div>'
     + '</div>';
+
+  // Comparación con cotizaciones del mismo tipo
+  const cots = (typeof _historialData !== 'undefined' ? _historialData : [])
+    .filter(x => (x.tipo_evento || '') === tipo && parseFloat(x.total) > 0);
+  if (cots.length) {
+    const tot = cots.map(x => parseFloat(x.total)).sort((a,b) => a-b);
+    const promCot = tot.reduce((s,v) => s+v, 0) / tot.length;
+    const ganadas = cots.filter(x => x.estado === 'Descargada').length;
+    result.innerHTML +=
+        '<div style="height:1px;background:var(--border);margin:12px 0 8px"></div>'
+      + '<div style="font-size:10px;color:var(--w4);text-transform:uppercase;letter-spacing:1px;margin-bottom:5px">Tus cotizaciones de este tipo</div>'
+      + '<div style="display:flex;justify-content:space-between;font-size:12px;padding:2px 0">'
+      +   '<span style="color:var(--w4)">Promedio cotizado</span>'
+      +   '<span style="color:var(--magenta);font-weight:600">' + fmt(promCot) + '</span>'
+      + '</div>'
+      + '<div style="display:flex;justify-content:space-between;font-size:12px;padding:2px 0">'
+      +   '<span style="color:var(--w4)">Rango cotizado</span>'
+      +   '<span style="color:var(--w2)">' + fmt(tot[0]) + ' – ' + fmt(tot[tot.length-1]) + '</span>'
+      + '</div>'
+      + '<div style="display:flex;justify-content:space-between;font-size:12px;padding:2px 0">'
+      +   '<span style="color:var(--w4)">Cotizaciones enviadas</span>'
+      +   '<span style="color:var(--w2)">' + cots.length + ' (' + ganadas + ' descargadas)</span>'
+      + '</div>';
+  }
 
   // Reference events
   refDiv.innerHTML = top5.length ? top5.map(e =>
@@ -4489,21 +4584,26 @@ function cargarCotizacion(codigo) {
     $('cot-items').innerHTML = '';
     cotRowIdx = 0;
     if (c.items && Array.isArray(c.items)) {
-      c.items.forEach(item => {
-        addCotRow();
-        const rows = document.querySelectorAll('.cir');
-        const last = rows[rows.length-1];
-        if (last) {
-          last.querySelector('.xcon').value = item.concepto || '';
-          last.querySelector('.xqty').value = item.cantidad || 1;
-          last.querySelector('.xpri').value = item.precio   || 0;
-          last.dataset.cat = item.categoria || '';
-          calcCot();
-        }
-      });
+      c.items.forEach(item => addCotRow({
+        concepto:  item.concepto  || '',
+        categoria: item.categoria || '',
+        cantidad:  item.cantidad  || 1,
+        precio:    item.precio    || 0
+      }));
+      calcCot();
     }
+    if (!document.querySelectorAll('.cir').length) addCotRow();
     updateCotCode();
   }, 100);
+}
+
+async function eliminarCotizacion(codigo) {
+  const cot = _historialData.find(x => x.codigo === codigo);
+  const nom = cot ? (cot.cliente || codigo) : codigo;
+  if (!confirm('¿Eliminar la cotización ' + codigo + ' de ' + nom + '?\n\nEsta acción no se puede deshacer.')) return;
+  const {error} = await supa.from('cotizaciones').delete().eq('codigo', codigo);
+  if (error) { alert('No se pudo eliminar: ' + error.message); return; }
+  await cargarHistorial();
 }
 
 function renderHistorial() {
@@ -4530,7 +4630,11 @@ function renderHistorial() {
     const total = c.total ? '$'+parseFloat(c.total).toLocaleString() : '—';
     const estado = c.estado || 'Borrador';
     const bc = estado === 'Descargada' ? 'b-green' : estado === 'Borrador' ? 'b-orange' : 'b-blue';
-    const editBtn = '<button class="btn btn-ghost btn-sm" style="padding:2px 7px;font-size:10px" onclick="cargarCotizacion(\'' + c.codigo + '\')"><i class="ti ti-edit"></i> Editar</button>';
+    const cod = String(c.codigo || '').replace(/'/g, "\\'");
+    const editBtn = '<div style="display:flex;gap:4px;justify-content:flex-end">'
+      + '<button class="btn btn-ghost btn-sm" style="padding:2px 7px;font-size:10px" onclick="cargarCotizacion(\'' + cod + '\')" title="Editar"><i class="ti ti-edit"></i></button>'
+      + '<button class="btn btn-ghost btn-sm" style="padding:2px 7px;font-size:10px;color:var(--red)" onclick="eliminarCotizacion(\'' + cod + '\')" title="Eliminar"><i class="ti ti-trash"></i></button>'
+      + '</div>';
     return '<tr>'
       + '<td class="mono">' + esc(c.codigo||'—') + '</td>'
       + '<td>' + fecha + '</td>'
