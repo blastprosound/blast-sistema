@@ -2372,6 +2372,12 @@ function rolCambiado() {
   const wrap = $('mu-permisos-wrap');
   wrap.style.display = rol === 'admin' ? 'none' : 'block';
   if (rol !== 'admin') pintarPermisos(PERMISOS_DEFECTO[rol] || []);
+  if (rol === 'staff') {
+    const p = document.querySelector('.mu-perm[value="staff"]');
+    if (p) { p.checked = true; p.disabled = true; p.closest('label').style.opacity = '.75'; }
+    const l = document.querySelector('.mu-perm[value="logistica"]');
+    if (l) { l.checked = false; l.closest('label').style.display = 'none'; }
+  }
   actualizarHint();
 }
 
@@ -2457,6 +2463,7 @@ async function guardarUsuario() {
     ? null
     : Array.from(document.querySelectorAll('.mu-perm:checked')).map(ch => ch.value);
 
+  if (rol === 'staff' && permisos && !permisos.includes('staff')) permisos.unshift('staff');
   if (rol !== 'admin' && (!permisos || !permisos.length)) {
     alert('Marca al menos una pestaña que este usuario pueda ver.'); return;
   }
@@ -2530,9 +2537,14 @@ async function resolverRol(email) {
     const {data} = await supa.from('usuarios').select('nombre,rol,activo,permisos').eq('email', email).maybeSingle();
     if (data && data.activo !== false) {
       const rol = data.rol || 'staff';
-      const permisos = Array.isArray(data.permisos) && data.permisos.length
-        ? data.permisos
+      let permisos = Array.isArray(data.permisos) && data.permisos.length
+        ? data.permisos.slice()
         : (PERMISOS_DEFECTO[rol] || ['staff']);
+      if (rol === 'staff') {
+        // El personal siempre entra por su portal y nunca a la vista de administración
+        if (!permisos.includes('staff')) permisos.unshift('staff');
+        permisos = permisos.filter(v => v !== 'logistica');
+      }
       return {nombre: data.nombre || email, rol, permisos};
     }
     if (data && data.activo === false) return {bloqueado: true};
@@ -2731,9 +2743,8 @@ function imprimirListaCarga() {
 
     // Encabezado
     + '<table width="100%" style="border-collapse:collapse;margin-bottom:11px"><tr>'
-    + '<td style="background:#141414;padding:13px 16px;border-radius:6px 0 0 6px">'
-    +   '<div style="font-size:23px;font-weight:900;letter-spacing:5px;color:#fff;line-height:1">BLAST</div>'
-    +   '<div style="font-size:7.5px;letter-spacing:5px;color:#43bded;margin-top:2px">PROSOUND</div>'
+    + '<td style="background:#141414;padding:14px 18px;border-radius:6px 0 0 6px;vertical-align:middle">'
+    +   '<img src="https://blastprosound.github.io/blast-sistema/logo-white.png" style="height:26px;width:auto;display:block" alt="Blast ProSound">'
     + '</td>'
     + '<td style="background:#141414;padding:13px 16px;text-align:right;border-radius:0 6px 6px 0">'
     +   '<div style="font-size:12px;color:#43bded;font-weight:700;letter-spacing:1.5px">LISTA DE CARGA</div>'
