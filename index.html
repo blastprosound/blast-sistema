@@ -725,25 +725,33 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
 <!-- PORTAL STAFF · vista sin información económica -->
 <div id="v-staff" class="view">
   <div class="ph">
-    <div><div class="aline"></div><div class="ptitle">Mis eventos</div><div class="psub" id="staff-sub">Equipos asignados y reporte del evento</div></div>
+    <div><div class="aline"></div><div class="ptitle">Mis eventos</div><div class="psub" id="staff-sub">Eventos asignados</div></div>
   </div>
 
-  <div class="card" style="margin-bottom:13px;padding:13px 16px">
-    <div class="fgrp" style="margin:0">
-      <label class="flabel">Selecciona el evento</label>
-      <select id="staff-evento" onchange="cargarStaffEvento()"><option value="">— Selecciona —</option></select>
-    </div>
-    <div id="staff-info" style="font-size:12px;color:var(--w4);margin-top:9px"></div>
-  </div>
+  <div id="staff-avisos" style="margin-bottom:13px"></div>
 
+  <!-- Tarjetas de eventos -->
+  <div id="staff-cards" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:11px;margin-bottom:16px"></div>
+
+  <!-- Detalle del evento -->
   <div id="staff-contenido" style="display:none">
-    <!-- Equipos a llevar -->
+    <div class="card" style="margin-bottom:13px;padding:13px 17px">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
+        <div>
+          <div id="staff-ev-titulo" style="font-size:16px;font-weight:700;color:var(--w2)"></div>
+          <div id="staff-ev-sub" style="font-size:12px;color:var(--w4);margin-top:3px"></div>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="cerrarEventoStaff()"><i class="ti ti-arrow-left"></i>Volver</button>
+      </div>
+      <div id="staff-ev-notas" style="margin-top:10px"></div>
+    </div>
+
     <div class="card" style="margin-bottom:13px">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
         <div class="ctitle" style="margin-bottom:0">Equipos del evento</div>
         <input id="staff-buscar" type="text" placeholder="Filtrar equipo..." style="width:200px;padding:5px 9px;font-size:12px" oninput="filtrarStaffInv()">
       </div>
-      <div style="font-size:11px;color:var(--w4);margin-bottom:10px">Marca el estado a medida que cargas y devuelves los equipos.</div>
+      <div style="font-size:11px;color:var(--w4);margin-bottom:10px">Marca el estado a medida que cargas y devuelves.</div>
       <div class="twrap"><table>
         <thead><tr><th>Equipo</th><th>Categoría</th><th style="width:80px;text-align:center">Cant.</th><th style="width:140px">Estado</th><th>Notas</th></tr></thead>
         <tbody id="staff-inv-tbody"></tbody>
@@ -753,19 +761,18 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
       </div>
     </div>
 
-    <!-- Reporte del evento -->
     <div class="card">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
         <div class="ctitle" style="margin-bottom:0">Reporte del evento</div>
         <button class="btn btn-ghost btn-sm" style="padding:3px 9px;font-size:11px" onclick="addFilaStaffPersonal()"><i class="ti ti-plus"></i>Añadir persona</button>
       </div>
-      <div style="font-size:11px;color:var(--w4);margin-bottom:10px">Registra quién asistió, qué hizo cada uno y los viáticos que se gastaron.</div>
+      <div style="font-size:11px;color:var(--w4);margin-bottom:10px">Quién asistió, qué hizo cada uno y los viáticos gastados.</div>
       <div class="twrap"><table>
         <thead><tr><th>Nombre</th><th style="width:150px">Rol</th><th style="width:80px;text-align:center">Asistió</th><th style="width:110px;text-align:right">Viáticos</th><th>Qué hizo</th><th style="width:34px"></th></tr></thead>
         <tbody id="staff-pers-tbody"></tbody>
       </table></div>
       <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;flex-wrap:wrap;gap:10px">
-        <div style="font-size:12px;color:var(--w4)">Total viáticos reportados: <b id="staff-tot-viaticos" style="color:var(--orange)">$0</b></div>
+        <div style="font-size:12px;color:var(--w4)">Total viáticos: <b id="staff-tot-viaticos" style="color:var(--orange)">$0</b></div>
         <button class="btn btn-blue btn-sm" onclick="guardarReporteStaff()"><i class="ti ti-send"></i>Enviar reporte</button>
       </div>
     </div>
@@ -813,7 +820,15 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
         <label class="flabel">Evento</label>
         <select id="log-evento" onchange="cargarLogisticaEvento()"><option value="">— Selecciona un evento —</option></select>
       </div>
-      <div id="log-info" style="font-size:12px;color:var(--w4);padding-bottom:8px"></div>
+      <div class="fgrp" style="margin:0;width:150px">
+        <label class="flabel">Hora de montaje</label>
+        <input type="text" id="log-hora" placeholder="Ej: 2:00 PM">
+      </div>
+      <div class="fgrp" style="margin:0;flex:1;min-width:200px">
+        <label class="flabel">Notas para el personal</label>
+        <input type="text" id="log-notas-ev" placeholder="Opcional">
+      </div>
+      <div id="log-info" style="font-size:12px;color:var(--w4);padding-bottom:8px;width:100%"></div>
     </div>
   </div>
 
@@ -833,6 +848,21 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
         <thead><tr><th>Equipo</th><th>Categoría</th><th style="width:90px;text-align:center">Cant.</th><th style="width:130px">Estado</th><th>Notas</th><th style="width:34px"></th></tr></thead>
         <tbody id="log-inv-tbody"></tbody>
       </table></div>
+    </div>
+
+    <!-- Asignación de personal y referencia visual -->
+    <div class="two eq" style="margin-bottom:13px">
+      <div class="card">
+        <div class="ctitle">Quién trabaja en este evento</div>
+        <div style="font-size:11px;color:var(--w4);margin-bottom:9px">Solo estas personas verán el evento en su panel.</div>
+        <div id="log-asignados" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:5px"></div>
+      </div>
+      <div class="card">
+        <div class="ctitle">Referencia de montaje</div>
+        <div style="font-size:11px;color:var(--w4);margin-bottom:9px">Render o foto de cómo debe quedar. La ve el personal.</div>
+        <input type="file" id="log-render" accept="image/*,application/pdf" style="padding:6px;font-size:11px;width:100%" onchange="subirRender()">
+        <div id="log-render-prev" style="margin-top:9px"></div>
+      </div>
     </div>
 
     <!-- Personal -->
@@ -882,7 +912,7 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
   <div class="two eq">
     <div class="card"><div class="ctitle">Rentabilidad por tipo de evento</div>
       <div class="twrap"><table><thead><tr><th>Tipo</th><th>Eventos</th><th>Ingresos</th><th>Utilidad</th><th>Margen</th><th>Prom./ev.</th></tr></thead>
-      <tbody id="est-tipo"></tbody></table></div>
+      <tbody id="est-rent-tipo"></tbody></table></div>
     </div>
     <div class="card"><div class="ctitle">Estructura de costos</div>
       <div class="bc" id="est-costos"></div>
@@ -1363,7 +1393,7 @@ function sv(id, btn) {
   if (id === 'proveedores')  cargarProveedores();
   if (id === 'clientes')     renderClientes();
   if (id === 'inventario')   { if (!PRODUCTOS.length) cargarProductos(); else renderInventario(); }
-  if (id === 'logistica')    { llenarSelectEventosLog(); if (!PRODUCTOS.length) cargarProductos(); }
+  if (id === 'logistica')    { llenarSelectEventosLog(); if (!PRODUCTOS.length) cargarProductos(); if (!USUARIOS.length) cargarUsuarios(); }
   if (id === 'staff')        llenarSelectEventosStaff();
   if (id === 'admin')        cargarUsuarios();
   if (id === 'estimador')    runEstimador();
@@ -2435,21 +2465,30 @@ async function guardarUsuario() {
   if (!original) {
     if (!pass || pass.length < 6) { alert('La contraseña debe tener al menos 6 caracteres.'); return; }
     const sesion = (await supa.auth.getSession()).data.session;
-    const {error: errSignUp} = await supa.auth.signUp({email, password: pass});
+    const {data: dataSignUp, error: errSignUp} = await supa.auth.signUp({email, password: pass});
     if (sesion) await supa.auth.setSession(sesion);   // recupera la sesión del admin
+
     if (errSignUp) {
       const m = errSignUp.message || '';
-      if (/already registered|already exists/i.test(m)) {
-        // La cuenta ya existía: continuamos y solo guardamos sus datos
+      if (/already registered|already exists|User already/i.test(m)) {
+        // La cuenta ya existía: seguimos y solo guardamos sus datos
       } else if (/invalid/i.test(m) && /email/i.test(m)) {
-        alert('Supabase rechazó el usuario "' + usuario + '".\n\nUsa solo letras y números, sin espacios ni acentos.');
-        return;
-      } else if (/confirm/i.test(m)) {
-        alert('Cuenta creada, pero Supabase pide confirmación por correo.\n\nDesactiva "Confirm email" en Authentication → Providers → Email.');
+        alert('Supabase rechazó el correo "' + email + '".\n\nVerifica que esté bien escrito.');
         return;
       } else {
         alert('No se pudo crear la cuenta: ' + m); return;
       }
+    } else if (dataSignUp && dataSignUp.user && !dataSignUp.user.confirmed_at && !dataSignUp.user.email_confirmed_at) {
+      // Supabase creó el usuario pero exige confirmación por correo.
+      // Sin confirmar, el login siempre dirá "credenciales inválidas".
+      alert('ATENCIÓN\n\nLa cuenta de ' + nombre + ' se creó, pero Supabase exige confirmar el correo '
+          + 'y por eso NO va a poder entrar todavía.\n\n'
+          + 'Solución (una sola vez):\n'
+          + '1. Entra a Supabase → Authentication → Providers → Email\n'
+          + '2. Desactiva "Confirm email" y guarda\n'
+          + '3. Entra a Authentication → Users, busca a ' + email + ', bórralo\n'
+          + '4. Vuelve a crearlo aquí\n\n'
+          + 'Los usuarios que crees después de desactivar esa opción entrarán sin problema.');
     }
   } else if (pass) {
     alert('Para cambiar la contraseña de un usuario existente, hazlo desde Supabase → Authentication → Users.\n\nLos demás cambios sí se guardarán.');
@@ -2636,13 +2675,16 @@ function imprimirListaCarga() {
   const filas = Array.from(document.querySelectorAll('.log-inv-fila'));
   if (!filas.length) { alert('No hay equipos en la lista.'); return; }
 
-  const ev = EVS.find(e => e.codigo === _logEventoActual);
-  const cliente = ev ? (ev.cliente || '') : '';
-  const fecha   = ev && ev.fecha ? fDate(ev.fecha) : '';
+  const ev = EVS.find(e => e.codigo === _logEventoActual) || {};
+  const cliente = ev.cliente || '';
+  const fecha   = ev.fecha ? fDate(ev.fecha) : '';
+  const hora    = $('log-hora') ? $('log-hora').value.trim() : '';
+  const notas   = $('log-notas-ev') ? $('log-notas-ev').value.trim() : '';
+  const equipo  = Array.from(document.querySelectorAll('.log-asig:checked')).map(ch => ch.dataset.nombre || ch.value);
 
   const grupos = {};
   filas.forEach(tr => {
-    const cat = tr.querySelector('.li-cat').textContent || 'Sin categoría';
+    const cat = tr.querySelector('.li-cat').textContent || 'Otros';
     (grupos[cat] = grupos[cat] || []).push({
       concepto: tr.querySelector('.li-concepto').textContent,
       cantidad: tr.querySelector('.li-cant').value || 1,
@@ -2651,45 +2693,78 @@ function imprimirListaCarga() {
   });
 
   const total = filas.length;
-  let cuerpo = '';
-  Object.entries(grupos).forEach(([cat, items]) => {
-    cuerpo += '<tr><td colspan="4" style="background:#eee;font-weight:bold;font-size:11px;padding:6px 10px;letter-spacing:1px;text-transform:uppercase">' + cat + '</td></tr>';
-    items.forEach(it => {
-      cuerpo += '<tr>'
-        + '<td style="width:34px;text-align:center;border-bottom:1px solid #ddd;padding:7px 4px"><div style="width:15px;height:15px;border:1.5px solid #333;margin:0 auto"></div></td>'
-        + '<td style="border-bottom:1px solid #ddd;padding:7px 10px;font-size:12px">' + it.concepto + '</td>'
-        + '<td style="width:52px;text-align:center;border-bottom:1px solid #ddd;padding:7px 4px;font-weight:bold;font-size:12px">' + it.cantidad + '</td>'
-        + '<td style="border-bottom:1px solid #ddd;padding:7px 10px;font-size:10px;color:#666">' + it.notas + '</td>'
-        + '</tr>';
-    });
+  // Dos columnas para que quepa en una página
+  const cats = Object.entries(grupos);
+  const mitad = Math.ceil(cats.reduce((s,[,it]) => s + it.length + 1, 0) / 2);
+  let acum = 0, colA = [], colB = [];
+  cats.forEach(([cat, items]) => {
+    (acum < mitad ? colA : colB).push([cat, items]);
+    acum += items.length + 1;
   });
 
-  const html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Lista de carga ' + _logEventoActual + '</title>'
-    + '<style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,Helvetica,sans-serif;color:#111;padding:22px}'
-    + '@media print{.noprint{display:none!important}@page{margin:12mm;size:A4}}</style></head><body>'
-    + '<div class="noprint" style="text-align:right;margin-bottom:14px">'
-    + '<button onclick="window.print()" style="background:#141414;color:#fff;border:none;padding:9px 20px;font-size:13px;font-weight:bold;cursor:pointer;border-radius:4px">IMPRIMIR</button></div>'
-    + '<div style="border-bottom:3px solid #141414;padding-bottom:10px;margin-bottom:14px">'
-    + '<div style="font-size:22px;font-weight:900;letter-spacing:4px">BLAST</div>'
-    + '<div style="font-size:15px;font-weight:bold;margin-top:7px">Lista de carga · ' + _logEventoActual + '</div>'
-    + '<div style="font-size:12px;color:#555;margin-top:3px">' + cliente + (fecha ? ' · ' + fecha : '') + ' · ' + total + ' equipos</div>'
+  const bloque = arr => arr.map(([cat, items]) =>
+      '<div style="break-inside:avoid;margin-bottom:9px">'
+    + '<div style="background:#141414;color:#fff;font-size:8.5px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;padding:4px 9px;border-radius:3px 3px 0 0">' + cat + '</div>'
+    + '<table style="width:100%;border-collapse:collapse;border:1px solid #e3e3e3;border-top:none">'
+    + items.map((it,ix) =>
+        '<tr style="background:' + (ix%2 ? '#fafafa' : '#fff') + '">'
+      + '<td style="width:24px;padding:4px 5px;border-bottom:1px solid #eee;text-align:center">'
+      +   '<div style="width:12px;height:12px;border:1.3px solid #444;border-radius:2px;margin:0 auto"></div></td>'
+      + '<td style="padding:4px 7px;border-bottom:1px solid #eee;font-size:10px;color:#111">' + it.concepto
+      +   (it.notas ? '<div style="font-size:8px;color:#888">' + it.notas + '</div>' : '') + '</td>'
+      + '<td style="width:30px;padding:4px 5px;border-bottom:1px solid #eee;text-align:center;font-size:10.5px;font-weight:700;color:#43bded">' + it.cantidad + '</td>'
+      + '</tr>').join('')
+    + '</table></div>'
+  ).join('');
+
+  const html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Carga ' + _logEventoActual + '</title>'
+    + '<style>'
+    + '*{margin:0;padding:0;box-sizing:border-box}'
+    + 'body{font-family:Arial,Helvetica,sans-serif;color:#111;padding:16px}'
+    + '@media print{.noprint{display:none!important}@page{margin:9mm;size:A4}'
+    + '*{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}}'
+    + '</style></head><body>'
+    + '<div class="noprint" style="text-align:right;margin-bottom:12px">'
+    +   '<button onclick="window.print()" style="background:#43bded;color:#141414;border:none;padding:9px 22px;font-size:13px;font-weight:700;cursor:pointer;border-radius:5px">IMPRIMIR</button>'
+    +   '<div style="font-size:10px;color:#888;margin-top:4px">Activa "Gráficos de fondo" para ver los colores</div>'
     + '</div>'
-    + '<table style="width:100%;border-collapse:collapse">'
-    + '<thead><tr style="background:#141414;color:#fff">'
-    + '<th style="width:34px;padding:6px 4px;font-size:10px">✓</th>'
-    + '<th style="padding:6px 10px;text-align:left;font-size:10px;letter-spacing:1px">EQUIPO</th>'
-    + '<th style="width:52px;padding:6px 4px;font-size:10px">CANT</th>'
-    + '<th style="padding:6px 10px;text-align:left;font-size:10px;letter-spacing:1px">NOTAS</th>'
-    + '</tr></thead><tbody>' + cuerpo + '</tbody></table>'
-    + '<div style="margin-top:26px;display:flex;gap:40px">'
-    + '<div style="flex:1"><div style="border-top:1px solid #333;padding-top:5px;font-size:10px;color:#666">Cargado por</div></div>'
-    + '<div style="flex:1"><div style="border-top:1px solid #333;padding-top:5px;font-size:10px;color:#666">Devuelto por</div></div>'
-    + '</div></body></html>';
+
+    // Encabezado
+    + '<table width="100%" style="border-collapse:collapse;margin-bottom:11px"><tr>'
+    + '<td style="background:#141414;padding:13px 16px;border-radius:6px 0 0 6px">'
+    +   '<div style="font-size:23px;font-weight:900;letter-spacing:5px;color:#fff;line-height:1">BLAST</div>'
+    +   '<div style="font-size:7.5px;letter-spacing:5px;color:#43bded;margin-top:2px">PROSOUND</div>'
+    + '</td>'
+    + '<td style="background:#141414;padding:13px 16px;text-align:right;border-radius:0 6px 6px 0">'
+    +   '<div style="font-size:12px;color:#43bded;font-weight:700;letter-spacing:1.5px">LISTA DE CARGA</div>'
+    +   '<div style="font-size:15px;color:#fff;font-weight:700;margin-top:2px">' + (cliente || _logEventoActual) + '</div>'
+    +   '<div style="font-size:9px;color:#999;margin-top:2px">' + _logEventoActual
+    +     (fecha ? ' · ' + fecha : '') + (hora ? ' · Montaje ' + hora : '') + ' · ' + total + ' equipos</div>'
+    + '</td></tr></table>'
+
+    + (notas ? '<div style="border-left:3px solid #43bded;background:#f4fbfe;padding:6px 11px;font-size:10px;color:#333;margin-bottom:10px;border-radius:0 4px 4px 0"><b>Nota:</b> ' + notas + '</div>' : '')
+    + (equipo.length ? '<div style="font-size:9px;color:#666;margin-bottom:10px"><b style="color:#111">Equipo asignado:</b> ' + equipo.join(' · ') + '</div>' : '')
+
+    // Dos columnas
+    + '<table width="100%" style="border-collapse:separate;border-spacing:10px 0"><tr>'
+    + '<td width="50%" style="vertical-align:top">' + bloque(colA) + '</td>'
+    + '<td width="50%" style="vertical-align:top">' + bloque(colB) + '</td>'
+    + '</tr></table>'
+
+    // Firmas
+    + '<table width="100%" style="margin-top:14px;border-collapse:separate;border-spacing:22px 0"><tr>'
+    + '<td width="33%" style="border-top:1px solid #333;padding-top:4px;font-size:8.5px;color:#777">Cargado por</td>'
+    + '<td width="33%" style="border-top:1px solid #333;padding-top:4px;font-size:8.5px;color:#777">Verificado por</td>'
+    + '<td width="33%" style="border-top:1px solid #333;padding-top:4px;font-size:8.5px;color:#777">Devuelto completo</td>'
+    + '</tr></table>'
+    + '<div style="margin-top:9px;font-size:7.5px;color:#bbb;text-align:center">Blast ProSound · Caracas · blast.prosound@gmail.com</div>'
+    + '</body></html>';
 
   const w = window.open('', '_blank');
   if (!w) { alert('Permite ventanas emergentes para imprimir la lista.'); return; }
   w.document.open(); w.document.write(html); w.document.close();
 }
+
 
 // ═══════════════════════════════════════════════════════════
 // PORTAL STAFF · sin información económica
@@ -2697,30 +2772,142 @@ function imprimirListaCarga() {
 let _staffEventoActual = '';
 let _staffInvCache = [];
 
-function llenarSelectEventosStaff() {
-  const sel = $('staff-evento');
-  if (!sel) return;
-  // Solo eventos con logística asignada o de los últimos 90 días
-  const hoy = new Date();
-  const limite = new Date(hoy.getTime() - 90*24*60*60*1000).toISOString().slice(0,10);
-  const futuro = new Date(hoy.getTime() + 120*24*60*60*1000).toISOString().slice(0,10);
-  const opts = EVS.filter(e => e.fecha && e.fecha >= limite && e.fecha <= futuro)
-    .map(e => '<option value="' + esc(e.codigo) + '">' + esc(e.codigo) + ' · ' + esc(e.cliente || 'Sin cliente') + (e.fecha ? ' · ' + fDate(e.fecha) : '') + '</option>')
-    .join('');
-  sel.innerHTML = '<option value="">— Selecciona —</option>' + opts;
+let _staffEventos = [];
+
+async function llenarSelectEventosStaff() {
+  const cards = $('staff-cards');
+  if (!cards) return;
+  cards.innerHTML = '<div style="color:var(--w4);font-size:12px;grid-column:1/-1">Cargando tus eventos...</div>';
+
+  const [asig, notif] = await Promise.all([
+    supa.from('evento_asignaciones').select('codigo_evento').eq('email', CURRENT_USER.email),
+    supa.from('notificaciones').select('*').eq('email', CURRENT_USER.email).eq('leido', false).order('created_at', {ascending:false})
+  ]);
+
+  pintarAvisosStaff(notif.data || []);
+
+  const codigos = (asig.data || []).map(a => a.codigo_evento);
+  if (!codigos.length) {
+    cards.innerHTML = '<div style="color:var(--w4);font-size:12px;grid-column:1/-1;padding:24px;text-align:center;background:var(--black2);border-radius:10px">Todavía no te han asignado eventos.</div>';
+    $('staff-sub').textContent = 'Sin eventos asignados';
+    return;
+  }
+
+  const [fichas, invs] = await Promise.all([
+    supa.from('eventos_logistica').select('*').in('codigo_evento', codigos),
+    supa.from('evento_inventario').select('codigo_evento,estado').in('codigo_evento', codigos)
+  ]);
+
+  const porCodigo = {};
+  (fichas.data || []).forEach(f => porCodigo[f.codigo_evento] = f);
+  const conteo = {};
+  (invs.data || []).forEach(r => {
+    const k = r.codigo_evento;
+    conteo[k] = conteo[k] || {total:0, listos:0};
+    conteo[k].total++;
+    if (r.estado === 'Cargado' || r.estado === 'En sitio' || r.estado === 'Devuelto') conteo[k].listos++;
+  });
+
+  const hoyStr = new Date().toISOString().slice(0,10);
+  _staffEventos = codigos.map(cod => {
+    const f = porCodigo[cod] || {};
+    return {
+      codigo: cod,
+      cliente: f.cliente || '',
+      fecha:   f.fecha   || '',
+      lugar:   f.lugar   || '',
+      hora:    f.hora_montaje || '',
+      notas:   f.notas   || '',
+      render:  f.render_url || '',
+      equipos: (conteo[cod] || {}).total  || 0,
+      listos:  (conteo[cod] || {}).listos || 0,
+      pasado:  f.fecha ? f.fecha < hoyStr : false
+    };
+  }).sort((a,b) => {
+    if (a.pasado !== b.pasado) return a.pasado ? 1 : -1;   // próximos primero
+    if (!a.fecha) return 1;
+    if (!b.fecha) return -1;
+    return a.pasado ? b.fecha.localeCompare(a.fecha) : a.fecha.localeCompare(b.fecha);
+  });
+
+  const proximos = _staffEventos.filter(e => !e.pasado).length;
+  $('staff-sub').textContent = _staffEventos.length + ' evento' + (_staffEventos.length===1?'':'s')
+    + (proximos ? ' · ' + proximos + ' por montar' : '');
+
+  cards.innerHTML = _staffEventos.map(e => {
+    const dias = e.fecha ? Math.round((new Date(e.fecha+'T12:00:00') - new Date(hoyStr+'T12:00:00')) / 86400000) : null;
+    const urgente = dias !== null && dias >= 0 && dias <= 3;
+    const etiqueta = dias === null ? 'Sin fecha'
+      : dias === 0 ? 'HOY' : dias === 1 ? 'MAÑANA'
+      : dias > 0 ? 'En ' + dias + ' días' : 'Hace ' + Math.abs(dias) + ' días';
+    const color = e.pasado ? 'var(--w4)' : urgente ? 'var(--orange)' : 'var(--blue)';
+    const pct = e.equipos ? Math.round(e.listos / e.equipos * 100) : 0;
+    return '<div onclick="abrirEventoStaff(\'' + esc(e.codigo) + '\')" style="background:var(--black2);border:1px solid ' + (urgente ? 'var(--orange)' : 'var(--border)') + ';border-radius:11px;padding:14px 15px;cursor:pointer;transition:transform .12s" onmouseover="this.style.transform=\'translateY(-2px)\'" onmouseout="this.style.transform=\'\'">'
+      + '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:8px">'
+      +   '<div style="font-size:14px;font-weight:700;color:var(--w2);line-height:1.3">' + esc(e.cliente || e.codigo) + '</div>'
+      +   '<span style="font-size:9px;font-weight:700;color:' + color + ';background:rgba(255,255,255,.05);padding:3px 7px;border-radius:5px;white-space:nowrap">' + etiqueta + '</span>'
+      + '</div>'
+      + '<div class="mono" style="font-size:10px;color:var(--w4);margin-bottom:9px">' + esc(e.codigo) + '</div>'
+      + '<div style="font-size:11px;color:var(--w3);display:flex;flex-direction:column;gap:3px">'
+      +   (e.fecha ? '<div><i class="ti ti-calendar" style="width:15px;color:var(--w4)"></i> ' + fDate(e.fecha) + '</div>' : '')
+      +   (e.hora  ? '<div><i class="ti ti-clock" style="width:15px;color:var(--w4)"></i> Montaje ' + esc(e.hora) + '</div>' : '')
+      +   (e.lugar ? '<div><i class="ti ti-map-pin" style="width:15px;color:var(--w4)"></i> ' + esc(e.lugar) + '</div>' : '')
+      +   '<div><i class="ti ti-package" style="width:15px;color:var(--w4)"></i> ' + e.equipos + ' equipos</div>'
+      + '</div>'
+      + (e.equipos ? '<div style="margin-top:10px"><div style="height:5px;background:var(--black3);border-radius:3px;overflow:hidden"><div style="height:100%;width:' + pct + '%;background:' + (pct===100?'var(--green)':'var(--blue)') + '"></div></div>'
+          + '<div style="font-size:10px;color:var(--w4);margin-top:4px">' + e.listos + ' de ' + e.equipos + ' listos</div></div>' : '')
+      + (e.render ? '<div style="margin-top:8px;font-size:10px;color:var(--blue)"><i class="ti ti-photo"></i> Tiene referencia de montaje</div>' : '')
+      + '</div>';
+  }).join('');
 }
 
-async function cargarStaffEvento() {
-  const cod = $('staff-evento').value;
-  _staffEventoActual = cod;
-  const cont = $('staff-contenido');
-  if (!cod) { cont.style.display = 'none'; $('staff-info').textContent = ''; return; }
-  cont.style.display = 'block';
+function pintarAvisosStaff(avisos) {
+  const box = $('staff-avisos');
+  if (!box) return;
+  if (!avisos.length) { box.innerHTML = ''; return; }
+  box.innerHTML = avisos.slice(0,4).map(a =>
+      '<div style="display:flex;align-items:center;gap:10px;background:rgba(67,189,237,.08);border-left:3px solid var(--blue);border-radius:7px;padding:9px 13px;margin-bottom:6px">'
+    + '<i class="ti ti-bell" style="color:var(--blue)"></i>'
+    + '<div style="flex:1"><div style="font-size:12px;font-weight:600;color:var(--w2)">' + esc(a.titulo) + '</div>'
+    + (a.mensaje ? '<div style="font-size:11px;color:var(--w4)">' + esc(a.mensaje) + '</div>' : '') + '</div>'
+    + '<button onclick="marcarAvisoLeido(' + a.id + ',this)" style="background:none;border:none;color:var(--w4);cursor:pointer"><i class="ti ti-x"></i></button>'
+    + '</div>'
+  ).join('');
+}
 
-  const ev = EVS.find(e => e.codigo === cod);
-  $('staff-info').innerHTML = ev
-    ? 'Cliente: <b style="color:var(--w2)">' + esc(ev.cliente || '—') + '</b> &nbsp;·&nbsp; ' + (ev.fecha ? fDate(ev.fecha) : 'sin fecha')
-    : '';
+async function marcarAvisoLeido(id, btn) {
+  await supa.from('notificaciones').update({leido:true}).eq('id', id);
+  const row = btn.closest('div');
+  if (row && row.parentElement) row.parentElement.removeChild(row);
+}
+
+function cerrarEventoStaff() {
+  $('staff-contenido').style.display = 'none';
+  $('staff-cards').style.display = 'grid';
+  _staffEventoActual = '';
+}
+
+async function abrirEventoStaff(cod) {
+  _staffEventoActual = cod;
+  const e = _staffEventos.find(x => x.codigo === cod) || {};
+  $('staff-cards').style.display = 'none';
+  $('staff-contenido').style.display = 'block';
+  $('staff-ev-titulo').textContent = e.cliente || cod;
+  $('staff-ev-sub').innerHTML = '<span class="mono">' + esc(cod) + '</span>'
+    + (e.fecha ? ' · ' + fDate(e.fecha) : '')
+    + (e.hora  ? ' · Montaje ' + esc(e.hora) : '')
+    + (e.lugar ? ' · ' + esc(e.lugar) : '');
+
+  const notas = $('staff-ev-notas');
+  let html = '';
+  if (e.notas)  html += '<div style="font-size:12px;color:var(--w3);background:var(--black3);padding:9px 12px;border-radius:7px;margin-bottom:8px"><b style="color:var(--w2)">Nota:</b> ' + esc(e.notas) + '</div>';
+  if (e.render) {
+    const esImg = /\.(png|jpe?g|gif|webp)$/i.test(e.render);
+    html += esImg
+      ? '<div style="font-size:10px;color:var(--w4);margin-bottom:5px;letter-spacing:1.2px;text-transform:uppercase">Referencia de montaje</div><img src="' + e.render + '" style="max-width:100%;max-height:270px;border-radius:9px;border:1px solid var(--border)">'
+      : '<a href="' + e.render + '" target="_blank" class="btn btn-ghost btn-sm"><i class="ti ti-file-text"></i>Ver referencia de montaje</a>';
+  }
+  notas.innerHTML = html;
 
   const [inv, pers] = await Promise.all([
     supa.from('evento_inventario').select('*').eq('codigo_evento', cod).order('categoria'),
@@ -3020,20 +3207,89 @@ async function cargarLogisticaEvento() {
     ? 'Cliente: <b style="color:var(--w2)">' + esc(ev.cliente || '—') + '</b> &nbsp;·&nbsp; ' + (ev.fecha ? fDate(ev.fecha) : 'sin fecha') + ' &nbsp;·&nbsp; ' + esc(ev.categoria || '')
     : '';
 
-  const [inv, pers] = await Promise.all([
+  const [inv, pers, ficha, asig] = await Promise.all([
     supa.from('evento_inventario').select('*').eq('codigo_evento', cod).order('categoria'),
-    supa.from('evento_personal').select('*').eq('codigo_evento', cod).order('nombre')
+    supa.from('evento_personal').select('*').eq('codigo_evento', cod).order('nombre'),
+    supa.from('eventos_logistica').select('*').eq('codigo_evento', cod).maybeSingle(),
+    supa.from('evento_asignaciones').select('email').eq('codigo_evento', cod)
   ]);
 
   $('log-inv-tbody').innerHTML = '';
   (inv.data || []).forEach(r => addFilaInvLog(r));
-  if (!(inv.data || []).length) $('log-inv-tbody').innerHTML = '<tr id="log-inv-vacio"><td colspan="6" style="color:var(--w4);text-align:center;padding:14px">Busca un equipo arriba para añadirlo</td></tr>';
+  if (!(inv.data || []).length) $('log-inv-tbody').innerHTML = '<tr id="log-inv-vacio"><td colspan="6" style="color:var(--w4);text-align:center;padding:14px">Busca un equipo arriba o usa la lista de montaje</td></tr>';
 
   $('log-pers-tbody').innerHTML = '';
   (pers.data || []).forEach(r => addFilaPersonal(r));
   if (!(pers.data || []).length) addFilaPersonal();
   calcViaticos();
+
+  const F = ficha.data || {};
+  $('log-hora').value     = F.hora_montaje || '';
+  $('log-notas-ev').value = F.notas || '';
+  _renderActual = {url: F.render_url || '', nombre: F.render_nombre || ''};
+  pintarRender();
+
+  const asignados = new Set((asig.data || []).map(a => a.email));
+  pintarAsignados(asignados);
 }
+
+let _renderActual = {url:'', nombre:''};
+
+function pintarAsignados(sel) {
+  const cont = $('log-asignados');
+  if (!cont) return;
+  const staff = USUARIOS.filter(u => u.activo !== false);
+  if (!staff.length) {
+    cont.innerHTML = '<div style="color:var(--w4);font-size:11px;grid-column:1/-1">Carga la pestaña Administración para ver los usuarios.</div>';
+    return;
+  }
+  cont.innerHTML = staff.map(u =>
+      '<label style="display:flex;align-items:center;gap:7px;padding:6px 9px;background:var(--black3);border-radius:6px;font-size:11px;color:var(--w3);cursor:pointer">'
+    + '<input type="checkbox" class="log-asig" value="' + esc(u.email) + '" data-nombre="' + esc(u.nombre||'') + '"'
+    + (sel.has(u.email) ? ' checked' : '') + ' style="accent-color:var(--blue)">'
+    + esc(u.nombre || u.email) + '</label>'
+  ).join('');
+}
+
+function pintarRender() {
+  const box = $('log-render-prev');
+  if (!box) return;
+  if (!_renderActual.url) { box.innerHTML = '<span style="font-size:11px;color:var(--w4)">Sin referencia cargada</span>'; return; }
+  const esImg = /\.(png|jpe?g|gif|webp)$/i.test(_renderActual.url);
+  box.innerHTML = (esImg
+      ? '<img src="' + _renderActual.url + '" style="max-width:100%;max-height:150px;border-radius:7px;border:1px solid var(--border)">'
+      : '<a href="' + _renderActual.url + '" target="_blank" style="color:var(--blue);font-size:12px"><i class="ti ti-file-text"></i> ' + esc(_renderActual.nombre||'Ver archivo') + '</a>')
+    + '<button onclick="quitarRender()" style="display:block;margin-top:6px;background:none;border:none;color:var(--red);cursor:pointer;font-size:11px">Quitar</button>';
+}
+
+function quitarRender() {
+  _renderActual = {url:'', nombre:''};
+  $('log-render').value = '';
+  pintarRender();
+}
+
+async function subirRender() {
+  const file = $('log-render').files[0];
+  if (!file || !_logEventoActual) return;
+  if (file.size > 5 * 1024 * 1024) { alert('El archivo no debe pesar más de 5 MB.'); return; }
+
+  const ext  = (file.name.split('.').pop() || 'png').toLowerCase();
+  const ruta = _logEventoActual + '/' + Date.now() + '.' + ext;
+  const box  = $('log-render-prev');
+  box.innerHTML = '<span style="font-size:11px;color:var(--blue)">Subiendo...</span>';
+
+  const {error} = await supa.storage.from('renders').upload(ruta, file, {upsert:true});
+  if (error) {
+    box.innerHTML = '<span style="font-size:11px;color:var(--red)">No se pudo subir: ' + esc(error.message)
+      + '<br>Crea el bucket público "renders" en Supabase → Storage.</span>';
+    return;
+  }
+  const {data} = supa.storage.from('renders').getPublicUrl(ruta);
+  _renderActual = {url: data.publicUrl, nombre: file.name};
+  pintarRender();
+}
+
+
 
 function buscarProductoLog() {
   const inp = $('log-buscar-prod');
@@ -3150,20 +3406,68 @@ async function guardarLogistica() {
       asistio:  tr.querySelector('.lp-asistio').checked,
       viaticos: parseFloat(tr.querySelector('.lp-viaticos').value) || 0,
       detalle:  tr.querySelector('.lp-detalle').value.trim() || null,
-      reportado_por: (window.CURRENT_USER && CURRENT_USER.nombre) || null
+      reportado_por: CURRENT_USER.nombre || null
     }))
     .filter(p => p.nombre);
 
+  const ev = EVS.find(e => e.codigo === cod) || {};
+  const ficha = {
+    codigo_evento: cod,
+    cliente: ev.cliente || null,
+    fecha:   ev.fecha   || null,
+    lugar:   ev.lugar   || null,
+    hora_montaje: $('log-hora').value.trim() || null,
+    notas:   $('log-notas-ev').value.trim() || null,
+    render_url:    _renderActual.url    || null,
+    render_nombre: _renderActual.nombre || null,
+    actualizado: new Date().toISOString()
+  };
+
+  const seleccion = Array.from(document.querySelectorAll('.log-asig:checked'))
+    .map(ch => ({codigo_evento: cod, email: ch.value, nombre: ch.dataset.nombre || null}));
+
+  // Detecta a quién hay que avisar
+  const {data: previas} = await supa.from('evento_asignaciones').select('email').eq('codigo_evento', cod);
+  const antes  = new Set((previas || []).map(a => a.email));
+  const ahora  = new Set(seleccion.map(a => a.email));
+  const nuevos = seleccion.filter(a => !antes.has(a.email));
+  const siguen = seleccion.filter(a => antes.has(a.email));
+
   await supa.from('evento_inventario').delete().eq('codigo_evento', cod);
   await supa.from('evento_personal').delete().eq('codigo_evento', cod);
+  await supa.from('evento_asignaciones').delete().eq('codigo_evento', cod);
 
   let err = null;
-  if (inv.length)  { const r = await supa.from('evento_inventario').insert(inv);  if (r.error) err = r.error; }
-  if (pers.length) { const r = await supa.from('evento_personal').insert(pers);   if (r.error) err = r.error; }
+  if (inv.length)       { const r = await supa.from('evento_inventario').insert(inv);        if (r.error) err = r.error; }
+  if (pers.length)      { const r = await supa.from('evento_personal').insert(pers);         if (r.error) err = r.error; }
+  if (seleccion.length) { const r = await supa.from('evento_asignaciones').insert(seleccion);if (r.error) err = r.error; }
+  {
+    const r = await supa.from('eventos_logistica').upsert(ficha, {onConflict:'codigo_evento'});
+    if (r.error) err = r.error;
+  }
 
   if (err) { alert('No se pudo guardar: ' + err.message); return; }
-  alert('\u2713 Logística guardada: ' + inv.length + ' equipos y ' + pers.length + ' personas.');
+
+  // Avisos internos
+  const avisos = [];
+  const cli = ev.cliente ? ' · ' + ev.cliente : '';
+  nuevos.forEach(a => avisos.push({
+    email: a.email, codigo_evento: cod, tipo: 'asignacion',
+    titulo: 'Te asignaron al evento ' + cod,
+    mensaje: 'Ya puedes ver los equipos del evento' + cli + (ficha.fecha ? ' del ' + fDate(ficha.fecha) : '') + '.'
+  }));
+  siguen.forEach(a => avisos.push({
+    email: a.email, codigo_evento: cod, tipo: 'actualizacion',
+    titulo: 'Se actualizó el evento ' + cod,
+    mensaje: 'Revisa la lista de equipos, cambió algo' + cli + '.'
+  }));
+  if (avisos.length) await supa.from('notificaciones').insert(avisos);
+
+  alert('\u2713 Guardado: ' + inv.length + ' equipos, ' + pers.length + ' personas y '
+      + seleccion.length + ' asignado' + (seleccion.length === 1 ? '' : 's') + '.'
+      + (nuevos.length ? '\n\n' + nuevos.length + ' persona(s) recibieron aviso del evento.' : ''));
 }
+
 
 // ─── GRÁFICO: comparación mensual año contra año ───
 function renderChartMensual() {
@@ -3324,7 +3628,7 @@ function renderKPIs() {
 
 // ─── Rentabilidad por tipo de evento ───
 function renderRentabilidadTipo() {
-  const tbody = $('est-tipo');
+  const tbody = $('est-rent-tipo');
   if (!tbody) return;
 
   const tipos = {};
@@ -5197,8 +5501,7 @@ async function init() {
 
   // Personal de eventos: solo carga lo necesario para su portal
   if (CURRENT_USER.rol === 'staff') {
-    await cargarTX();
-    llenarSelectEventosStaff();
+    await llenarSelectEventosStaff();   // sus eventos vienen de asignaciones, no de finanzas
     return;
   }
 
