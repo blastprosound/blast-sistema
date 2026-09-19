@@ -2503,6 +2503,21 @@ function plantillaCorreo({titulo, cuerpo, boton}) {
   + '</table></td></tr></table></body></html>';
 }
 
+// Crea la cuenta de acceso (o le cambia la clave si ya existía).
+// Devuelve {ok:true, creado|actualizado} o {ok:false, error:'...'}
+async function cuentaAuth(email, password) {
+  try {
+    const {data, error} = await supa.functions.invoke('crear-usuario', {
+      body: {email, password}
+    });
+    if (error) return {ok:false, error: error.message || String(error)};
+    if (data && data.error) return {ok:false, error: data.error};
+    return {ok:true, creado: !!(data && data.creado), actualizado: !!(data && data.actualizado)};
+  } catch (e) {
+    return {ok:false, error: String(e)};
+  }
+}
+
 // Correo de bienvenida con credenciales
 function correoBienvenida({nombre, email, usuario, pass, rol}) {
   const roles = {admin:'Administrador', socio:'Socio', staff:'Personal'};
@@ -2595,37 +2610,17 @@ async function guardarUsuario() {
     alert('Marca al menos una pestaña que este usuario pueda ver.'); return;
   }
 
-  // Usuario nuevo: crear cuenta en Supabase Auth
+  // Crear la cuenta o cambiar la clave, siempre vía la Edge Function "crear-usuario".
+  // Esa función usa la llave de servicio y marca el correo como confirmado,
+  // así el usuario entra de una vez sin depender de la opción "Confirm email".
   if (!original) {
     if (!pass || pass.length < 6) { alert('La contraseña debe tener al menos 6 caracteres.'); return; }
-    const sesion = (await supa.auth.getSession()).data.session;
-    const {data: dataSignUp, error: errSignUp} = await supa.auth.signUp({email, password: pass});
-    if (sesion) await supa.auth.setSession(sesion);   // recupera la sesión del admin
-
-    if (errSignUp) {
-      const m = errSignUp.message || '';
-      if (/already registered|already exists|User already/i.test(m)) {
-        // La cuenta ya existía: seguimos y solo guardamos sus datos
-      } else if (/invalid/i.test(m) && /email/i.test(m)) {
-        alert('Supabase rechazó el correo "' + email + '".\n\nVerifica que esté bien escrito.');
-        return;
-      } else {
-        alert('No se pudo crear la cuenta: ' + m); return;
-      }
-    } else if (dataSignUp && dataSignUp.user && !dataSignUp.user.confirmed_at && !dataSignUp.user.email_confirmed_at) {
-      // Supabase creó el usuario pero exige confirmación por correo.
-      // Sin confirmar, el login siempre dirá "credenciales inválidas".
-      alert('ATENCIÓN\n\nLa cuenta de ' + nombre + ' se creó, pero Supabase exige confirmar el correo '
-          + 'y por eso NO va a poder entrar todavía.\n\n'
-          + 'Solución (una sola vez):\n'
-          + '1. Entra a Supabase → Authentication → Providers → Email\n'
-          + '2. Desactiva "Confirm email" y guarda\n'
-          + '3. Entra a Authentication → Users, busca a ' + email + ', bórralo\n'
-          + '4. Vuelve a crearlo aquí\n\n'
-          + 'Los usuarios que crees después de desactivar esa opción entrarán sin problema.');
-    }
+    const r = await cuentaAuth(email, pass);
+    if (!r.ok) { alert('No se pudo crear la cuenta:\n\n' + r.error); return; }
   } else if (pass) {
-    alert('Para cambiar la contraseña de un usuario existente, hazlo desde Supabase → Authentication → Users.\n\nLos demás cambios sí se guardarán.');
+    if (pass.length < 6) { alert('La contraseña debe tener al menos 6 caracteres.'); return; }
+    const r = await cuentaAuth(email, pass);
+    if (!r.ok) { alert('Los datos se guardarán, pero la contraseña no se pudo cambiar:\n\n' + r.error); }
   }
 
   const fila = {email, nombre, usuario: usuario || null, telefono: telefono || null, notificar, rol, permisos, activo};
