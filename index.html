@@ -2445,18 +2445,38 @@ function actualizarHint() {
 const SISTEMA_URL = 'https://blastprosound.github.io/blast-sistema/';
 const LOGO_CORREO = 'https://blastprosound.github.io/blast-sistema/logo-white.png';
 
-// Envía un correo. Devuelve {ok:true} o {ok:false, error:'...'}
-async function enviarCorreo({to, subject, html, reply_to}) {
+// Llama a una Edge Function y saca el mensaje de error real.
+// Sin esto, supabase-js solo dice "non-2xx status code" y se pierde el motivo.
+async function invocarFuncion(nombre, body) {
   try {
-    const {data, error} = await supa.functions.invoke('enviar-correo', {
-      body: {to, subject, html, reply_to}
-    });
-    if (error) return {ok:false, error: error.message || String(error)};
+    const {data, error} = await supa.functions.invoke(nombre, {body});
+
+    if (error) {
+      let detalle = error.message || String(error);
+      try {
+        if (error.context && typeof error.context.json === 'function') {
+          const j = await error.context.json();
+          if (j && j.error) detalle = j.error;
+        } else if (error.context && typeof error.context.text === 'function') {
+          const t = await error.context.text();
+          if (t) detalle = t;
+        }
+      } catch (e) { /* nos quedamos con el mensaje genérico */ }
+      return {ok:false, error: detalle};
+    }
+
     if (data && data.error) return {ok:false, error: data.error};
-    return {ok:true, id: data && data.id};
+    return {ok:true, data: data || {}};
+
   } catch (e) {
     return {ok:false, error: String(e)};
   }
+}
+
+// Envía un correo. Devuelve {ok:true} o {ok:false, error:'...'}
+async function enviarCorreo({to, subject, html, reply_to}) {
+  const r = await invocarFuncion('enviar-correo', {to, subject, html, reply_to});
+  return r.ok ? {ok:true, id: r.data.id} : r;
 }
 
 // Plantilla base: cabecera negra con logo, cuerpo blanco, pie discreto.
@@ -2506,16 +2526,9 @@ function plantillaCorreo({titulo, cuerpo, boton}) {
 // Crea la cuenta de acceso (o le cambia la clave si ya existía).
 // Devuelve {ok:true, creado|actualizado} o {ok:false, error:'...'}
 async function cuentaAuth(email, password) {
-  try {
-    const {data, error} = await supa.functions.invoke('crear-usuario', {
-      body: {email, password}
-    });
-    if (error) return {ok:false, error: error.message || String(error)};
-    if (data && data.error) return {ok:false, error: data.error};
-    return {ok:true, creado: !!(data && data.creado), actualizado: !!(data && data.actualizado)};
-  } catch (e) {
-    return {ok:false, error: String(e)};
-  }
+  const r = await invocarFuncion('crear-usuario', {email, password});
+  if (!r.ok) return r;
+  return {ok:true, creado: !!r.data.creado, actualizado: !!r.data.actualizado};
 }
 
 // Correo de bienvenida con credenciales
