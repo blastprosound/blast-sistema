@@ -275,6 +275,25 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
     </div>
   </div>
     <button class="btn btn-ghost btn-sm" onclick="toggleDarkMode()" style="padding:4px 8px;border:none" title="Modo claro/oscuro"><i class="ti ti-moon" id="dm-icon"></i></button>
+
+  <!-- CAMPANITA DE AVISOS -->
+  <div id="campana-wrap" style="position:relative">
+    <button id="campana-btn" onclick="toggleCampana()" title="Avisos"
+      style="background:none;border:none;color:var(--w3);cursor:pointer;padding:4px 7px;position:relative;display:flex;align-items:center">
+      <i class="ti ti-bell" style="font-size:19px"></i>
+      <span id="campana-badge" style="display:none;position:absolute;top:0;right:1px;background:var(--red);color:#fff;
+        font-size:9px;font-weight:700;min-width:15px;height:15px;line-height:15px;border-radius:8px;text-align:center;padding:0 3px">0</span>
+    </button>
+    <div id="campana-panel" style="display:none;position:absolute;top:calc(100% + 8px);right:0;width:330px;max-width:88vw;
+      background:var(--black2);border:1px solid var(--border2);border-radius:10px;z-index:400;box-shadow:0 10px 30px rgba(0,0,0,.5);overflow:hidden">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:11px 14px;border-bottom:1px solid var(--border)">
+        <span style="font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--w4);font-weight:700">Avisos</span>
+        <button onclick="marcarTodoLeido()" style="background:none;border:none;color:var(--blue);cursor:pointer;font-size:11px">Marcar todo leído</button>
+      </div>
+      <div id="campana-lista" style="max-height:min(420px,60vh);overflow-y:auto"></div>
+    </div>
+  </div>
+
   <div class="user-chip" onclick="toggleUserMenu()" id="user-chip">
     <div class="user-dot"></div>
     <span id="user-name">—</span>
@@ -312,6 +331,7 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
   <button class="ni" onclick="sv('estadisticas',this)"><i class="ti ti-chart-bar"></i>Estadísticas</button>
   <div class="ndiv"></div>
   <div class="nlabel">Sistema</div>
+  <button class="ni" onclick="sv('mensajes',this)"><i class="ti ti-send"></i>Mensajes</button>
   <button class="ni" onclick="sv('admin',this)"><i class="ti ti-shield-lock"></i>Administración</button>
   <div class="nav-bottom">
     <div class="ndiv"></div>
@@ -676,6 +696,53 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
   </div>
 </div>
 
+<!-- MENSAJES · comunicaciones internas -->
+<div id="v-mensajes" class="view">
+  <div class="ph">
+    <div><div class="aline"></div><div class="ptitle">Mensajes</div><div class="psub">Avisos internos al equipo</div></div>
+  </div>
+
+  <div class="card" style="margin-bottom:13px">
+    <div class="fgrp" style="margin-bottom:11px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:7px">
+        <label class="flabel" style="margin:0">Para quién</label>
+        <div style="display:flex;gap:6px">
+          <button class="btn btn-ghost btn-sm" style="padding:2px 8px;font-size:10px" onclick="marcarDestinatarios(true)">Todos</button>
+          <button class="btn btn-ghost btn-sm" style="padding:2px 8px;font-size:10px" onclick="marcarDestinatarios(false)">Ninguno</button>
+        </div>
+      </div>
+      <div id="msg-destinos" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(192px,1fr));gap:5px"></div>
+    </div>
+
+    <div class="fgrp" style="margin-bottom:11px">
+      <label class="flabel">Título</label>
+      <input type="text" id="msg-titulo" placeholder="Ej: Montaje del sábado se adelanta" maxlength="120">
+    </div>
+
+    <div class="fgrp" style="margin-bottom:11px">
+      <label class="flabel">Mensaje</label>
+      <textarea id="msg-cuerpo" rows="4" placeholder="Escribe el aviso..." style="resize:vertical"></textarea>
+    </div>
+
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+      <label style="display:flex;align-items:center;gap:7px;font-size:12px;color:var(--w3);cursor:pointer">
+        <input type="checkbox" id="msg-correo" style="accent-color:var(--blue)"> Enviar también por correo
+      </label>
+      <button class="btn btn-blue" id="msg-enviar-btn" onclick="enviarMensajeInterno()"><i class="ti ti-send"></i>Enviar</button>
+    </div>
+
+    <div id="msg-estado" style="font-size:12px;color:var(--w4);margin-top:10px"></div>
+  </div>
+
+  <div class="card np">
+    <div style="padding:13px 17px 0"><div style="font-size:9px;color:var(--w4);letter-spacing:1.5px;text-transform:uppercase;font-weight:600">Enviados recientemente</div></div>
+    <div class="twrap"><table>
+      <thead><tr><th>Fecha</th><th>Título</th><th>Para</th><th style="text-align:center">Leídos</th></tr></thead>
+      <tbody id="msg-tbody"><tr><td colspan="4" style="color:var(--w4);text-align:center;padding:18px">Sin mensajes todavía</td></tr></tbody>
+    </table></div>
+  </div>
+</div>
+
 <!-- ADMINISTRACIÓN · usuarios y permisos -->
 <div id="v-admin" class="view">
   <div class="ph">
@@ -842,6 +909,16 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
         <div class="ctitle">Quién trabaja en este evento</div>
         <div style="font-size:11px;color:var(--w4);margin-bottom:9px">Solo estas personas verán el evento en su panel.</div>
         <div id="log-asignados" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:5px"></div>
+
+        <div id="log-wa-wrap" style="display:none;margin-top:12px;padding-top:11px;border-top:1px solid var(--border)">
+          <div style="font-size:9px;color:var(--w4);letter-spacing:1.4px;text-transform:uppercase;font-weight:600;margin-bottom:7px">
+            Avisar por WhatsApp
+          </div>
+          <div id="log-wa-btns" style="display:flex;flex-wrap:wrap;gap:6px"></div>
+          <div style="font-size:10px;color:var(--w4);margin-top:7px">
+            Abre WhatsApp con el mensaje ya escrito. Guarda el evento primero.
+          </div>
+        </div>
       </div>
       <div class="card">
         <div class="ctitle">Referencia de montaje</div>
@@ -1419,6 +1496,7 @@ function sv(id, btn) {
   if (id === 'logistica')    { llenarSelectEventosLog(); if (!PRODUCTOS.length) cargarProductos(); if (!USUARIOS.length) cargarUsuarios(); }
   if (id === 'staff')        llenarSelectEventosStaff();
   if (id === 'admin')        cargarUsuarios();
+  if (id === 'mensajes')     abrirMensajes();
   if (id === 'estimador')    runEstimador();
   if (id === 'dashboard')    renderDashboard();
 }
@@ -2210,15 +2288,7 @@ function renderSocios() {
 }
 
 // ─── PROVEEDORES ───
-async function cargarProveedores() {
-  const {data, error} = await supa.from('proveedores').select('*').order('nombre');
-  if (error) { console.error(error); return; }
-  $('prov-tbody').innerHTML = data && data.length ? data.map(p =>
-    '<tr><td>' + esc(p.nombre) + '</td><td>' + esc(p.tipo) + '</td><td>' + esc(p.telefono) + '</td><td>' + esc(p.metodo_pago) + '</td><td style="color:var(--w4)">' + esc(p.notas) + '</td></tr>'
-  ).join('') : '<tr><td colspan="5" style="color:var(--w4);text-align:center;padding:16px">Sin proveedores registrados</td></tr>';
-}
-
-// guardarProv moved above
+// cargarProveedores y guardarProv están definidos más abajo, junto a renderProveedores
 
 // ─── ESTADÍSTICAS ───
 function renderEstadisticas() {
@@ -2317,6 +2387,7 @@ const VISTAS = [
   {id:'inventario',   nombre:'Inventario',          grupo:'Logística'},
   {id:'logistica',    nombre:'Logística evento',    grupo:'Logística'},
   {id:'estadisticas', nombre:'Estadísticas',        grupo:'Reportes'},
+  {id:'mensajes',     nombre:'Mensajes',            grupo:'Sistema'},
 ];
 
 // Permisos por defecto según rol
@@ -2573,6 +2644,266 @@ function correoBienvenida({nombre, email, usuario, pass, rol}) {
     cuerpo,
     boton: {texto: 'Entrar al sistema', url: SISTEMA_URL}
   });
+}
+
+// Guarda los avisos en el sistema y, además, manda correo a quien
+// tenga activada la casilla "Avisar por correo" en su ficha de usuario.
+// avisos = [{email, titulo, mensaje, tipo, codigo_evento}]
+async function avisarYCorreo(avisos, opciones) {
+  if (!avisos || !avisos.length) return;
+  const conCorreo = !opciones || opciones.correo !== false;
+
+  const {error} = await supa.from('notificaciones').insert(avisos);
+  if (error) { console.error('Aviso interno falló:', error); }
+
+  if (!conCorreo) return;
+
+  const correos = [...new Set(avisos.map(a => a.email))];
+
+  // Respeta la preferencia de cada usuario. Si no podemos leerla, asumimos que sí.
+  const {data} = await supa.from('usuarios').select('email,notificar').in('email', correos);
+  const prefs = new Map((data || []).map(u => [u.email, u.notificar !== false]));
+  const quieren = new Set(correos.filter(e => prefs.has(e) ? prefs.get(e) : true));
+
+  // Un solo correo por cada aviso distinto, con todos sus destinatarios
+  const grupos = {};
+  avisos.filter(a => quieren.has(a.email)).forEach(a => {
+    const k = (a.titulo || '') + '|' + (a.mensaje || '');
+    (grupos[k] = grupos[k] || []).push(a.email);
+  });
+
+  for (const clave of Object.keys(grupos)) {
+    const [titulo, mensaje] = clave.split('|');
+    await enviarCorreo({
+      to: grupos[clave],
+      subject: titulo,
+      html: plantillaCorreo({
+        titulo: titulo,
+        cuerpo: '<p style="margin:0;white-space:pre-wrap">' + esc(mensaje) + '</p>',
+        boton: {texto: 'Abrir el sistema', url: SISTEMA_URL}
+      })
+    });
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// CAMPANITA DE AVISOS · para todos los roles
+// ═══════════════════════════════════════════════════════════
+let AVISOS = [];
+let _campanaTimer = null;
+
+async function cargarAvisos() {
+  if (!CURRENT_USER || !CURRENT_USER.email) return;
+  const {data, error} = await supa.from('notificaciones')
+    .select('*').eq('email', CURRENT_USER.email)
+    .order('created_at', {ascending:false}).limit(30);
+  if (error) return;
+  AVISOS = data || [];
+  pintarCampana();
+}
+
+function pintarCampana() {
+  const noLeidos = AVISOS.filter(a => !a.leido);
+  const badge = $('campana-badge');
+  if (badge) {
+    badge.textContent = noLeidos.length > 9 ? '9+' : noLeidos.length;
+    badge.style.display = noLeidos.length ? 'block' : 'none';
+  }
+
+  const lista = $('campana-lista');
+  if (!lista) return;
+
+  if (!AVISOS.length) {
+    lista.innerHTML = '<div style="padding:22px 14px;text-align:center;font-size:12px;color:var(--w4)">No tienes avisos</div>';
+    return;
+  }
+
+  const iconos = {estado:'ti-tool', asignacion:'ti-calendar-plus', mensaje:'ti-message', default:'ti-bell'};
+
+  lista.innerHTML = AVISOS.map(a => {
+    const ic = iconos[a.tipo] || iconos.default;
+    const fecha = a.created_at
+      ? new Date(a.created_at).toLocaleString('es-VE', {day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit'})
+      : '';
+    return '<div data-aviso="' + a.id + '" style="display:flex;gap:10px;padding:11px 14px;border-bottom:1px solid var(--border);'
+      + (a.leido ? 'opacity:.5' : 'background:rgba(67,189,237,.05)') + '">'
+      + '<i class="ti ' + ic + '" style="font-size:16px;color:' + (a.leido ? 'var(--w4)' : 'var(--blue)') + ';margin-top:2px"></i>'
+      + '<div style="flex:1;min-width:0">'
+      +   '<div style="font-size:12px;font-weight:600;color:var(--w2)">' + esc(a.titulo || '') + '</div>'
+      +   (a.mensaje ? '<div style="font-size:11px;color:var(--w4);margin-top:2px;line-height:1.5;white-space:pre-wrap">' + esc(a.mensaje) + '</div>' : '')
+      +   '<div style="font-size:10px;color:var(--w4);margin-top:4px">' + fecha + '</div>'
+      + '</div>'
+      + (a.leido ? '' : '<button onclick="marcarAvisoLeido(' + a.id + ')" title="Marcar leído" '
+          + 'style="background:none;border:none;color:var(--w4);cursor:pointer;align-self:flex-start"><i class="ti ti-check"></i></button>')
+      + '</div>';
+  }).join('');
+}
+
+function toggleCampana() {
+  const p = $('campana-panel');
+  if (!p) return;
+  const abrir = p.style.display === 'none';
+  p.style.display = abrir ? 'block' : 'none';
+  if (abrir) cargarAvisos();
+}
+
+async function marcarAvisoLeido(id) {
+  await supa.from('notificaciones').update({leido:true}).eq('id', id);
+  const a = AVISOS.find(x => x.id === id);
+  if (a) a.leido = true;
+  pintarCampana();
+}
+
+async function marcarTodoLeido() {
+  const ids = AVISOS.filter(a => !a.leido).map(a => a.id);
+  if (!ids.length) return;
+  await supa.from('notificaciones').update({leido:true}).in('id', ids);
+  AVISOS.forEach(a => a.leido = true);
+  pintarCampana();
+}
+
+function arrancarCampana() {
+  cargarAvisos();
+  if (_campanaTimer) clearInterval(_campanaTimer);
+  _campanaTimer = setInterval(cargarAvisos, 60000);   // revisa cada minuto
+}
+
+// ═══════════════════════════════════════════════════════════
+// MENSAJES INTERNOS
+// ═══════════════════════════════════════════════════════════
+async function abrirMensajes() {
+  if (!USUARIOS.length) await cargarUsuarios();
+  pintarDestinatarios();
+  cargarMensajesEnviados();
+}
+
+function pintarDestinatarios() {
+  const cont = $('msg-destinos');
+  if (!cont) return;
+  const gente = USUARIOS.filter(u => u.activo !== false && u.email !== CURRENT_USER.email);
+  if (!gente.length) {
+    cont.innerHTML = '<div style="color:var(--w4);font-size:11px;grid-column:1/-1">No hay otros usuarios activos.</div>';
+    return;
+  }
+  const colorRol = {admin:'var(--blue)', socio:'var(--green)', staff:'var(--orange)'};
+  cont.innerHTML = gente.map(u =>
+      '<label style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--black3);border-radius:7px;font-size:12px;color:var(--w3);cursor:pointer">'
+    + '<input type="checkbox" class="msg-dest" value="' + esc(u.email) + '" data-nombre="' + esc(u.nombre || '') + '" style="accent-color:var(--blue)">'
+    + '<span style="flex:1">' + esc(u.nombre || u.email) + '</span>'
+    + '<span style="font-size:9px;letter-spacing:1px;text-transform:uppercase;color:' + (colorRol[u.rol] || 'var(--w4)') + '">' + esc(u.rol || '') + '</span>'
+    + '</label>'
+  ).join('');
+}
+
+function marcarDestinatarios(v) {
+  document.querySelectorAll('.msg-dest').forEach(ch => ch.checked = v);
+}
+
+async function enviarMensajeInterno() {
+  const titulo = $('msg-titulo').value.trim();
+  const cuerpo = $('msg-cuerpo').value.trim();
+  const porCorreo = $('msg-correo').checked;
+  const dest = Array.from(document.querySelectorAll('.msg-dest:checked'));
+
+  if (!dest.length) { alert('Elige al menos una persona.'); return; }
+  if (!titulo)      { alert('Escribe un título.'); return; }
+  if (!cuerpo)      { alert('Escribe el mensaje.'); return; }
+
+  const btn = $('msg-enviar-btn');
+  const estado = $('msg-estado');
+  btn.disabled = true;
+  estado.style.color = 'var(--w4)';
+  estado.textContent = 'Enviando...';
+
+  const deQuien = CURRENT_USER.nombre || CURRENT_USER.email;
+
+  // 1. Aviso dentro del sistema
+  const filas = dest.map(ch => ({
+    email: ch.value,
+    titulo: titulo,
+    mensaje: cuerpo + '\n— ' + deQuien,
+    tipo: 'mensaje',
+    leido: false
+  }));
+
+  const {error} = await supa.from('notificaciones').insert(filas);
+  if (error) {
+    btn.disabled = false;
+    estado.style.color = 'var(--red)';
+    estado.textContent = 'No se pudo enviar: ' + error.message;
+    return;
+  }
+
+  // 2. Correo, si se pidió
+  let aviso = '✓ Enviado a ' + dest.length + (dest.length === 1 ? ' persona.' : ' personas.');
+
+  if (porCorreo) {
+    const correos = dest.map(ch => ch.value);
+    const html = plantillaCorreo({
+      titulo: titulo,
+      cuerpo: '<p style="margin:0 0 16px;white-space:pre-wrap">' + esc(cuerpo) + '</p>'
+            + '<p style="margin:0;font-size:13px;color:#777">Enviado por ' + esc(deQuien) + '.</p>',
+      boton: {texto: 'Abrir el sistema', url: SISTEMA_URL}
+    });
+    const r = await enviarCorreo({to: correos, subject: titulo, html});
+    aviso += r.ok ? ' El correo también salió.' : ' PERO el correo falló: ' + r.error;
+    estado.style.color = r.ok ? 'var(--green)' : 'var(--orange)';
+  } else {
+    estado.style.color = 'var(--green)';
+  }
+
+  estado.textContent = aviso;
+  $('msg-titulo').value = '';
+  $('msg-cuerpo').value = '';
+  $('msg-correo').checked = false;
+  marcarDestinatarios(false);
+  btn.disabled = false;
+  cargarMensajesEnviados();
+}
+
+// Historial: agrupa las notificaciones tipo "mensaje" por título + minuto
+async function cargarMensajesEnviados() {
+  const tbody = $('msg-tbody');
+  if (!tbody) return;
+
+  const {data, error} = await supa.from('notificaciones')
+    .select('*').eq('tipo', 'mensaje')
+    .order('created_at', {ascending:false}).limit(200);
+
+  if (error || !data || !data.length) {
+    tbody.innerHTML = '<tr><td colspan="4" style="color:var(--w4);text-align:center;padding:18px">Sin mensajes todavía</td></tr>';
+    return;
+  }
+
+  const grupos = {};
+  data.forEach(n => {
+    const clave = (n.titulo || '') + '|' + String(n.created_at || '').slice(0, 16);
+    (grupos[clave] = grupos[clave] || []).push(n);
+  });
+
+  const nombrePorCorreo = {};
+  USUARIOS.forEach(u => nombrePorCorreo[u.email] = u.nombre || u.email);
+
+  const filas = Object.values(grupos).slice(0, 40).map(g => {
+    const n = g[0];
+    const leidos = g.filter(x => x.leido).length;
+    const quienes = g.map(x => nombrePorCorreo[x.email] || x.email);
+    const resumen = quienes.length > 3
+      ? quienes.slice(0, 3).join(', ') + ' +' + (quienes.length - 3)
+      : quienes.join(', ');
+    const fecha = n.created_at
+      ? new Date(n.created_at).toLocaleString('es-VE', {day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit'})
+      : '';
+    return '<tr>'
+      + '<td style="color:var(--w4);white-space:nowrap">' + fecha + '</td>'
+      + '<td style="font-weight:600">' + esc(n.titulo || '') + '</td>'
+      + '<td style="color:var(--w4);font-size:11px">' + esc(resumen) + '</td>'
+      + '<td style="text-align:center"><b style="color:' + (leidos === g.length ? 'var(--green)' : 'var(--w3)') + '">'
+      +   leidos + '/' + g.length + '</b></td>'
+      + '</tr>';
+  });
+
+  tbody.innerHTML = filas.join('');
 }
 
 function abrirModalUsuario(email) {
@@ -3089,15 +3420,17 @@ function pintarAvisosStaff(avisos) {
     + '<i class="ti ti-bell" style="color:var(--blue)"></i>'
     + '<div style="flex:1"><div style="font-size:12px;font-weight:600;color:var(--w2)">' + esc(a.titulo) + '</div>'
     + (a.mensaje ? '<div style="font-size:11px;color:var(--w4)">' + esc(a.mensaje) + '</div>' : '') + '</div>'
-    + '<button onclick="marcarAvisoLeido(' + a.id + ',this)" style="background:none;border:none;color:var(--w4);cursor:pointer"><i class="ti ti-x"></i></button>'
+    + '<button onclick="cerrarAvisoStaff(' + a.id + ',this)" style="background:none;border:none;color:var(--w4);cursor:pointer"><i class="ti ti-x"></i></button>'
     + '</div>'
   ).join('');
 }
 
-async function marcarAvisoLeido(id, btn) {
+async function cerrarAvisoStaff(id, btn) {
   await supa.from('notificaciones').update({leido:true}).eq('id', id);
   const row = btn.closest('div');
   if (row && row.parentElement) row.parentElement.removeChild(row);
+  const a = AVISOS.find(x => x.id === id);
+  if (a) { a.leido = true; pintarCampana(); }
 }
 
 function cerrarEventoStaff() {
@@ -3240,7 +3573,7 @@ async function avisarCambioEstado(cod, anterior, nuevo) {
     mensaje: quien + ' cambió el montaje de "' + anterior + '" a "' + nuevo + '"'
            + (ev.cliente ? ' · ' + ev.cliente : '') + '.'
   }));
-  await supa.from('notificaciones').insert(avisos);
+  await avisarYCorreo(avisos);
 }
 
 // PDF de la lista desde el panel del personal
@@ -3563,9 +3896,80 @@ function pintarAsignados(sel) {
   cont.innerHTML = staff.map(u =>
       '<label style="display:flex;align-items:center;gap:7px;padding:6px 9px;background:var(--black3);border-radius:6px;font-size:11px;color:var(--w3);cursor:pointer">'
     + '<input type="checkbox" class="log-asig" value="' + esc(u.email) + '" data-nombre="' + esc(u.nombre||'') + '"'
+    + ' data-tel="' + esc(u.telefono || '') + '" onchange="pintarWhatsApp()"'
     + (sel.has(u.email) ? ' checked' : '') + ' style="accent-color:var(--blue)">'
     + esc(u.nombre || u.email) + '</label>'
   ).join('');
+
+  pintarWhatsApp();
+}
+
+// ─── AVISO POR WHATSAPP ───
+// Convierte un teléfono venezolano a formato internacional para wa.me
+function telWhatsApp(tel) {
+  let n = String(tel || '').replace(/\D/g, '');
+  if (!n) return '';
+  if (n.startsWith('58') && n.length >= 12) return n;        // ya viene completo
+  if (n.startsWith('0'))  n = n.slice(1);                    // 0412... -> 412...
+  if (n.length === 10 && n.startsWith('4')) return '58' + n; // celular venezolano
+  if (n.length >= 11) return n;                              // otro país, se respeta
+  return '';
+}
+
+function textoWhatsApp(nombre) {
+  const cod = _logEventoActual;
+  const ev  = EVS.find(e => e.codigo === cod) || {};
+  const hora  = $('log-hora')     ? $('log-hora').value.trim() : '';
+  const notas = $('log-notas-ev') ? $('log-notas-ev').value.trim() : '';
+  const equipos = document.querySelectorAll('.log-inv-fila').length;
+
+  const datos = [
+    ev.cliente ? 'Cliente: ' + ev.cliente : null,
+    ev.fecha   ? 'Fecha: ' + fDate(ev.fecha) : null,
+    hora       ? 'Montaje: ' + hora : null,
+    ev.lugar   ? 'Lugar: ' + ev.lugar : null,
+    equipos    ? 'Equipos: ' + equipos : null
+  ].filter(Boolean);
+
+  let txt = 'Hola ' + (nombre || '') + ', te asignamos un evento.\n\n';
+  txt += '*' + cod + '*\n';
+  txt += datos.join('\n');
+  if (notas) txt += '\n\nNota: ' + notas;
+  txt += '\n\nVer la lista completa: ' + SISTEMA_URL;
+
+  return txt;
+}
+
+function pintarWhatsApp() {
+  const wrap = $('log-wa-wrap');
+  const cont = $('log-wa-btns');
+  if (!wrap || !cont) return;
+
+  const marcados = Array.from(document.querySelectorAll('.log-asig:checked'));
+  if (!marcados.length || !_logEventoActual) { wrap.style.display = 'none'; return; }
+
+  const botones = marcados.map(ch => {
+    const nombre = ch.dataset.nombre || ch.value;
+    const tel = telWhatsApp(ch.dataset.tel);
+    if (!tel) {
+      return '<span style="display:inline-flex;align-items:center;gap:5px;padding:5px 10px;background:var(--black3);'
+        + 'border-radius:16px;font-size:11px;color:var(--w4)" title="Este usuario no tiene teléfono guardado">'
+        + '<i class="ti ti-phone-off" style="font-size:13px"></i>' + esc(nombre) + '</span>';
+    }
+    return '<button onclick="abrirWhatsApp(\'' + tel + '\',this)" data-nombre="' + esc(nombre) + '" '
+      + 'style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;background:rgba(61,202,110,.13);'
+      + 'border:1px solid rgba(61,202,110,.3);border-radius:16px;font-size:11px;color:var(--green);cursor:pointer">'
+      + '<i class="ti ti-brand-whatsapp" style="font-size:14px"></i>' + esc(nombre) + '</button>';
+  });
+
+  cont.innerHTML = botones.join('');
+  wrap.style.display = 'block';
+}
+
+function abrirWhatsApp(tel, btn) {
+  const nombre = btn ? (btn.dataset.nombre || '') : '';
+  const url = 'https://wa.me/' + tel + '?text=' + encodeURIComponent(textoWhatsApp(nombre));
+  window.open(url, '_blank');
 }
 
 function pintarRender() {
@@ -3771,18 +4175,25 @@ async function guardarLogistica() {
 
   // Avisos internos
   const avisos = [];
-  const cli = ev.cliente ? ' · ' + ev.cliente : '';
+  const ficha_datos = [
+    ficha.cliente ? 'Cliente: ' + ficha.cliente : '',
+    ficha.fecha   ? 'Fecha: ' + fDate(ficha.fecha) : '',
+    ficha.hora_montaje ? 'Montaje: ' + ficha.hora_montaje : '',
+    ficha.lugar   ? 'Lugar: ' + ficha.lugar : '',
+    inv.length    ? 'Equipos: ' + inv.length : ''
+  ].filter(Boolean).join('\n');
+
   nuevos.forEach(a => avisos.push({
     email: a.email, codigo_evento: cod, tipo: 'asignacion',
     titulo: 'Te asignaron al evento ' + cod,
-    mensaje: 'Ya puedes ver los equipos del evento' + cli + (ficha.fecha ? ' del ' + fDate(ficha.fecha) : '') + '.'
+    mensaje: ficha_datos + '\n\nEntra a "Mis eventos" para ver la lista de equipos.'
   }));
   siguen.forEach(a => avisos.push({
     email: a.email, codigo_evento: cod, tipo: 'actualizacion',
     titulo: 'Se actualizó el evento ' + cod,
-    mensaje: 'Revisa la lista de equipos, cambió algo' + cli + '.'
+    mensaje: ficha_datos + '\n\nRevisa la lista de equipos, cambió algo.'
   }));
-  if (avisos.length) await supa.from('notificaciones').insert(avisos);
+  await avisarYCorreo(avisos);
 
   alert('\u2713 Guardado: ' + inv.length + ' equipos, ' + pers.length + ' personas y '
       + seleccion.length + ' asignado' + (seleccion.length === 1 ? '' : 's') + '.'
@@ -5935,6 +6346,7 @@ async function onLogin(user) {
 
   aplicarPermisos();
   vistaInicial();
+  arrancarCampana();
 
   if (info.rol !== 'staff') {
     ['tx-resp','cresp'].forEach(id => { const el = $(id); if(el) el.value = info.nombre; });
@@ -5953,6 +6365,10 @@ function toggleUserMenu() {
 }
 
 document.addEventListener('click', function(e) {
+  if (!e.target.closest('#campana-wrap')) {
+    const c = $('campana-panel');
+    if (c) c.style.display = 'none';
+  }
   if (!e.target.closest('#user-chip') && !e.target.closest('#user-menu')) {
     const m = $('user-menu');
     if (m) m.style.display = 'none';
