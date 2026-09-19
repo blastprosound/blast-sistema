@@ -2449,7 +2449,15 @@ const LOGO_CORREO = 'https://blastprosound.github.io/blast-sistema/logo-white.pn
 // Sin esto, supabase-js solo dice "non-2xx status code" y se pierde el motivo.
 async function invocarFuncion(nombre, body) {
   try {
-    const {data, error} = await supa.functions.invoke(nombre, {body});
+    // Mandamos el token de la sesión explícitamente. Si no, supabase-js
+    // manda la llave pública y la función no sabe quién está llamando.
+    const sesion = (await supa.auth.getSession()).data.session;
+    const opciones = {body};
+    if (sesion && sesion.access_token) {
+      opciones.headers = {Authorization: 'Bearer ' + sesion.access_token};
+    }
+
+    const {data, error} = await supa.functions.invoke(nombre, opciones);
 
     if (error) {
       let detalle = error.message || String(error);
