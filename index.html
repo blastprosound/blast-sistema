@@ -238,42 +238,20 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
     <img src="https://blastprosound.github.io/blast-sistema/logo-white.png" style="height:40px;width:auto;margin:0 auto 16px;display:block" alt="Blast ProSound">
     <div class="login-error" id="login-error">Contraseña incorrecta</div>
 
-    <!-- Step 1: User selection -->
-    <div id="login-step1">
-      <div style="font-size:11px;color:var(--w4);text-align:center;margin-bottom:14px;letter-spacing:1px">Selecciona tu perfil</div>
-      <div style="display:flex;flex-direction:column;gap:8px">
-        <button class="login-user-btn" onclick="selectUser('gustavobricenob@gmail.com','Gustavo Briceño','GB')">
-          <div class="login-avatar" style="background:rgba(67,189,237,.15);color:var(--blue)">GB</div>
-          <div><div style="font-size:13px;font-weight:600;color:var(--white)">Gustavo Briceño</div><div style="font-size:10px;color:var(--w4)">Fukity</div></div>
-        </button>
-        <button class="login-user-btn" onclick="selectUser('casadetejas@gmail.com','Eduardo Behrens','EB')">
-          <div class="login-avatar" style="background:rgba(234,95,242,.15);color:var(--magenta)">EB</div>
-          <div><div style="font-size:13px;font-weight:600;color:var(--white)">Eduardo Behrens</div><div style="font-size:10px;color:var(--w4)">Edu</div></div>
-        </button>
-        <button class="login-user-btn" onclick="selectUser('franciscomassari001@gmail.com','Francisco Massari','FM')">
-          <div class="login-avatar" style="background:rgba(244,169,61,.15);color:var(--orange)">FM</div>
-          <div><div style="font-size:13px;font-weight:600;color:var(--white)">Francisco Massari</div><div style="font-size:10px;color:var(--w4)">Fran</div></div>
-        </button>
-        <button class="login-user-btn" onclick="selectUserOtro()" style="border-style:dashed">
-          <div class="login-avatar" style="background:rgba(255,255,255,.06);color:var(--w4)"><i class="ti ti-user"></i></div>
-          <div><div style="font-size:13px;font-weight:600;color:var(--w3)">Otro usuario</div><div style="font-size:10px;color:var(--w4)">Entrar con usuario y contraseña</div></div>
-        </button>
-      </div>
-    </div>
-
-    <!-- Step 2: Password -->
-    <div id="login-step2" style="display:none">
-      <div id="login-selected-user" style="display:flex;align-items:center;gap:10px;margin-bottom:16px;padding:10px;background:var(--black3);border-radius:8px">
+    <!-- Login directo · recuerda el último usuario que entró en este equipo -->
+    <div id="login-step2">
+      <div id="login-ultimo" style="display:none;align-items:center;gap:10px;margin-bottom:16px;padding:10px;background:var(--black3);border-radius:8px">
         <div id="login-sel-avatar" class="login-avatar"></div>
         <div id="login-sel-name" style="font-size:13px;font-weight:600;color:var(--white)"></div>
-        <button onclick="backToUsers()" style="margin-left:auto;background:none;border:none;color:var(--w4);cursor:pointer;font-size:11px">Cambiar</button>
+        <button onclick="olvidarUsuario()" style="margin-left:auto;background:none;border:none;color:var(--w4);cursor:pointer;font-size:11px">Cambiar</button>
+      </div>
+      <div class="fgrp" id="login-email-wrap" style="margin-bottom:10px">
+        <label class="flabel">Usuario o correo</label>
+        <input type="text" id="login-email" placeholder="tu@correo.com" onkeydown="if(event.key==='Enter') doLogin()">
       </div>
       <div class="fgrp" style="margin-bottom:10px">
         <label class="flabel">Contraseña</label>
-        <div class="fgrp" id="login-email-wrap" style="display:none;margin-bottom:10px">
-        <label class="flabel">Email</label>
-        <input type="email" id="login-email" placeholder="tu@correo.com" onkeydown="if(event.key==='Enter') doLogin()">
-      </div><input type="password" id="login-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter') doLogin()">
+        <input type="password" id="login-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter') doLogin()">
       </div>
       <button class="login-btn" id="login-btn" onclick="doLogin()">Entrar</button>
     </div>
@@ -1142,9 +1120,12 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
       <div id="mu-permisos" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(178px,1fr));gap:5px"></div>
     </div>
 
-    <div class="fgrp" style="margin-bottom:11px">
+    <div class="fgrp" style="margin-bottom:11px;display:flex;gap:18px;flex-wrap:wrap">
       <label style="display:flex;align-items:center;gap:7px;font-size:12px;color:var(--w3);cursor:pointer">
         <input type="checkbox" id="mu-activo" checked style="accent-color:var(--green)"> Usuario activo
+      </label>
+      <label id="mu-bienvenida-wrap" style="display:flex;align-items:center;gap:7px;font-size:12px;color:var(--w3);cursor:pointer">
+        <input type="checkbox" id="mu-bienvenida" checked style="accent-color:var(--blue)"> Enviar correo de bienvenida
       </label>
     </div>
 
@@ -1367,6 +1348,40 @@ const DRIVE_CLIENT_ID  = '801348976015-paip3hh1efdeddtkhq6qdouhpftd1d9k.apps.goo
 const DRIVE_SCOPE      = 'https://www.googleapis.com/auth/drive.file';
 const VENTAS_FOLDER_ID = '1I0gS1SLxkKAi7tjQyTIWmprq04tWqvBJ';
 const MESES_ES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+
+// ─── ORDEN FIJO DE CATEGORÍAS DE INVENTARIO ───
+// Lo que no esté en la lista sale después, en orden alfabético.
+const ORDEN_CAT = ['sonido','luces','estructura','mesas','tarimas','truss','telas','seguridad','cableo'];
+
+function _normCat(c) {
+  return (c || '').toString().toLowerCase()
+    .normalize('NFD').replace(/[̀-ͯ]/g, '').trim();
+}
+
+function pesoCat(c) {
+  const n = _normCat(c);
+  const i = ORDEN_CAT.findIndex(k => n === k || n.startsWith(k) || k.startsWith(n));
+  return i === -1 ? 999 : i;
+}
+
+// Ordena un array de [categoria, items] según ORDEN_CAT
+function ordenarGrupos(entries) {
+  return entries.sort((a, b) => {
+    const d = pesoCat(a[0]) - pesoCat(b[0]);
+    return d !== 0 ? d : String(a[0]).localeCompare(String(b[0]), 'es');
+  });
+}
+
+// Ordena filas sueltas que tengan .categoria (y luego .concepto)
+function ordenarPorCat(rows) {
+  return rows.slice().sort((a, b) => {
+    const d = pesoCat(a.categoria) - pesoCat(b.categoria);
+    if (d !== 0) return d;
+    const c = String(a.categoria || '').localeCompare(String(b.categoria || ''), 'es');
+    if (c !== 0) return c;
+    return String(a.concepto || '').localeCompare(String(b.concepto || ''), 'es');
+  });
+}
 
 // ─── GLOBAL STATE ───
 let TX  = [];   // all transactions
@@ -2424,6 +2439,106 @@ function actualizarHint() {
   h.innerHTML = txt;
 }
 
+// ═══════════════════════════════════════════════════════════
+// CORREOS · Resend vía Edge Function "enviar-correo"
+// ═══════════════════════════════════════════════════════════
+const SISTEMA_URL = 'https://blastprosound.github.io/blast-sistema/';
+const LOGO_CORREO = 'https://blastprosound.github.io/blast-sistema/logo-white.png';
+
+// Envía un correo. Devuelve {ok:true} o {ok:false, error:'...'}
+async function enviarCorreo({to, subject, html, reply_to}) {
+  try {
+    const {data, error} = await supa.functions.invoke('enviar-correo', {
+      body: {to, subject, html, reply_to}
+    });
+    if (error) return {ok:false, error: error.message || String(error)};
+    if (data && data.error) return {ok:false, error: data.error};
+    return {ok:true, id: data && data.id};
+  } catch (e) {
+    return {ok:false, error: String(e)};
+  }
+}
+
+// Plantilla base: cabecera negra con logo, cuerpo blanco, pie discreto.
+// Se usa para todos los correos del sistema.
+function plantillaCorreo({titulo, cuerpo, boton}) {
+  return ''
+  + '<!DOCTYPE html><html><head><meta charset="UTF-8">'
+  + '<meta name="viewport" content="width=device-width,initial-scale=1"></head>'
+  + '<body style="margin:0;padding:0;background:#f2f2f2;font-family:Arial,Helvetica,sans-serif">'
+  + '<table width="100%" cellpadding="0" cellspacing="0" style="background:#f2f2f2;padding:26px 12px">'
+  + '<tr><td align="center">'
+  + '<table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#ffffff;border-radius:12px;overflow:hidden">'
+
+  // Cabecera
+  + '<tr><td style="background:#141414;padding:24px 28px" align="center">'
+  +   '<img src="' + LOGO_CORREO + '" alt="Blast ProSound" style="height:30px;width:auto;display:block">'
+  + '</td></tr>'
+
+  // Título
+  + '<tr><td style="padding:28px 28px 0 28px">'
+  +   '<div style="font-size:11px;letter-spacing:2.4px;text-transform:uppercase;color:#43bded;font-weight:700">Sistema interno</div>'
+  +   '<div style="font-size:21px;font-weight:700;color:#141414;margin-top:6px">' + titulo + '</div>'
+  + '</td></tr>'
+
+  // Cuerpo
+  + '<tr><td style="padding:16px 28px 0 28px;font-size:14px;line-height:1.6;color:#333">' + cuerpo + '</td></tr>'
+
+  // Botón
+  + (boton
+      ? '<tr><td style="padding:24px 28px 4px 28px" align="center">'
+        + '<a href="' + boton.url + '" style="display:inline-block;background:#43bded;color:#141414;'
+        + 'text-decoration:none;padding:13px 32px;border-radius:7px;font-size:14px;font-weight:700">'
+        + boton.texto + '</a></td></tr>'
+      : '')
+
+  // Pie
+  + '<tr><td style="padding:26px 28px 24px 28px">'
+  +   '<div style="border-top:1px solid #eee;padding-top:14px;font-size:11px;color:#999;text-align:center">'
+  +     'Blast ProSound &middot; Caracas<br>'
+  +     'Este es un correo automático del sistema interno. No respondas a esta dirección.'
+  +   '</div>'
+  + '</td></tr>'
+
+  + '</table></td></tr></table></body></html>';
+}
+
+// Correo de bienvenida con credenciales
+function correoBienvenida({nombre, email, usuario, pass, rol}) {
+  const roles = {admin:'Administrador', socio:'Socio', staff:'Personal'};
+  const credencial = usuario || email;
+
+  const cuerpo = ''
+  + '<p style="margin:0 0 14px">Hola <b>' + esc(nombre) + '</b>,</p>'
+  + '<p style="margin:0 0 18px">Te creamos un acceso al sistema interno de Blast ProSound '
+  +   'como <b>' + (roles[rol] || rol) + '</b>. Estos son tus datos para entrar:</p>'
+
+  + '<table width="100%" cellpadding="0" cellspacing="0" style="background:#f7f7f7;border-radius:8px;border-left:3px solid #43bded">'
+  + '<tr><td style="padding:16px 18px">'
+  +   '<div style="font-size:10px;letter-spacing:1.6px;text-transform:uppercase;color:#888;font-weight:700">Usuario</div>'
+  +   '<div style="font-size:15px;color:#141414;font-weight:700;margin:3px 0 12px">' + esc(credencial) + '</div>'
+  +   '<div style="font-size:10px;letter-spacing:1.6px;text-transform:uppercase;color:#888;font-weight:700">Contraseña</div>'
+  +   '<div style="font-size:15px;color:#141414;font-weight:700;margin-top:3px;font-family:monospace">' + esc(pass) + '</div>'
+  + '</td></tr></table>'
+
+  + '<p style="margin:20px 0 8px;font-weight:700;color:#141414">Cómo entrar</p>'
+  + '<ol style="margin:0;padding-left:20px;color:#444">'
+  +   '<li style="margin-bottom:6px">Abre el sistema con el botón de abajo.</li>'
+  +   '<li style="margin-bottom:6px">Escribe tu usuario y tu contraseña.</li>'
+  +   '<li style="margin-bottom:6px">Listo. El navegador recordará tu usuario la próxima vez.</li>'
+  + '</ol>'
+
+  + '<p style="margin:18px 0 0;font-size:13px;color:#777">'
+  +   'Guarda este correo o anota la contraseña en un lugar seguro. '
+  +   'Si tienes problemas para entrar, escríbele a Gustavo.</p>';
+
+  return plantillaCorreo({
+    titulo: 'Tu acceso al sistema',
+    cuerpo,
+    boton: {texto: 'Entrar al sistema', url: SISTEMA_URL}
+  });
+}
+
 function abrirModalUsuario(email) {
   const u = email ? USUARIOS.find(x => x.email === email) : null;
   $('mu-title').textContent = u ? 'Editar usuario' : 'Nuevo usuario';
@@ -2439,6 +2554,10 @@ function abrirModalUsuario(email) {
   $('mu-pass').placeholder = u ? 'Dejar vacío para no cambiarla' : 'Mínimo 6 caracteres';
   $('mu-activo').checked = u ? u.activo !== false : true;
   $('mu-del').style.display = (u && u.email !== CURRENT_USER.email) ? 'inline-flex' : 'none';
+
+  // El correo de bienvenida solo aplica a usuarios nuevos
+  $('mu-bienvenida').checked = !u;
+  $('mu-bienvenida-wrap').style.display = u ? 'none' : 'flex';
 
   const permisos = u && Array.isArray(u.permisos) && u.permisos.length
     ? u.permisos
@@ -2518,6 +2637,21 @@ async function guardarUsuario() {
 
   $('modal-usuario').classList.remove('show');
   await cargarUsuarios();
+
+  // Correo de bienvenida, solo para usuarios nuevos y si se marc\u00f3 la casilla
+  if (!original && pass && $('mu-bienvenida').checked) {
+    const r = await enviarCorreo({
+      to: email,
+      subject: 'Tu acceso al sistema de Blast ProSound',
+      html: correoBienvenida({nombre, email, usuario, pass, rol})
+    });
+    alert(r.ok
+      ? '\u2713 Usuario guardado.\n\nSe envi\u00f3 el correo de bienvenida a ' + email + '.'
+      : '\u2713 Usuario guardado.\n\nPERO el correo de bienvenida no sali\u00f3:\n' + r.error
+        + '\n\nP\u00e1sale los datos de acceso por otro medio.');
+    return;
+  }
+
   alert('\u2713 Usuario guardado.');
 }
 
@@ -2641,7 +2775,7 @@ function renderSelectorMontaje() {
   const grupos = {};
   items.forEach(p => { (grupos[p.categoria || 'Sin categoría'] = grupos[p.categoria || 'Sin categoría'] || []).push(p); });
 
-  $('mm-lista').innerHTML = Object.entries(grupos).map(([g, ps]) =>
+  $('mm-lista').innerHTML = ordenarGrupos(Object.entries(grupos)).map(([g, ps]) =>
       '<div style="font-size:9px;color:var(--w4);letter-spacing:1.4px;text-transform:uppercase;font-weight:600;margin:12px 0 6px">' + esc(g) + '</div>'
     + '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:5px">'
     + ps.map(p => {
@@ -2702,6 +2836,7 @@ function imprimirListaCarga() {
     fecha:   ev.fecha ? fDate(ev.fecha) : '',
     hora:    $('log-hora') ? $('log-hora').value.trim() : '',
     notas:   $('log-notas-ev') ? $('log-notas-ev').value.trim() : '',
+    render:  (_renderActual && _renderActual.url) || '',
     equipo:  Array.from(document.querySelectorAll('.log-asig:checked')).map(ch => ch.dataset.nombre || ch.value),
     filas:   filasDom.map(tr => ({
       concepto:  tr.querySelector('.li-concepto').textContent,
@@ -2721,6 +2856,8 @@ function generarPDFCarga(cfg) {
   const notas   = cfg.notas   || '';
   const equipo  = cfg.equipo  || [];
   const filas   = cfg.filas   || [];
+  const render  = cfg.render  || '';
+  const esImgRender = render && /\.(png|jpe?g|gif|webp)(\?|$)/i.test(render);
   if (!filas.length) { alert('No hay equipos en la lista.'); return; }
 
   const grupos = {};
@@ -2728,7 +2865,7 @@ function generarPDFCarga(cfg) {
 
   const total = filas.length;
   // Dos columnas para que quepa en una página
-  const cats = Object.entries(grupos);
+  const cats = ordenarGrupos(Object.entries(grupos));
   const mitad = Math.ceil(cats.reduce((s,[,it]) => s + it.length + 1, 0) / 2);
   let acum = 0, colA = [], colB = [];
   cats.forEach(([cat, items]) => {
@@ -2783,6 +2920,17 @@ function generarPDFCarga(cfg) {
     + '<td width="50%" style="vertical-align:top">' + bloque(colA) + '</td>'
     + '<td width="50%" style="vertical-align:top">' + bloque(colB) + '</td>'
     + '</tr></table>'
+
+    // Render de referencia
+    + (esImgRender
+        ? '<div style="break-inside:avoid;page-break-inside:avoid;margin-top:14px">'
+          + '<div style="background:#141414;color:#fff;font-size:8.5px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;padding:4px 9px;border-radius:3px 3px 0 0">Referencia de montaje</div>'
+          + '<div style="border:1px solid #e3e3e3;border-top:none;padding:8px;text-align:center">'
+          + '<img src="' + render + '" style="max-width:100%;max-height:340px;height:auto">'
+          + '</div></div>'
+        : (render
+            ? '<div style="margin-top:12px;font-size:9px;color:#666"><b style="color:#111">Referencia de montaje:</b> ' + render + '</div>'
+            : ''))
 
     // Firmas
     + '<table width="100%" style="margin-top:14px;border-collapse:separate;border-spacing:22px 0"><tr>'
@@ -2978,7 +3126,7 @@ function renderStaffInv() {
   const grupos = {};
   rows.forEach(r => { (grupos[r.categoria || 'Otros'] = grupos[r.categoria || 'Otros'] || []).push(r); });
 
-  tbody.innerHTML = Object.entries(grupos).map(([cat, items]) =>
+  tbody.innerHTML = ordenarGrupos(Object.entries(grupos)).map(([cat, items]) =>
       '<tr><td colspan="4" style="background:var(--black3);font-size:9px;letter-spacing:1.4px;text-transform:uppercase;color:var(--w4);font-weight:700;padding:5px 11px">' + esc(cat) + '</td></tr>'
     + items.map(r =>
         '<tr>'
@@ -3074,6 +3222,7 @@ function imprimirListaStaff() {
     fecha: e.fecha ? fDate(e.fecha) : '',
     hora: e.hora || '',
     notas: e.notas || '',
+    render: e.render || '',
     equipo: [],
     filas
   });
@@ -3205,6 +3354,8 @@ function renderInventario() {
     if (q && !(p.concepto||'').toLowerCase().includes(q) && !(p.categoria||'').toLowerCase().includes(q)) return false;
     return true;
   });
+
+  rows = ordenarPorCat(rows);
 
   // KPIs sobre el catálogo completo
   const propios  = PRODUCTOS.filter(p => p.dueno === 'Blast');
@@ -3347,7 +3498,7 @@ async function cargarLogisticaEvento() {
   ]);
 
   $('log-inv-tbody').innerHTML = '';
-  (inv.data || []).forEach(r => addFilaInvLog(r));
+  ordenarPorCat(inv.data || []).forEach(r => addFilaInvLog(r));
   if (!(inv.data || []).length) $('log-inv-tbody').innerHTML = '<tr id="log-inv-vacio"><td colspan="6" style="color:var(--w4);text-align:center;padding:14px">Busca un equipo arriba o usa la lista de montaje</td></tr>';
 
   $('log-pers-tbody').innerHTML = '';
@@ -3412,8 +3563,12 @@ async function subirRender() {
 
   const {error} = await supa.storage.from('renders').upload(ruta, file, {upsert:true});
   if (error) {
+    const esRLS = /row-level security|policy|permission/i.test(error.message || '');
     box.innerHTML = '<span style="font-size:11px;color:var(--red)">No se pudo subir: ' + esc(error.message)
-      + '<br>Crea el bucket público "renders" en Supabase → Storage.</span>';
+      + (esRLS
+          ? '<br>El bucket existe pero le faltan las políticas de Storage. Corre el SQL de políticas del bucket "renders".'
+          : '<br>Revisa que el bucket "renders" exista y sea público en Supabase → Storage.')
+      + '</span>';
     return;
   }
   const {data} = supa.storage.from('renders').getPublicUrl(ruta);
@@ -5649,44 +5804,48 @@ async function init() {
 
 
 // ─── AUTH ───
-function selectUser(email, nombre, initials) {
-  $('login-step1').style.display = 'none';
-  $('login-step2').style.display = 'block';
-  const w = $('login-email-wrap'); if (w) w.style.display = 'none';
-  $('login-email').value = email;
-  $('login-sel-name').textContent = nombre;
-  const colors = {GB:'rgba(67,189,237,.15)',EB:'rgba(234,95,242,.15)',FM:'rgba(244,169,61,.15)'};
-  const textColors = {GB:'var(--blue)',EB:'var(--magenta)',FM:'var(--orange)'};
-  const av = $('login-sel-avatar');
-  av.textContent = initials;
-  av.style.background = colors[initials]||'rgba(255,255,255,.1)';
-  av.style.color = textColors[initials]||'var(--w2)';
-  setTimeout(() => $('login-pass').focus(), 100);
+// Recuerda el último usuario que entró en este equipo (solo el identificador, nunca la clave)
+const LS_ULTIMO = 'blastUltimoUsuario';
+
+function inicialesDe(txt) {
+  const t = (txt || '').trim();
+  if (!t) return '?';
+  const p = t.split(/\s+/);
+  return ((p[0][0] || '') + (p[1] ? p[1][0] : '')).toUpperCase();
 }
 
-function selectUserOtro() {
-  $('login-step1').style.display = 'none';
-  $('login-step2').style.display = 'block';
-  $('login-email-wrap').style.display = 'block';
-  $('login-email').value = '';
-  $('login-email').type = 'text';
-  $('login-email').placeholder = 'Tu usuario';
-  const lbl = document.querySelector('#login-email-wrap .flabel');
-  if (lbl) lbl.textContent = 'Usuario';
-  $('login-sel-name').textContent = 'Iniciar sesión';
-  const av = $('login-sel-avatar');
-  av.innerHTML = '<i class="ti ti-user"></i>';
-  av.style.background = 'rgba(255,255,255,.06)';
-  av.style.color = 'var(--w4)';
-  setTimeout(() => $('login-email').focus(), 100);
+function prepararLogin() {
+  let u = null;
+  try { u = JSON.parse(localStorage.getItem(LS_ULTIMO) || 'null'); } catch(e) { u = null; }
+
+  const box = $('login-ultimo');
+  if (u && u.login) {
+    $('login-email').value = u.login;
+    $('login-email-wrap').style.display = 'none';
+    box.style.display = 'flex';
+    $('login-sel-name').textContent = u.nombre || u.login;
+    const av = $('login-sel-avatar');
+    av.textContent = inicialesDe(u.nombre || u.login);
+    av.style.background = 'rgba(67,189,237,.15)';
+    av.style.color = 'var(--blue)';
+    setTimeout(() => $('login-pass').focus(), 120);
+  } else {
+    box.style.display = 'none';
+    $('login-email-wrap').style.display = 'block';
+    $('login-email').value = '';
+    setTimeout(() => $('login-email').focus(), 120);
+  }
 }
 
-function backToUsers() {
-  $('login-step1').style.display = 'block';
-  $('login-step2').style.display = 'none';
-  const w = $('login-email-wrap'); if (w) w.style.display = 'none';
-  $('login-error').style.display = 'none';
+function olvidarUsuario() {
+  try { localStorage.removeItem(LS_ULTIMO); } catch(e) {}
   $('login-pass').value = '';
+  $('login-error').style.display = 'none';
+  prepararLogin();
+}
+
+function recordarUsuario(login, nombre) {
+  try { localStorage.setItem(LS_ULTIMO, JSON.stringify({login, nombre})); } catch(e) {}
 }
 
 const ALLOWED_EMAILS = {
@@ -5695,8 +5854,11 @@ const ALLOWED_EMAILS = {
   'franciscomassari001@gmail.com':'Francisco Massari'
 };
 
+let _loginEntrada = '';
+
 async function doLogin() {
   const entrada = $('login-email').value;
+  _loginEntrada = (entrada || '').trim();
   const pass    = $('login-pass').value;
   const email   = await normalizarLogin(entrada);
   const btn   = $('login-btn');
@@ -5732,6 +5894,8 @@ async function onLogin(user) {
 
   CURRENT_USER = {email, nombre: info.nombre, rol: info.rol, permisos: info.permisos || []};
 
+  recordarUsuario(_loginEntrada || email, info.nombre);
+
   $('user-name').textContent = info.nombre;
   $('login-screen').style.display = 'none';
 
@@ -5766,8 +5930,9 @@ async function checkSession() {
   const {data: {session}} = await supa.auth.getSession();
   if (session && session.user) {
     onLogin(session.user);
+  } else {
+    prepararLogin();
   }
-  // else: login screen stays visible
 }
 
 checkSession();
