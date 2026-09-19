@@ -2610,6 +2610,24 @@ async function guardarUsuario() {
     alert('Marca al menos una pestaña que este usuario pueda ver.'); return;
   }
 
+  // Protección 1: crear un usuario "nuevo" con un correo que ya existe
+  // sobrescribiría a esa persona y le cambiaría la contraseña.
+  if (!original && USUARIOS.some(u => (u.email || '').toLowerCase() === email)) {
+    alert('Ya existe un usuario con el correo ' + email + '.\n\n'
+        + 'Si quieres modificarlo, ciérralo y edítalo desde la lista.');
+    return;
+  }
+
+  // Protección 2: no puedes quitarte a ti mismo el rol de admin ni desactivarte.
+  if (email === CURRENT_USER.email) {
+    if (rol !== 'admin') {
+      alert('No puedes quitarte a ti mismo el rol de administrador.\n\n'
+          + 'Si necesitas hacerlo, pídele a otro administrador que lo cambie.');
+      return;
+    }
+    if (!activo) { alert('No puedes desactivar tu propio usuario.'); return; }
+  }
+
   // Crear la cuenta o cambiar la clave, siempre vía la Edge Function "crear-usuario".
   // Esa función usa la llave de servicio y marca el correo como confirmado,
   // así el usuario entra de una vez sin depender de la opción "Confirm email".
