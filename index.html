@@ -84,6 +84,30 @@ tbody tr:hover td{background:rgba(67,189,237,0.025)}
 .b-green{background:rgba(61,202,110,0.12);color:var(--green)}
 .b-blue{background:rgba(67,189,237,0.12);color:var(--blue)}
 .b-orange{background:rgba(244,169,61,0.12);color:var(--orange)}
+.b-red{background:rgba(224,85,85,0.12);color:var(--red)}
+.b-gray{background:rgba(255,255,255,0.06);color:var(--w4)}
+/* ── Calendario ── */
+.cal-head{display:grid;grid-template-columns:repeat(7,1fr);border-bottom:1px solid var(--border)}
+.cal-head div{font-size:9px;letter-spacing:1.4px;text-transform:uppercase;color:var(--w4);font-weight:700;padding:8px 6px;text-align:center}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr)}
+.cal-cell{min-height:96px;border-right:1px solid var(--border);border-bottom:1px solid var(--border);padding:4px;display:flex;flex-direction:column;gap:3px;min-width:0}
+.cal-cell:nth-child(7n){border-right:none}
+.cal-cell.fuera{background:rgba(0,0,0,.18)}
+.cal-cell.fuera .cal-num{opacity:.35}
+.cal-num{font-size:11px;color:var(--w4);font-weight:600;padding:1px 3px}
+.cal-cell.hoy .cal-num{background:var(--blue);color:var(--black);border-radius:10px;width:max-content;padding:1px 7px}
+.cal-chip{font-size:10px;line-height:1.25;padding:3px 5px;border-radius:4px;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;border-left:3px solid;background:rgba(255,255,255,.04);color:var(--w2)}
+.cal-chip:hover{background:rgba(255,255,255,.09)}
+.cal-chip.tachado{text-decoration:line-through;opacity:.55}
+.cal-leyenda{display:flex;gap:14px;flex-wrap:wrap;font-size:11px;color:var(--w4);align-items:center}
+.cal-leyenda i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.cal-fila{display:flex;align-items:center;gap:10px;padding:9px 4px;border-bottom:1px solid var(--border);cursor:pointer}
+.cal-fila:hover{background:rgba(255,255,255,.03)}
+@media (max-width:640px){
+  .cal-cell{min-height:52px;padding:2px}
+  .cal-chip{font-size:0;padding:0;height:6px;border-left-width:0;border-radius:3px;background:var(--c)!important}
+  .cal-head div{padding:6px 2px;letter-spacing:0}
+}
 .b-magenta{background:rgba(234,95,242,0.12);color:var(--magenta)}
 .b-white{background:rgba(255,255,255,0.08);color:var(--w3)}
 
@@ -311,6 +335,7 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
   <div class="nlabel">Principal</div>
   <button class="ni on" onclick="sv('dashboard',this)"><i class="ti ti-layout-dashboard"></i>Dashboard</button>
   <button class="ni" onclick="sv('eventos',this)"><i class="ti ti-calendar-event"></i>Eventos</button>
+  <button class="ni" onclick="sv('calendario',this)"><i class="ti ti-calendar-month"></i>Calendario</button>
   <button class="ni" onclick="sv('registro',this)"><i class="ti ti-receipt-2"></i>Registro</button>
   <button class="ni" onclick="sv('pendientes',this)"><i class="ti ti-clock-exclamation"></i>Cuentas pendientes</button>
   <button class="ni" onclick="sv('balance',this)"><i class="ti ti-scale"></i>Balance</button>
@@ -584,6 +609,7 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
     <div class="btn-row" style="margin-bottom:9px">
       <button class="btn btn-blue btn-sm" onclick="genIA()"><i class="ti ti-sparkles"></i>Generar descripción</button>
       <button class="btn btn-ghost btn-sm" id="btn-guardar-cot" onclick="guardarCotizacionManual()"><i class="ti ti-device-floppy"></i>Guardar</button>
+      <button class="btn btn-ghost btn-sm" onclick="confirmarCotizacionActual()" style="color:var(--green);border-color:rgba(61,202,110,.35)"><i class="ti ti-circle-check"></i>Confirmar evento</button>
       <button class="btn btn-ghost btn-sm" onclick="exportPDF()"><i class="ti ti-file-download"></i>Ver / Imprimir PDF</button>
       <button class="btn btn-drive btn-sm" onclick="exportarADriveConGuardado()" id="btn-drive">
         <img src="https://upload.wikimedia.org/wikipedia/commons/1/12/Google_Drive_icon_%282020%29.svg" style="width:15px;height:15px" alt=""> Guardar en Drive
@@ -696,6 +722,42 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
   </div>
 </div>
 
+<!-- CALENDARIO · cotizados y confirmados -->
+<div id="v-calendario" class="view">
+  <div class="ph">
+    <div><div class="aline"></div><div class="ptitle">Calendario</div><div class="psub" id="cal-sub">Eventos cotizados y confirmados</div></div>
+    <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+      <button class="btn btn-ghost btn-sm" onclick="moverMes(-1)" aria-label="Mes anterior"><i class="ti ti-chevron-left"></i></button>
+      <div id="cal-mes" style="font-weight:700;color:var(--w2);min-width:128px;text-align:center;font-size:14px"></div>
+      <button class="btn btn-ghost btn-sm" onclick="moverMes(1)" aria-label="Mes siguiente"><i class="ti ti-chevron-right"></i></button>
+      <button class="btn btn-ghost btn-sm" onclick="moverMes(0)">Hoy</button>
+      <button class="btn btn-ghost btn-sm" onclick="abrirSyncCalendario()"><i class="ti ti-refresh"></i>Sincronizar</button>
+    </div>
+  </div>
+
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px">
+    <div class="cal-leyenda">
+      <span><i style="background:var(--orange)"></i>Cotizado</span>
+      <span><i style="background:var(--blue)"></i>Confirmado</span>
+      <span><i style="background:var(--green)"></i>Cobrado</span>
+      <span id="cal-ley-perdida" style="display:none"><i style="background:var(--w4)"></i>Perdido</span>
+    </div>
+    <label style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--w4);cursor:pointer">
+      <input type="checkbox" id="cal-perdidas" onchange="renderCalendario()" style="accent-color:var(--w4)"> Mostrar perdidos
+    </label>
+  </div>
+
+  <div class="card np" style="overflow:hidden">
+    <div class="cal-head"><div>Lun</div><div>Mar</div><div>Mié</div><div>Jue</div><div>Vie</div><div>Sáb</div><div>Dom</div></div>
+    <div class="cal-grid" id="cal-grid"></div>
+  </div>
+
+  <div class="card" style="margin-top:13px">
+    <div class="ctitle">Eventos del mes</div>
+    <div id="cal-lista"></div>
+  </div>
+</div>
+
 <!-- MENSAJES · comunicaciones internas -->
 <div id="v-mensajes" class="view">
   <div class="ph">
@@ -774,6 +836,25 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
   </div>
 
   <div id="staff-avisos" style="margin-bottom:13px"></div>
+
+  <!-- Calendario del personal -->
+  <div class="card np" id="staff-cal-wrap" style="margin-bottom:13px;overflow:hidden;display:none">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 14px;flex-wrap:wrap">
+      <b id="staff-cal-mes" style="color:var(--w2);font-size:13px"></b>
+      <div class="cal-leyenda" style="font-size:10px">
+        <span><i style="background:var(--green)"></i>Confirmaste</span>
+        <span><i style="background:var(--orange)"></i>Por responder</span>
+        <span><i style="background:var(--red)"></i>No puedes</span>
+      </div>
+      <div style="display:flex;gap:5px">
+        <button class="btn btn-ghost btn-sm" onclick="moverMesStaff(-1)" aria-label="Mes anterior"><i class="ti ti-chevron-left"></i></button>
+        <button class="btn btn-ghost btn-sm" onclick="moverMesStaff(0)">Hoy</button>
+        <button class="btn btn-ghost btn-sm" onclick="moverMesStaff(1)" aria-label="Mes siguiente"><i class="ti ti-chevron-right"></i></button>
+      </div>
+    </div>
+    <div class="cal-head"><div>Lun</div><div>Mar</div><div>Mié</div><div>Jue</div><div>Vie</div><div>Sáb</div><div>Dom</div></div>
+    <div class="cal-grid" id="staff-cal-grid"></div>
+  </div>
 
   <!-- Tarjetas de eventos -->
   <div id="staff-cards" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:11px;margin-bottom:16px"></div>
@@ -1170,6 +1251,44 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
 </div>
 
 <!-- MODAL: USUARIO -->
+<!-- CONFIRMAR COTIZACIÓN → REGISTRO -->
+<div class="modal-bg" id="modal-confirmar-cot">
+  <div class="modal" style="width:520px;max-height:92vh;overflow-y:auto">
+    <div class="modal-title">Confirmar evento</div>
+    <div id="cc-info" style="font-size:12px;color:var(--w3);background:var(--black3);padding:10px 13px;border-radius:8px;margin-bottom:12px"></div>
+    <input type="hidden" id="cc-cot">
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin-bottom:10px">
+      <div class="fgrp"><label class="flabel">Código del evento</label><input type="text" id="cc-codigo" class="mono"></div>
+      <div class="fgrp"><label class="flabel">Fecha del evento</label><input type="date" id="cc-fecha"></div>
+      <div class="fgrp"><label class="flabel">Monto a cobrar ($)</label><input type="number" id="cc-monto" step="0.01"></div>
+      <div class="fgrp"><label class="flabel">Tipo de cliente</label>
+        <select id="cc-sub"><option>Privado</option><option>Corporativo</option><option>Institucional</option><option>Club</option><option>Matrimonio</option></select></div>
+      <div class="fgrp"><label class="flabel">Referente (quién lo consiguió)</label>
+        <select id="cc-ref"><option value="">— Sin referente —</option><option>Gustavo Briceño</option><option>Eduardo Behrens</option><option>Francisco Massari</option></select></div>
+    </div>
+    <div id="cc-aviso" style="display:none;font-size:11px;color:var(--orange);margin-bottom:8px"></div>
+    <div style="font-size:11px;color:var(--w4);margin-bottom:6px">
+      Se crea en Registro como <b style="color:var(--w3)">Por cobrar</b>, aparece en el calendario como confirmado
+      y queda listo en Logística para asignar personal.
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="document.getElementById('modal-confirmar-cot').classList.remove('show')">Cancelar</button>
+      <button class="btn btn-blue" id="cc-btn" onclick="confirmarCotizacion()"><i class="ti ti-circle-check"></i>Confirmar evento</button>
+    </div>
+  </div>
+</div>
+
+<!-- DETALLE DE UN EVENTO DEL CALENDARIO -->
+<div class="modal-bg" id="modal-cal">
+  <div class="modal" style="width:460px;max-height:92vh;overflow-y:auto">
+    <div class="modal-title" id="mc-titulo"></div>
+    <div id="mc-cuerpo" style="font-size:12px;color:var(--w3);line-height:1.8"></div>
+    <div class="modal-footer" id="mc-acciones" style="flex-wrap:wrap"></div>
+  </div>
+</div>
+
 <!-- PAGO EN BLOQUE · Cuentas pendientes -->
 <div class="modal-bg" id="modal-pago">
   <div class="modal" style="width:560px;max-height:92vh;overflow-y:auto">
@@ -1467,7 +1586,7 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
 
 <script>
 // ═══════════════════════════════════════════════
-// BLAST PROSOUND · Sistema de Gestión v6.0
+// BLAST PROSOUND · Sistema de Gestión v6.1
 // ═══════════════════════════════════════════════
 
 // ─── CONFIG ───
@@ -1560,6 +1679,7 @@ function sv(id, btn) {
   if (id === 'staff')        llenarSelectEventosStaff();
   if (id === 'admin')        cargarUsuarios();
   if (id === 'mensajes')     abrirMensajes();
+  if (id === 'calendario')   renderCalendario();
   if (id === 'estimador')    runEstimador();
   if (id === 'dashboard')    renderDashboard();
 }
@@ -2587,6 +2707,7 @@ const VISTAS = [
   {id:'staff',        nombre:'Portal de eventos',   grupo:'Personal'},
   {id:'dashboard',    nombre:'Dashboard',           grupo:'Principal'},
   {id:'eventos',      nombre:'Eventos',             grupo:'Principal'},
+  {id:'calendario',   nombre:'Calendario',          grupo:'Principal'},
   {id:'registro',     nombre:'Registro',            grupo:'Principal'},
   {id:'pendientes',   nombre:'Cuentas pendientes',  grupo:'Principal'},
   {id:'balance',      nombre:'Balance',             grupo:'Principal'},
@@ -2930,7 +3051,7 @@ function pintarCampana() {
     return;
   }
 
-  const iconos = {estado:'ti-tool', asignacion:'ti-calendar-plus', mensaje:'ti-message', pago:'ti-cash', default:'ti-bell'};
+  const iconos = {estado:'ti-tool', asignacion:'ti-calendar-plus', mensaje:'ti-message', pago:'ti-cash', respuesta:'ti-user-check', default:'ti-bell'};
 
   lista.innerHTML = AVISOS.map(a => {
     const ic = iconos[a.tipo] || iconos.default;
@@ -3259,6 +3380,7 @@ async function resolverRol(email) {
       let permisos = Array.isArray(data.permisos) && data.permisos.length
         ? data.permisos.slice()
         : (PERMISOS_DEFECTO[rol] || ['staff']);
+      if (rol === 'socio') permisos = PERMISOS_DEFECTO.socio.slice();   // socio = todo menos Administración
       if (rol === 'staff') {
         // El personal siempre entra por su portal y nunca a la vista de administración
         if (!permisos.includes('staff')) permisos.unshift('staff');
@@ -3538,10 +3660,13 @@ async function llenarSelectEventosStaff() {
   if (!cards) return;
   cards.innerHTML = '<div style="color:var(--w4);font-size:12px;grid-column:1/-1">Cargando tus eventos...</div>';
 
-  const [asig, notif] = await Promise.all([
-    supa.from('evento_asignaciones').select('codigo_evento').eq('email', CURRENT_USER.email),
+  let [asig, notif] = await Promise.all([
+    supa.from('evento_asignaciones').select('*').eq('email', CURRENT_USER.email),
     supa.from('notificaciones').select('*').eq('email', CURRENT_USER.email).eq('leido', false).order('created_at', {ascending:false})
   ]);
+  if (asig.error) asig = await supa.from('evento_asignaciones').select('codigo_evento').eq('email', CURRENT_USER.email);
+  const respuestas = {};
+  (asig.data || []).forEach(a => respuestas[a.codigo_evento] = a.respuesta || 'pendiente');
 
   pintarAvisosStaff(notif.data || []);
 
@@ -3583,7 +3708,8 @@ async function llenarSelectEventosStaff() {
       estado_fecha: f.estado_fecha || '',
       equipos: (conteo[cod] || {}).total  || 0,
       listos:  (conteo[cod] || {}).listos || 0,
-      pasado:  f.fecha ? f.fecha < hoyStr : false
+      pasado:  f.fecha ? f.fecha < hoyStr : false,
+      respuesta: respuestas[cod] || 'pendiente'
     };
   }).sort((a,b) => {
     if (a.pasado !== b.pasado) return a.pasado ? 1 : -1;   // próximos primero
@@ -3619,8 +3745,100 @@ async function llenarSelectEventosStaff() {
       + (e.equipos ? '<div style="margin-top:10px"><div style="height:5px;background:var(--black3);border-radius:3px;overflow:hidden"><div style="height:100%;width:' + pct + '%;background:' + (pct===100?'var(--green)':'var(--blue)') + '"></div></div>'
           + '<div style="font-size:10px;color:var(--w4);margin-top:4px">' + e.listos + ' de ' + e.equipos + ' listos</div></div>' : '')
       + (e.render ? '<div style="margin-top:8px;font-size:10px;color:var(--blue)"><i class="ti ti-photo"></i> Tiene referencia de montaje</div>' : '')
+      + (e.pasado ? '' : franjaRespuesta(e))
       + '</div>';
   }).join('');
+
+  pintarCalendarioStaff();
+}
+
+// ¿Vas al evento? — botones en la tarjeta
+function franjaRespuesta(e) {
+  const cod = esc(e.codigo);
+  const btn = (r, txt, col) => '<button class="btn-resp-staff" data-cod="' + cod + '" data-r="' + r + '" '
+    + 'style="flex:1;padding:7px;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;'
+    + 'background:transparent;border:1px solid ' + col + ';color:' + col + '">' + txt + '</button>';
+  if (e.respuesta === 'confirmado') {
+    return '<div style="margin-top:11px;padding-top:10px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:8px">'
+      + '<span style="font-size:11px;color:var(--green);font-weight:700"><i class="ti ti-circle-check"></i> Confirmaste que vas</span>'
+      + '<button class="btn-resp-staff" data-cod="' + cod + '" data-r="no_puede" style="background:none;border:none;color:var(--w4);font-size:10px;cursor:pointer">Ya no puedo</button></div>';
+  }
+  if (e.respuesta === 'no_puede') {
+    return '<div style="margin-top:11px;padding-top:10px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:8px">'
+      + '<span style="font-size:11px;color:var(--red);font-weight:700"><i class="ti ti-circle-x"></i> Dijiste que no puedes</span>'
+      + '<button class="btn-resp-staff" data-cod="' + cod + '" data-r="confirmado" style="background:none;border:none;color:var(--w4);font-size:10px;cursor:pointer">Sí puedo</button></div>';
+  }
+  return '<div style="margin-top:11px;padding-top:10px;border-top:1px solid var(--border)">'
+    + '<div style="font-size:10px;color:var(--orange);font-weight:700;margin-bottom:6px">¿Confirmas que vas?</div>'
+    + '<div style="display:flex;gap:6px">' + btn('confirmado', 'Confirmo', 'var(--green)') + btn('no_puede', 'No puedo', 'var(--red)') + '</div></div>';
+}
+
+document.addEventListener('click', e => {
+  const b = e.target.closest('.btn-resp-staff');
+  if (!b) return;
+  e.stopPropagation();          // que no abra el detalle de la tarjeta
+  responderAsignacion(b.dataset.cod, b.dataset.r);
+}, true);
+
+async function responderAsignacion(cod, respuesta) {
+  let nota = null;
+  if (respuesta === 'no_puede') {
+    nota = prompt('¿Por qué no puedes? (opcional, lo verán los socios)', '');
+    if (nota === null) return;       // canceló
+    nota = nota.trim() || null;
+  }
+
+  const {error} = await supa.from('evento_asignaciones')
+    .update({respuesta, respuesta_at: new Date().toISOString(), respuesta_nota: nota})
+    .eq('codigo_evento', cod).eq('email', CURRENT_USER.email);
+
+  if (error) {
+    alert('No se pudo guardar tu respuesta: ' + error.message + '\n\nAvísale a Gustavo.');
+    return;
+  }
+
+  // Aviso a admin y socios
+  const ev = _staffEventos.find(x => x.codigo === cod) || {};
+  const quien = CURRENT_USER.nombre || CURRENT_USER.email;
+  const {data} = await supa.from('usuarios').select('email').in('rol', ['admin','socio']).neq('activo', false);
+  const jefes = (data || []).map(u => u.email).filter(x => x !== CURRENT_USER.email);
+  if (jefes.length) {
+    const titulo = respuesta === 'confirmado'
+      ? quien + ' confirmó ' + cod
+      : quien + ' NO puede ir a ' + cod;
+    const mensaje = (ev.cliente ? ev.cliente + ' · ' : '') + (ev.fecha ? fDate(ev.fecha) : '')
+      + (nota ? '\nMotivo: ' + nota : '');
+    await avisarYCorreo(jefes.map(email => ({email, codigo_evento: cod, tipo: 'respuesta', titulo, mensaje})));
+  }
+
+  await llenarSelectEventosStaff();
+}
+
+// Calendario del personal
+let _staffCalMes = null;
+
+function moverMesStaff(n) {
+  const h = new Date();
+  if (n === 0 || !_staffCalMes) _staffCalMes = new Date(h.getFullYear(), h.getMonth(), 1);
+  else _staffCalMes = new Date(_staffCalMes.getFullYear(), _staffCalMes.getMonth() + n, 1);
+  pintarCalendarioStaff();
+}
+
+function pintarCalendarioStaff() {
+  const wrap = $('staff-cal-wrap');
+  if (!wrap) return;
+  const conFecha = _staffEventos.filter(e => e.fecha);
+  if (!conFecha.length) { wrap.style.display = 'none'; return; }
+  wrap.style.display = 'block';
+  if (!_staffCalMes) { const h = new Date(); _staffCalMes = new Date(h.getFullYear(), h.getMonth(), 1); }
+
+  const colores = {confirmado:['var(--green)','rgba(61,202,110,.12)'], no_puede:['var(--red)','rgba(224,85,85,.12)'], pendiente:['var(--orange)','rgba(244,169,61,.12)']};
+  const items = conFecha.map(e => {
+    const c = colores[e.respuesta] || colores.pendiente;
+    return {fecha: e.fecha, texto: e.cliente || e.codigo, key: e.codigo, ctx: 'staff', color: c[0], fondo: c[1], tachado: e.respuesta === 'no_puede'};
+  });
+  $('staff-cal-mes').textContent = MESES_ES[_staffCalMes.getMonth()] + ' ' + _staffCalMes.getFullYear();
+  pintarMes('staff-cal-grid', _staffCalMes.getFullYear(), _staffCalMes.getMonth(), items);
 }
 
 function pintarAvisosStaff(avisos) {
@@ -4080,7 +4298,7 @@ async function cargarLogisticaEvento() {
     supa.from('evento_inventario').select('*').eq('codigo_evento', cod).order('categoria'),
     supa.from('evento_personal').select('*').eq('codigo_evento', cod).order('nombre'),
     supa.from('eventos_logistica').select('*').eq('codigo_evento', cod).maybeSingle(),
-    supa.from('evento_asignaciones').select('email').eq('codigo_evento', cod)
+    supa.from('evento_asignaciones').select('*').eq('codigo_evento', cod)
   ]);
 
   $('log-inv-tbody').innerHTML = '';
@@ -4100,10 +4318,13 @@ async function cargarLogisticaEvento() {
   pintarRender();
 
   const asignados = new Set((asig.data || []).map(a => a.email));
+  _logRespuestas = {};
+  (asig.data || []).forEach(a => _logRespuestas[a.email] = a);
   pintarAsignados(asignados);
 }
 
 let _renderActual = {url:'', nombre:''};
+var _logRespuestas = {};   // email → fila de evento_asignaciones (respuesta del personal)
 
 function pintarAsignados(sel) {
   const cont = $('log-asignados');
@@ -4118,7 +4339,11 @@ function pintarAsignados(sel) {
     + '<input type="checkbox" class="log-asig" value="' + esc(u.email) + '" data-nombre="' + esc(u.nombre||'') + '"'
     + ' data-tel="' + esc(u.telefono || '') + '" onchange="pintarWhatsApp()"'
     + (sel.has(u.email) ? ' checked' : '') + ' style="accent-color:var(--blue)">'
-    + esc(u.nombre || u.email) + '</label>'
+    + '<span style="flex:1">' + esc(u.nombre || u.email) + '</span>'
+    + (sel.has(u.email) && _logRespuestas[u.email]
+        ? '<span title="' + esc(_logRespuestas[u.email].respuesta_nota || '') + '">' + badgeRespuesta(_logRespuestas[u.email].respuesta) + '</span>'
+        : '')
+    + '</label>'
   ).join('');
 
   pintarWhatsApp();
@@ -4482,7 +4707,18 @@ async function guardarLogistica() {
     .map(ch => ({codigo_evento: cod, email: ch.value, nombre: ch.dataset.nombre || null}));
 
   // Detecta a quién hay que avisar
-  const {data: previas} = await supa.from('evento_asignaciones').select('email').eq('codigo_evento', cod);
+  const {data: previas} = await supa.from('evento_asignaciones').select('*').eq('codigo_evento', cod);
+  // Conserva lo que ya respondió cada persona (el guardado borra y vuelve a crear las filas)
+  const previaPor = {};
+  (previas || []).forEach(a => previaPor[a.email] = a);
+  seleccion.forEach(a => {
+    const p = previaPor[a.email];
+    if (p && p.respuesta !== undefined) {
+      a.respuesta = p.respuesta;
+      a.respuesta_at = p.respuesta_at || null;
+      a.respuesta_nota = p.respuesta_nota || null;
+    }
+  });
   const antes  = new Set((previas || []).map(a => a.email));
   const ahora  = new Set(seleccion.map(a => a.email));
   const nuevos = seleccion.filter(a => !antes.has(a.email));
@@ -6004,9 +6240,13 @@ function renderHistorial() {
     const fecha = c.fecha_evento ? fDate(c.fecha_evento) : '<span style="color:var(--w4)">Sin fecha</span>';
     const total = c.total ? '$'+parseFloat(c.total).toLocaleString() : '—';
     const estado = c.estado || 'Borrador';
-    const bc = estado === 'Descargada' ? 'b-green' : estado === 'Borrador' ? 'b-orange' : 'b-blue';
+    const bc = estado === 'Confirmada' ? 'b-green' : estado === 'Perdida' ? 'b-red' : estado === 'Borrador' ? 'b-orange' : 'b-blue';
     const cod = String(c.codigo || '').replace(/'/g, "\\'");
+    const abierta = estado !== 'Confirmada' && estado !== 'Perdida';
     const editBtn = '<div style="display:flex;gap:4px;justify-content:flex-end">'
+      + (abierta
+          ? '<button class="btn btn-ghost btn-sm btn-confirmar-cot" data-cot="' + esc(c.codigo) + '" style="padding:2px 7px;font-size:10px;color:var(--green)" title="Confirmar evento"><i class="ti ti-circle-check"></i></button>'
+          : '')
       + '<button class="btn btn-ghost btn-sm" style="padding:2px 7px;font-size:10px" onclick="cargarCotizacion(\'' + cod + '\')" title="Editar"><i class="ti ti-edit"></i></button>'
       + '<button class="btn btn-ghost btn-sm" style="padding:2px 7px;font-size:10px;color:var(--red)" onclick="eliminarCotizacion(\'' + cod + '\')" title="Eliminar"><i class="ti ti-trash"></i></button>'
       + '</div>';
@@ -6019,10 +6259,372 @@ function renderHistorial() {
       + '<td style="color:var(--w4)">' + esc(c.horario||'—') + '</td>'
       + '<td style="color:var(--w4)">' + esc(c.responsable||'—') + '</td>'
       + '<td style="font-weight:600;color:var(--blue)">' + total + '</td>'
-      + '<td><span class="badge '+bc+'">' + estado + '</span></td>'
+      + '<td><span class="badge '+bc+'">' + estado + '</span>'
+      +   (c.codigo_evento ? '<div class="mono" style="font-size:9px;color:var(--w4);margin-top:3px">' + esc(c.codigo_evento) + '</div>' : '')
+      + '</td>'
       + '<td>' + editBtn + '</td>'
       + '</tr>';
   }).join('');
+}
+
+// ═══════════════════════════════════════════════════════════
+// CALENDARIO
+// ═══════════════════════════════════════════════════════════
+const MESES_CORTOS = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+let _calMes = null;          // primer día del mes que se está viendo
+let _calItems = {};          // key → item, para abrir el detalle
+
+function hoyISO() {
+  return new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+}
+
+// Dibuja una cuadrícula de mes. items = [{fecha:'2026-06-15', texto, color, key, tachado, ctx}]
+function pintarMes(contId, anio, mes, items) {
+  const cont = $(contId);
+  if (!cont) return;
+  const primero = new Date(anio, mes, 1);
+  const offset = (primero.getDay() + 6) % 7;          // semana empieza el lunes
+  const inicio = new Date(anio, mes, 1 - offset);
+  const hoy = hoyISO();
+
+  const porDia = {};
+  items.forEach(it => { (porDia[it.fecha] = porDia[it.fecha] || []).push(it); });
+
+  let html = '';
+  for (let i = 0; i < 42; i++) {
+    const d = new Date(inicio.getFullYear(), inicio.getMonth(), inicio.getDate() + i);
+    if (i >= 35 && d.getMonth() !== mes) break;       // no dibuja una 6ª fila vacía
+    const iso = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    const del = porDia[iso] || [];
+    html += '<div class="cal-cell' + (d.getMonth() !== mes ? ' fuera' : '') + (iso === hoy ? ' hoy' : '') + '">'
+      + '<div class="cal-num">' + d.getDate() + '</div>'
+      + del.map(it =>
+          '<div class="cal-chip' + (it.tachado ? ' tachado' : '') + '" data-key="' + esc(it.key) + '" data-ctx="' + (it.ctx || 'admin') + '"'
+        + ' style="--c:' + it.color + ';border-left-color:' + it.color + ';background:' + it.fondo + '" title="' + esc(it.texto) + '">'
+        + esc(it.texto) + '</div>').join('')
+      + '</div>';
+  }
+  cont.innerHTML = html;
+}
+
+document.addEventListener('click', e => {
+  const ch = e.target.closest('.cal-chip, .cal-fila');
+  if (!ch) return;
+  if (ch.dataset.ctx === 'staff') { abrirEventoStaff(ch.dataset.key); return; }
+  abrirDetalleCal(ch.dataset.key);
+});
+
+function moverMes(n) {
+  if (n === 0 || !_calMes) { const h = new Date(); _calMes = new Date(h.getFullYear(), h.getMonth(), 1); }
+  else _calMes = new Date(_calMes.getFullYear(), _calMes.getMonth() + n, 1);
+  renderCalendario();
+}
+
+async function renderCalendario() {
+  if (!_calMes) { const h = new Date(); _calMes = new Date(h.getFullYear(), h.getMonth(), 1); }
+  if (!_historialData.length) await cargarHistorial();
+  const anio = _calMes.getFullYear(), mes = _calMes.getMonth();
+  $('cal-mes').textContent = MESES_ES[mes] + ' ' + anio;
+
+  const verPerdidas = $('cal-perdidas') && $('cal-perdidas').checked;
+  $('cal-ley-perdida').style.display = verPerdidas ? '' : 'none';
+
+  _calItems = {};
+  const items = [];
+
+  EVS.forEach(ev => {
+    if (!ev.fecha) return;
+    const cobrado = ev.estado === 'Cobrado';
+    const it = {tipo:'evento', fecha: ev.fecha, texto: ev.cliente || ev.codigo, key: 'e:' + ev.codigo, ev,
+      color: cobrado ? 'var(--green)' : 'var(--blue)',
+      fondo: cobrado ? 'rgba(61,202,110,.1)' : 'rgba(67,189,237,.1)'};
+    items.push(it); _calItems[it.key] = it;
+  });
+
+  _historialData.forEach(c => {
+    if (!c.fecha_evento || c.estado === 'Confirmada') return;
+    const perdida = c.estado === 'Perdida';
+    if (perdida && !verPerdidas) return;
+    const it = {tipo:'cot', fecha: c.fecha_evento, texto: c.cliente || c.codigo, key: 'c:' + c.codigo, cot: c,
+      color: perdida ? 'var(--w4)' : 'var(--orange)',
+      fondo: perdida ? 'rgba(255,255,255,.03)' : 'rgba(244,169,61,.1)', tachado: perdida};
+    items.push(it); _calItems[it.key] = it;
+  });
+
+  pintarMes('cal-grid', anio, mes, items);
+
+  // Lista del mes (útil en el celular)
+  const pref = anio + '-' + String(mes + 1).padStart(2, '0');
+  const delMes = items.filter(it => it.fecha.startsWith(pref)).sort((a,b) => a.fecha.localeCompare(b.fecha));
+  const nConf = delMes.filter(i => i.tipo === 'evento').length;
+  const nCot  = delMes.filter(i => i.tipo === 'cot' && !i.tachado).length;
+  $('cal-sub').textContent = nConf + ' confirmado' + (nConf === 1 ? '' : 's') + ' · ' + nCot + ' cotizado' + (nCot === 1 ? '' : 's');
+
+  $('cal-lista').innerHTML = delMes.length ? delMes.map(it => {
+    const etiqueta = it.tipo === 'evento'
+      ? (it.ev.estado === 'Cobrado' ? 'Cobrado' : 'Confirmado')
+      : (it.tachado ? 'Perdido' : 'Cotizado');
+    return '<div class="cal-fila" data-key="' + esc(it.key) + '" data-ctx="admin">'
+      + '<div style="width:44px;text-align:center"><div style="font-size:16px;font-weight:700;color:var(--w2)">' + Number(it.fecha.slice(8)) + '</div>'
+      +   '<div style="font-size:9px;color:var(--w4);text-transform:uppercase">' + MESES_CORTOS[Number(it.fecha.slice(5,7)) - 1] + '</div></div>'
+      + '<div style="width:4px;align-self:stretch;border-radius:2px;background:' + it.color + '"></div>'
+      + '<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;color:var(--w2)' + (it.tachado ? ';text-decoration:line-through' : '') + '">' + esc(it.texto) + '</div>'
+      +   '<div style="font-size:11px;color:var(--w4)">' + esc(it.tipo === 'evento' ? it.ev.codigo : (it.cot.tipo_evento || '') + (it.cot.lugar ? ' · ' + it.cot.lugar : '')) + '</div></div>'
+      + '<span style="font-size:10px;font-weight:700;color:' + it.color + '">' + etiqueta + '</span>'
+      + '</div>';
+  }).join('') : '<div style="color:var(--w4);font-size:12px;padding:14px;text-align:center">No hay eventos este mes</div>';
+}
+
+function _filaDato(etq, val) {
+  return val ? '<div><span style="color:var(--w4);display:inline-block;min-width:105px">' + etq + '</span>' + val + '</div>' : '';
+}
+
+async function abrirDetalleCal(key) {
+  const it = _calItems[key];
+  if (!it) return;
+  const cuerpo = $('mc-cuerpo'), acc = $('mc-acciones');
+  const cerrar = '<button class="btn btn-ghost" onclick="document.getElementById(\'modal-cal\').classList.remove(\'show\')">Cerrar</button>';
+
+  if (it.tipo === 'cot') {
+    const c = it.cot;
+    $('mc-titulo').textContent = c.cliente || c.codigo;
+    cuerpo.innerHTML =
+        _filaDato('Estado', '<span class="badge ' + (c.estado === 'Perdida' ? 'b-red' : 'b-orange') + '">' + esc(c.estado || 'Borrador') + '</span>')
+      + _filaDato('Fecha', fDate(c.fecha_evento))
+      + _filaDato('Tipo', esc(c.tipo_evento))
+      + _filaDato('Lugar', esc(c.lugar))
+      + _filaDato('Horario', esc(c.horario))
+      + _filaDato('Invitados', c.invitados ? String(c.invitados) : '')
+      + _filaDato('Responsable', esc(c.responsable))
+      + _filaDato('Total', c.total ? (c.moneda === 'EUR' ? '€' : '$') + parseFloat(c.total).toLocaleString('es-VE') : '')
+      + '<div class="mono" style="font-size:10px;color:var(--w4);margin-top:6px">' + esc(c.codigo) + '</div>';
+    const cod = esc(c.codigo);
+    acc.innerHTML = cerrar
+      + '<button class="btn btn-ghost btn-accion-cal" data-acc="abrir" data-cot="' + cod + '"><i class="ti ti-edit"></i>Abrir cotización</button>'
+      + (c.estado === 'Perdida'
+          ? '<button class="btn btn-ghost btn-accion-cal" data-acc="reabrir" data-cot="' + cod + '"><i class="ti ti-rotate"></i>Reabrir</button>'
+          : '<button class="btn btn-ghost btn-accion-cal" data-acc="perdida" data-cot="' + cod + '" style="color:var(--red)"><i class="ti ti-x"></i>Perdida</button>'
+          + '<button class="btn btn-blue btn-accion-cal" data-acc="confirmar" data-cot="' + cod + '"><i class="ti ti-circle-check"></i>Confirmar</button>');
+    $('modal-cal').classList.add('show');
+    return;
+  }
+
+  // Evento confirmado
+  const ev = it.ev;
+  $('mc-titulo').textContent = ev.cliente || ev.codigo;
+  cuerpo.innerHTML =
+      _filaDato('Código', '<span class="mono">' + esc(ev.codigo) + '</span>')
+    + _filaDato('Fecha', fDate(ev.fecha))
+    + _filaDato('Cobro', '<span class="badge ' + (ev.estado === 'Cobrado' ? 'b-green' : 'b-orange') + '">' + esc(ev.estado) + '</span>')
+    + _filaDato('Referente', esc(ev.referente))
+    + '<div id="mc-log" style="margin-top:8px;color:var(--w4)">Cargando logística...</div>';
+  acc.innerHTML = cerrar
+    + '<button class="btn btn-blue btn-accion-cal" data-acc="logistica" data-ev="' + esc(ev.codigo) + '"><i class="ti ti-clipboard-list"></i>Ir a logística</button>';
+  $('modal-cal').classList.add('show');
+
+  // Datos de logística y respuestas del personal
+  const [f, a] = await Promise.all([
+    supa.from('eventos_logistica').select('*').eq('codigo_evento', ev.codigo).maybeSingle(),
+    supa.from('evento_asignaciones').select('*').eq('codigo_evento', ev.codigo)
+  ]);
+  const F = f.data || {};
+  const asig = a.data || [];
+  const box = $('mc-log');
+  if (!box) return;
+  box.style.color = '';
+  box.innerHTML =
+      _filaDato('Lugar', esc(F.lugar))
+    + _filaDato('Montaje', esc(F.hora_montaje))
+    + _filaDato('Estado montaje', F.estado_montaje ? esc(F.estado_montaje) : '')
+    + _filaDato('Personal', asig.length ? asig.map(x => esc(x.nombre || x.email) + ' ' + badgeRespuesta(x.respuesta)).join('<br>') : '<span style="color:var(--orange)">Sin asignar</span>');
+}
+
+document.addEventListener('click', e => {
+  const b = e.target.closest('.btn-accion-cal');
+  if (!b) return;
+  $('modal-cal').classList.remove('show');
+  const cot = b.dataset.cot, acc = b.dataset.acc;
+  if (acc === 'confirmar') abrirConfirmarCot(cot);
+  if (acc === 'perdida')   cambiarEstadoCot(cot, 'Perdida');
+  if (acc === 'reabrir')   cambiarEstadoCot(cot, 'Borrador');
+  if (acc === 'abrir')     cargarCotizacion(cot);
+  if (acc === 'logistica') irALogistica(b.dataset.ev);
+});
+
+function badgeRespuesta(r) {
+  if (r === 'confirmado') return '<span class="badge b-green" style="font-size:9px">Confirmó</span>';
+  if (r === 'no_puede')   return '<span class="badge b-red" style="font-size:9px">No puede</span>';
+  return '<span class="badge b-gray" style="font-size:9px">Sin responder</span>';
+}
+
+function abrirSyncCalendario() {
+  $('mc-titulo').textContent = 'Sincronizar con tu calendario';
+  $('mc-cuerpo').innerHTML =
+      '<div style="margin-bottom:10px">Usa el <b>link de calendario</b> de Blast (está en el documento de contexto del proyecto). '
+    + 'Se agrega una sola vez y los eventos se actualizan solos. No muestra montos.</div>'
+    + '<div style="font-weight:700;color:var(--w2);margin-top:8px">iPhone</div>'
+    + '<div>Ajustes → Calendario → Cuentas → Añadir cuenta → Otra → <b>Añadir calendario suscrito</b> → pega el link → Guardar. '
+    + 'En "Actualizar" puedes elegir cada 15 minutos.</div>'
+    + '<div style="font-weight:700;color:var(--w2);margin-top:10px">Google Calendar (desde la computadora)</div>'
+    + '<div>calendar.google.com → al lado de "Otros calendarios" el <b>+</b> → <b>Desde URL</b> → pega el link → Agregar calendario. '
+    + 'Google lo refresca cada varias horas; no es instantáneo.</div>'
+    + '<div style="margin-top:10px;color:var(--w4)">🟠 = cotizado · ✅ = confirmado</div>';
+  $('mc-acciones').innerHTML = '<button class="btn btn-blue" onclick="document.getElementById(\'modal-cal\').classList.remove(\'show\')">Entendido</button>';
+  $('modal-cal').classList.add('show');
+}
+
+// ═══════════════════════════════════════════════════════════
+// CONFIRMAR COTIZACIÓN → EVENTO EN REGISTRO
+// ═══════════════════════════════════════════════════════════
+const SOCIOS = ['Gustavo Briceño','Eduardo Behrens','Francisco Massari'];
+
+document.addEventListener('click', e => {
+  const b = e.target.closest('.btn-confirmar-cot');
+  if (b) { e.stopPropagation(); abrirConfirmarCot(b.dataset.cot); }
+});
+
+// Código de evento a partir de fecha y cliente: 15062026-SM
+// Si ya existe, le agrega 2, 3, 4...: 15062026-SM2
+function generarCodigoEvento(fecha, cliente) {
+  if (!fecha) return '';
+  const [y, m, d] = fecha.split('-');
+  const ini = String(cliente || 'XX').trim().split(/\s+/).map(w => w[0] || '').slice(0, 2).join('').toUpperCase() || 'XX';
+  const base = d + m + y + '-' + ini;
+  const usados = new Set(EVS.map(e => e.codigo));
+  _historialData.forEach(c => { if (c.codigo_evento) usados.add(c.codigo_evento); });
+  if (!usados.has(base)) return base;
+  for (let i = 2; i < 50; i++) if (!usados.has(base + i)) return base + i;
+  return base + '-' + Date.now().toString().slice(-4);
+}
+
+async function abrirConfirmarCot(codigoCot) {
+  if (!_historialData.length) await cargarHistorial();
+  const c = _historialData.find(x => x.codigo === codigoCot);
+  if (!c) { alert('No encontré la cotización ' + codigoCot + '.'); return; }
+  if (c.estado === 'Confirmada') { alert('Esta cotización ya está confirmada como ' + (c.codigo_evento || 'evento') + '.'); return; }
+
+  $('cc-cot').value = c.codigo;
+  $('cc-info').innerHTML = '<b style="color:var(--w2)">' + esc(c.cliente || '—') + '</b>'
+    + ' &middot; ' + esc(c.tipo_evento || '') + (c.lugar ? ' &middot; ' + esc(c.lugar) : '')
+    + '<div class="mono" style="font-size:10px;color:var(--w4);margin-top:3px">' + esc(c.codigo) + '</div>';
+
+  $('cc-fecha').value  = c.fecha_evento || '';
+  $('cc-codigo').value = generarCodigoEvento(c.fecha_evento, c.cliente);
+  $('cc-monto').value  = parseFloat(c.total) || '';
+  $('cc-ref').value    = SOCIOS.includes(c.responsable) ? c.responsable : '';
+
+  // Aviso si la cotización está en euros o si ya parece existir en Registro
+  const avisos = [];
+  if ((c.moneda || 'USD') === 'EUR') avisos.push('La cotización está en EUROS. Revisa que el monto esté en dólares antes de confirmar.');
+  const parecido = EVS.find(e => e.fecha === c.fecha_evento && _normNombre(e.cliente) === _normNombre(c.cliente));
+  if (parecido) avisos.push('Ya existe en Registro el evento ' + parecido.codigo + ' con el mismo cliente y fecha. '
+    + 'Si es el mismo, escribe ese código arriba y solo se vinculará, sin duplicar el cobro.');
+  $('cc-aviso').innerHTML = avisos.map(esc).join('<br>');
+  $('cc-aviso').style.display = avisos.length ? 'block' : 'none';
+
+  // Si cambia la fecha, se recalcula el código
+  $('cc-fecha').onchange = () => { $('cc-codigo').value = generarCodigoEvento($('cc-fecha').value, c.cliente); };
+
+  $('modal-confirmar-cot').classList.add('show');
+}
+
+async function confirmarCotizacion() {
+  const c = _historialData.find(x => x.codigo === $('cc-cot').value);
+  if (!c) return;
+  const codigo = $('cc-codigo').value.trim().toUpperCase();
+  const fecha  = $('cc-fecha').value;
+  const monto  = parseFloat($('cc-monto').value) || 0;
+  const sub    = $('cc-sub').value;
+  const ref    = $('cc-ref').value || null;
+
+  if (!codigo || !/^\d{8}-/.test(codigo)) { alert('El código debe empezar con la fecha: DDMMAAAA-XX'); return; }
+  if (!fecha) { alert('Pon la fecha del evento.'); return; }
+
+  // Si el código ya existe en Registro, solo se vincula (no se crea otro cobro)
+  const yaExiste = EVS.some(e => e.codigo === codigo);
+  if (yaExiste && !confirm('El código ' + codigo + ' ya existe en Registro.\n\n'
+      + 'Se vinculará la cotización a ese evento SIN crear un cobro nuevo. ¿Seguir?')) return;
+  if (!yaExiste && monto <= 0 && !confirm('El monto está en cero. ¿Confirmar igual?')) return;
+
+  const btn = $('cc-btn');
+  btn.disabled = true;
+
+  if (!yaExiste) {
+    const {error} = await supa.from('transacciones').insert({
+      fecha_evento: fecha,
+      fecha_pago:   null,
+      categoria:    'Evento',
+      subcategoria: sub,
+      estado:       'Por cobrar',
+      concepto:     c.cliente || 'Sin cliente',
+      codigo_evento: codigo,
+      metodo_pago:  null,
+      responsable:  ref || CURRENT_USER.nombre || null,
+      referente:    ref,
+      ingreso:      monto,
+      egreso:       0,
+      descripcion:  'Desde cotización ' + c.codigo
+    });
+    if (error) { btn.disabled = false; alert('No se pudo crear en Registro: ' + error.message); return; }
+  }
+
+  // Ficha de logística: no pisa una que ya exista
+  await supa.from('eventos_logistica').upsert({
+    codigo_evento: codigo,
+    cliente: c.cliente || null,
+    fecha:   fecha,
+    lugar:   c.lugar || null,
+    notas:   c.horario ? 'Horario del evento: ' + c.horario : null
+  }, {onConflict: 'codigo_evento', ignoreDuplicates: true});
+
+  const {error: e2} = await supa.from('cotizaciones').update({
+    estado: 'Confirmada', codigo_evento: codigo, confirmada_at: new Date().toISOString(), fecha_evento: fecha
+  }).eq('codigo', c.codigo);
+
+  btn.disabled = false;
+  $('modal-confirmar-cot').classList.remove('show');
+
+  if (e2) {
+    alert('El evento se creó en Registro, pero la cotización no se pudo marcar como confirmada:\n' + e2.message
+        + '\n\n¿Corriste el SQL de la Fase 2?');
+  }
+
+  await Promise.all([cargarTX(), cargarHistorial()]);
+  if ($('v-calendario') && $('v-calendario').classList.contains('on')) renderCalendario();
+
+  if (confirm('✓ ' + codigo + ' confirmado' + (yaExiste ? ' y vinculado' : ' y cargado en Registro como Por cobrar') + '.\n\n'
+      + '¿Quieres ir a Logística para asignar el personal?')) {
+    irALogistica(codigo);
+  }
+}
+
+async function cambiarEstadoCot(codigoCot, estado) {
+  const c = _historialData.find(x => x.codigo === codigoCot);
+  if (!c) return;
+  if (estado === 'Perdida' && !confirm('¿Marcar la cotización de ' + (c.cliente || codigoCot) + ' como perdida?')) return;
+  const {error} = await supa.from('cotizaciones').update({estado}).eq('codigo', codigoCot);
+  if (error) { alert('No se pudo cambiar: ' + error.message); return; }
+  await cargarHistorial();
+  if ($('v-calendario') && $('v-calendario').classList.contains('on')) renderCalendario();
+}
+
+function irALogistica(codigo) {
+  const btn = document.querySelector('nav.nav .ni[onclick*="sv(\'logistica\'"]');
+  if (btn) sv('logistica', btn);
+  setTimeout(() => {
+    const sel = $('log-evento');
+    if (!sel) return;
+    llenarSelectEventosLog();
+    sel.value = codigo;
+    cargarLogisticaEvento();
+  }, 150);
+}
+
+// Desde la vista de cotización: guarda y abre la confirmación
+async function confirmarCotizacionActual() {
+  const res = await guardarCotizacionDB(false);
+  if (res !== 'ok') { if (res === 'incompleto') alert('Completa la cotización antes de confirmarla.'); return; }
+  await abrirConfirmarCot($('ccode').textContent);
 }
 
 // ─── REGISTRO CON IA ───
