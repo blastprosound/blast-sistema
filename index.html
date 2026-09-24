@@ -690,7 +690,7 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
   </div>
   <div class="card np">
     <div class="twrap"><table>
-      <thead><tr><th>Código</th><th>Fecha</th><th>Cliente</th><th>Tipo</th><th>Lugar</th><th>Horario</th><th>Responsable</th><th>Total</th><th>Estado</th><th></th></tr></thead>
+      <thead><tr><th>Código</th><th>Fecha evento</th><th>Cliente</th><th>Tipo</th><th>Lugar</th><th>Horario</th><th>Responsable</th><th>Total</th><th>Estado</th><th></th></tr></thead>
       <tbody id="hist-tbody"><tr><td colspan="9" style="color:var(--w4);text-align:center;padding:18px">Cargando...</td></tr></tbody>
     </table></div>
   </div>
@@ -938,8 +938,23 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
         <thead><tr><th>Nombre</th><th style="width:150px">Rol</th><th style="width:80px;text-align:center">Asistió</th><th style="width:100px;text-align:right">Viáticos</th><th>Detalle de lo que hizo</th><th style="width:34px"></th></tr></thead>
         <tbody id="log-pers-tbody"></tbody>
       </table></div>
+
+      <div style="display:flex;align-items:center;justify-content:space-between;margin:16px 0 8px">
+        <div style="font-size:9px;color:var(--w4);letter-spacing:1.4px;text-transform:uppercase;font-weight:600">Gastos generales del evento</div>
+        <button class="btn btn-ghost btn-sm" style="padding:3px 9px;font-size:11px" onclick="addFilaGasto()"><i class="ti ti-plus"></i>Añadir gasto</button>
+      </div>
+      <div class="twrap"><table>
+        <thead><tr><th>Concepto (comida, gasolina, transporte...)</th><th style="width:110px;text-align:right">Monto</th><th style="width:90px;text-align:center">Estado</th><th style="width:34px"></th></tr></thead>
+        <tbody id="log-gastos-tbody"></tbody>
+      </table></div>
+      <div style="font-size:10px;color:var(--w4);margin-top:7px">
+        Al guardar, los viáticos del personal y estos gastos se cargan solos en Registro como "Por pagar", con el código del evento.
+        Lo que ya esté pagado no se toca.
+      </div>
+
       <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;flex-wrap:wrap;gap:10px">
-        <div style="font-size:12px;color:var(--w4)">Total viáticos: <b id="log-tot-viaticos" style="color:var(--orange)">$0</b></div>
+        <div style="font-size:12px;color:var(--w4)">Viáticos personal: <b id="log-tot-viaticos" style="color:var(--orange)">$0</b>
+          &nbsp;·&nbsp; Gastos generales: <b id="log-tot-gastos" style="color:var(--orange)">$0</b></div>
         <button class="btn btn-blue btn-sm" onclick="guardarLogistica()"><i class="ti ti-device-floppy"></i>Guardar logística</button>
       </div>
     </div>
@@ -1155,6 +1170,46 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
 </div>
 
 <!-- MODAL: USUARIO -->
+<!-- PAGO EN BLOQUE · Cuentas pendientes -->
+<div class="modal-bg" id="modal-pago">
+  <div class="modal" style="width:560px;max-height:92vh;overflow-y:auto">
+    <div class="modal-title" id="pg-titulo">Pagar</div>
+    <div style="font-size:11px;color:var(--w4);margin:-6px 0 12px">Desmarca lo que no vayas a pagar ahora.</div>
+
+    <div id="pg-lista" style="display:flex;flex-direction:column;gap:4px;margin-bottom:12px"></div>
+
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 13px;background:var(--black3);border-radius:8px;margin-bottom:13px">
+      <span style="font-size:11px;color:var(--w4);letter-spacing:1px;text-transform:uppercase">Total a pagar</span>
+      <b id="pg-total" style="font-size:17px;color:var(--magenta)">$0</b>
+    </div>
+
+    <div class="g3" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:12px">
+      <div class="fgrp"><label class="flabel">Quién pagó</label>
+        <select id="pg-resp"><option>Gustavo Briceño</option><option>Eduardo Behrens</option><option>Francisco Massari</option></select></div>
+      <div class="fgrp"><label class="flabel">Método</label>
+        <select id="pg-metodo"><option>Efectivo $</option><option>Zelle</option><option>Bs</option><option>Euro</option></select></div>
+      <div class="fgrp"><label class="flabel">Fecha de pago</label>
+        <input type="date" id="pg-fecha"></div>
+    </div>
+
+    <div id="pg-aviso-wrap" style="padding:10px 13px;border:1px solid var(--border);border-radius:8px;margin-bottom:6px">
+      <label style="display:flex;align-items:center;gap:7px;font-size:12px;color:var(--w3);cursor:pointer">
+        <input type="checkbox" id="pg-avisar" checked style="accent-color:var(--blue)"> <span id="pg-avisar-txt">Avisarle en el sistema</span>
+      </label>
+      <label style="display:flex;align-items:center;gap:7px;font-size:12px;color:var(--w3);cursor:pointer;margin-top:7px">
+        <input type="checkbox" id="pg-correo" style="accent-color:var(--blue)"> También por correo
+      </label>
+      <div style="font-size:10px;color:var(--w4);margin-top:6px">El aviso lista los eventos pagados, sin el monto total.</div>
+    </div>
+    <div id="pg-sin-usuario" style="display:none;font-size:11px;color:var(--orange);margin-bottom:6px"></div>
+
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="document.getElementById('modal-pago').classList.remove('show')">Cancelar</button>
+      <button class="btn btn-blue" id="pg-btn" onclick="confirmarPagoBloque()"><i class="ti ti-check"></i>Marcar pagado</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-bg" id="modal-usuario">
   <div class="modal" style="width:620px;max-height:92vh;overflow-y:auto">
     <div class="modal-title" id="mu-title">Nuevo usuario</div>
@@ -1412,11 +1467,10 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
 
 <script>
 // ═══════════════════════════════════════════════
-// BLAST PROSOUND · Sistema de Gestión v5.0
+// BLAST PROSOUND · Sistema de Gestión v6.0
 // ═══════════════════════════════════════════════
 
 // ─── CONFIG ───
-const ANTHROPIC_KEY = ['sk-ant-api03-EL8RTen','PLNfG4IbTfbdxnW4PnJca4QDFzFhmR8xBM95V8Js','ET6cTpO3tY0uB-eCTAx6emhyH6YhamAnaRf3gmw-fWZ6jwAA'].join('');
 const SUPA_URL = 'https://bfnjiobiymexguqhltft.supabase.co';
 const SUPA_KEY = 'sb_publishable_st_DvrbnUNe4ZmRbeQtMwQ_SK0rWDgT';
 const supa     = supabase.createClient(SUPA_URL, SUPA_KEY);
@@ -1476,6 +1530,15 @@ const fDate = s => {
   try { return new Date(s + 'T12:00:00').toLocaleDateString('es-VE', {day:'2-digit', month:'short', year:'2-digit'}); }
   catch(e) { return s; }
 };
+
+// Supabase Storage entrega el archivo como descarga si se le agrega ?download=nombre.
+// Un <a download> normal no funciona porque el archivo está en otro dominio.
+function urlDescargaRender(url, nombreBase) {
+  if (!url) return '';
+  const ext = ((url.split('?')[0].split('.').pop()) || 'jpg').toLowerCase();
+  const nombre = String(nombreBase || 'referencia').replace(/[^\w.-]+/g, '_') + '.' + ext;
+  return url + (url.includes('?') ? '&' : '?') + 'download=' + encodeURIComponent(nombre);
+}
 
 // ─── NAVIGATION ───
 function sv(id, btn) {
@@ -2118,6 +2181,7 @@ function renderPendientes() {
   });
 
   const sorted = Object.values(grupos).sort((a,b) => b.total - a.total);
+  _pendGrupos = grupos;   // lo usa el pago en bloque
 
   // Totals for footer
   let totTotal=0, totHon=0, totDiv=0, totVia=0, totCom=0, totOtros=0;
@@ -2165,6 +2229,8 @@ function renderPendientes() {
       + '<td style="text-align:right" id="bs-equiv-row-'+gi+'">—</td>'
       
       + '<td style="text-align:right" id="vender-row-'+gi+'">—</td>'
+      + '<td style="text-align:right"><button class="btn btn-ghost btn-sm btn-pagar-grupo" data-nombre="' + esc(g.nombre) + '" '
+      +   'style="padding:3px 9px;font-size:11px;color:var(--green);border-color:rgba(61,202,110,.35)"><i class="ti ti-cash"></i>Pagar</button></td>'
       + '</tr>'
       + '<tr id="'+detailId+'" style="display:none">'
       + '<td colspan="12" style="padding:0"><table style="width:100%"><tbody>' + detailRows + '</tbody></table></td>'
@@ -2201,6 +2267,152 @@ function toggleDetail(id) {
 // Legacy compat
 function toggleAllPend(){}
 function calcPagarBs(){}
+
+// ═══════════════════════════════════════════════════════════
+// PAGO EN BLOQUE · marca como Pagado todo lo que se le debe a una persona
+// ═══════════════════════════════════════════════════════════
+var _pendGrupos = {};
+var _pagoActual = null;   // {nombre, items, usuario}
+
+// Compara nombres sin acentos ni mayúsculas: "Luis García" = "luis garcia"
+function _normNombre(s) {
+  return String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/\s+/g, ' ').trim();
+}
+
+function buscarUsuarioPorNombre(nombre) {
+  const n = _normNombre(nombre);
+  if (!n) return null;
+  return USUARIOS.find(u => _normNombre(u.nombre) === n)
+      || USUARIOS.find(u => {                       // Registro "Luis García (Catire)" → usuario "Luis García"
+           const un = _normNombre(u.nombre);
+           return un && un.includes(' ') && n.startsWith(un + ' ');   // nombre y apellido, nunca solo "Luis"
+         })
+      || null;
+}
+
+document.addEventListener('click', e => {
+  const b = e.target.closest('.btn-pagar-grupo');
+  if (b) abrirPagoBloque(b.dataset.nombre);
+});
+
+async function abrirPagoBloque(nombre) {
+  const g = _pendGrupos[nombre];
+  if (!g || !g.items.length) { alert('No hay nada pendiente para ' + nombre + '.'); return; }
+  if (!USUARIOS.length) await cargarUsuarios();
+
+  const usuario = buscarUsuarioPorNombre(nombre);
+  _pagoActual = {nombre, items: g.items.slice(), usuario};
+
+  $('pg-titulo').textContent = 'Pagar a ' + nombre;
+
+  // Ordenadas por fecha del evento
+  const items = _pagoActual.items.sort((a,b) => String(a.fecha_evento||'').localeCompare(String(b.fecha_evento||'')));
+  $('pg-lista').innerHTML = items.map(t =>
+      '<label style="display:flex;align-items:center;gap:9px;padding:7px 10px;background:var(--black3);border-radius:6px;cursor:pointer">'
+    + '<input type="checkbox" class="pg-chk" data-id="' + t.id + '" data-monto="' + (parseFloat(t.egreso)||0) + '" checked onchange="calcPagoTotal()" style="accent-color:var(--green)">'
+    + '<span class="mono" style="font-size:11px;color:var(--w3);min-width:92px">' + esc(t.codigo_evento || 'Sin código') + '</span>'
+    + '<span style="flex:1;font-size:11px;color:var(--w4)">' + esc(t.subcategoria || '—') + ' · ' + fDate(t.fecha_evento) + '</span>'
+    + '<b style="font-size:12px;color:var(--magenta)">' + fmt(parseFloat(t.egreso)||0) + '</b>'
+    + '</label>'
+  ).join('');
+
+  // Por defecto: quien tiene la sesión (si es socio), hoy, efectivo
+  const socios = ['Gustavo Briceño','Eduardo Behrens','Francisco Massari'];
+  $('pg-resp').value   = socios.includes(CURRENT_USER.nombre) ? CURRENT_USER.nombre : 'Gustavo Briceño';
+  $('pg-metodo').value = 'Efectivo $';
+  $('pg-fecha').value  = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+
+  // Aviso: solo si esa persona tiene usuario en el sistema
+  const aviso = $('pg-aviso-wrap'), sinU = $('pg-sin-usuario');
+  if (usuario) {
+    aviso.style.display = 'block';
+    sinU.style.display = 'none';
+    $('pg-avisar-txt').textContent = 'Avisarle a ' + (usuario.nombre || nombre) + ' en el sistema';
+    $('pg-avisar').checked = true;
+    $('pg-correo').checked = usuario.notificar !== false;
+  } else {
+    aviso.style.display = 'none';
+    sinU.style.display = 'block';
+    sinU.textContent = nombre + ' no tiene usuario en el sistema, así que no se le puede avisar. '
+      + 'El pago sí se registra.';
+  }
+
+  calcPagoTotal();
+  $('modal-pago').classList.add('show');
+}
+
+function calcPagoTotal() {
+  const total = Array.from(document.querySelectorAll('.pg-chk:checked'))
+    .reduce((s, ch) => s + (parseFloat(ch.dataset.monto) || 0), 0);
+  $('pg-total').textContent = fmt(total);
+}
+
+async function confirmarPagoBloque() {
+  if (!_pagoActual) return;
+  const marcados = Array.from(document.querySelectorAll('.pg-chk:checked'));
+  if (!marcados.length) { alert('Marca al menos un concepto.'); return; }
+
+  const ids    = marcados.map(ch => ch.dataset.id).filter(Boolean);   // sirve si el id es número o uuid
+  const resp   = $('pg-resp').value;
+  const metodo = $('pg-metodo').value;
+  const fecha  = $('pg-fecha').value || null;
+
+  const btn = $('pg-btn');
+  btn.disabled = true;
+
+  const {error} = await supa.from('transacciones')
+    .update({estado:'Pagado', responsable: resp, metodo_pago: metodo, fecha_pago: fecha})
+    .in('id', ids);
+
+  if (error) {
+    btn.disabled = false;
+    alert('No se pudo registrar el pago: ' + error.message);
+    return;
+  }
+
+  // Aviso a la persona: lista de eventos, sin el monto total
+  let extra = '';
+  const u = _pagoActual.usuario;
+  if (u && $('pg-avisar').checked) {
+    const pagados = _pagoActual.items.filter(t => ids.includes(String(t.id)));
+    const lineas = pagados.map(t =>
+      '• ' + (t.codigo_evento || 'Sin código')
+      + (t.fecha_evento ? ' · ' + fDate(t.fecha_evento) : '')
+      + (t.subcategoria ? ' · ' + t.subcategoria : '')
+    );
+    const titulo  = 'Se registró tu pago';
+    const mensaje = 'Te pagamos ' + (pagados.length === 1 ? 'este evento:' : 'estos ' + pagados.length + ' eventos:') + '\n'
+      + lineas.join('\n')
+      + '\n\nMétodo: ' + metodo + (fecha ? ' · Fecha: ' + fDate(fecha) : '');
+
+    await supa.from('notificaciones').insert({
+      email: u.email, titulo, mensaje, tipo: 'pago', leido: false
+    });
+
+    if ($('pg-correo').checked) {
+      const r = await enviarCorreo({
+        to: u.email,
+        subject: titulo,
+        html: plantillaCorreo({
+          titulo,
+          cuerpo: '<p style="margin:0;white-space:pre-wrap">Hola ' + esc(u.nombre || '') + ',\n\n' + esc(mensaje) + '</p>',
+          boton: {texto: 'Abrir el sistema', url: SISTEMA_URL}
+        })
+      });
+      extra = r.ok ? '\nSe le avisó por el sistema y por correo.' : '\nSe le avisó en el sistema, pero el correo falló: ' + r.error;
+    } else {
+      extra = '\nSe le avisó en el sistema.';
+    }
+  }
+
+  btn.disabled = false;
+  $('modal-pago').classList.remove('show');
+  await cargarTX();
+  renderPendientes();
+  alert('✓ ' + ids.length + (ids.length === 1 ? ' concepto marcado' : ' conceptos marcados')
+      + ' como pagado a ' + _pagoActual.nombre + '.' + extra);
+  _pagoActual = null;
+}
 
 
 // ─── BALANCE ───
@@ -2718,7 +2930,7 @@ function pintarCampana() {
     return;
   }
 
-  const iconos = {estado:'ti-tool', asignacion:'ti-calendar-plus', mensaje:'ti-message', default:'ti-bell'};
+  const iconos = {estado:'ti-tool', asignacion:'ti-calendar-plus', mensaje:'ti-message', pago:'ti-cash', default:'ti-bell'};
 
   lista.innerHTML = AVISOS.map(a => {
     const ic = iconos[a.tipo] || iconos.default;
@@ -3454,10 +3666,17 @@ async function abrirEventoStaff(cod) {
   let html = '';
   if (e.notas)  html += '<div style="font-size:12px;color:var(--w3);background:var(--black3);padding:9px 12px;border-radius:7px;margin-bottom:8px"><b style="color:var(--w2)">Nota:</b> ' + esc(e.notas) + '</div>';
   if (e.render) {
-    const esImg = /\.(png|jpe?g|gif|webp)$/i.test(e.render);
+    const esImg = /\.(png|jpe?g|gif|webp)(\?|$)/i.test(e.render);
+    const urlDescarga = urlDescargaRender(e.render, 'referencia-' + cod);
+    const botones = '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">'
+      + '<a href="' + urlDescarga + '" class="btn btn-blue btn-sm" style="text-decoration:none"><i class="ti ti-download"></i>Descargar</a>'
+      + '<a href="' + e.render + '" target="_blank" rel="noopener" class="btn btn-ghost btn-sm" style="text-decoration:none"><i class="ti ti-arrows-maximize"></i>Ver completa</a>'
+      + '</div>';
     html += esImg
-      ? '<div style="font-size:10px;color:var(--w4);margin-bottom:5px;letter-spacing:1.2px;text-transform:uppercase">Referencia de montaje</div><img src="' + e.render + '" style="max-width:100%;max-height:270px;border-radius:9px;border:1px solid var(--border)">'
-      : '<a href="' + e.render + '" target="_blank" class="btn btn-ghost btn-sm"><i class="ti ti-file-text"></i>Ver referencia de montaje</a>';
+      ? '<div style="font-size:10px;color:var(--w4);margin-bottom:5px;letter-spacing:1.2px;text-transform:uppercase">Referencia de montaje</div>'
+        + '<a href="' + e.render + '" target="_blank" rel="noopener"><img src="' + e.render + '" style="max-width:100%;max-height:270px;border-radius:9px;border:1px solid var(--border);display:block"></a>'
+        + botones
+      : '<div style="font-size:10px;color:var(--w4);margin-bottom:5px;letter-spacing:1.2px;text-transform:uppercase">Referencia de montaje</div>' + botones;
   }
   notas.innerHTML = html;
 
@@ -3871,6 +4090,7 @@ async function cargarLogisticaEvento() {
   $('log-pers-tbody').innerHTML = '';
   (pers.data || []).forEach(r => addFilaPersonal(r));
   if (!(pers.data || []).length) addFilaPersonal();
+  pintarGastosGenerales(cod);
   calcViaticos();
 
   const F = ficha.data || {};
@@ -4088,7 +4308,7 @@ function addFilaPersonal(d) {
   const tr = document.createElement('tr');
   tr.className = 'log-pers-fila';
   tr.innerHTML =
-      '<td><input type="text" class="lp-nombre" value="' + esc(d.nombre || '') + '" placeholder="Nombre" style="width:100%;padding:3px 6px;font-size:11px"></td>'
+      '<td><input type="text" class="lp-nombre" list="lp-nombres" value="' + esc(d.nombre || '') + '" placeholder="Nombre" style="width:100%;padding:3px 6px;font-size:11px"></td>'
     + '<td><input type="text" class="lp-rol" list="lp-roles" value="' + esc(d.rol || '') + '" placeholder="Rol" style="width:100%;padding:3px 6px;font-size:11px"></td>'
     + '<td style="text-align:center"><input type="checkbox" class="lp-asistio" ' + (d.asistio === false ? '' : 'checked') + ' style="accent-color:var(--green)"></td>'
     + '<td><input type="number" class="lp-viaticos" value="' + (d.viaticos || '') + '" placeholder="0" oninput="calcViaticos()" style="width:100%;padding:3px 6px;font-size:11px;text-align:right"></td>'
@@ -4101,12 +4321,122 @@ function addFilaPersonal(d) {
     dl.innerHTML = ROLES_STAFF.map(r => '<option value="' + r + '">').join('');
     document.body.appendChild(dl);
   }
+  llenarNombresPersonal();
+}
+
+// Sugiere los nombres tal como están escritos en Registro (ej: "Luis García (Catire)"),
+// para que viáticos y honorarios de la misma persona queden juntos en Cuentas pendientes.
+function llenarNombresPersonal() {
+  let dl = $('lp-nombres');
+  if (!dl) {
+    dl = document.createElement('datalist');
+    dl.id = 'lp-nombres';
+    document.body.appendChild(dl);
+  }
+  if (dl.dataset.listo) return;
+  const nombres = new Set();
+  TX.forEach(t => {
+    const sub = (t.subcategoria || '').toLowerCase();
+    if (t.concepto && (sub.includes('honorar') || sub.includes('viátic') || sub.includes('viatic'))) nombres.add(t.concepto);
+  });
+  dl.innerHTML = [...nombres].sort((a,b) => a.localeCompare(b, 'es')).map(n => '<option value="' + esc(n) + '">').join('');
+  dl.dataset.listo = '1';
 }
 
 function calcViaticos() {
   let tot = 0;
   document.querySelectorAll('.log-pers-fila .lp-viaticos').forEach(i => tot += parseFloat(i.value) || 0);
   if ($('log-tot-viaticos')) $('log-tot-viaticos').textContent = fmt(tot);
+  let gas = 0;
+  document.querySelectorAll('.log-gasto-fila .lg-monto').forEach(i => gas += parseFloat(i.value) || 0);
+  if ($('log-tot-gastos')) $('log-tot-gastos').textContent = fmt(gas);
+}
+
+// ─── GASTOS GENERALES DEL EVENTO ───
+const AUTO_VIATICO = '[auto-logística] viáticos';
+const AUTO_GASTO   = '[auto-logística] gasto general';
+
+function addFilaGasto(d) {
+  d = d || {};
+  const pagado = d.estado === 'Pagado';
+  const tr = document.createElement('tr');
+  tr.className = 'log-gasto-fila';
+  if (pagado) tr.dataset.pagado = '1';
+  tr.innerHTML =
+      '<td><input type="text" class="lg-concepto" value="' + esc(d.concepto || '') + '" placeholder="Ej: Comida del equipo"'
+    +   (pagado ? ' disabled' : '') + ' style="width:100%;padding:3px 6px;font-size:11px"></td>'
+    + '<td><input type="number" class="lg-monto" value="' + (d.egreso || '') + '" placeholder="0" oninput="calcViaticos()"'
+    +   (pagado ? ' disabled' : '') + ' style="width:100%;padding:3px 6px;font-size:11px;text-align:right"></td>'
+    + '<td style="text-align:center"><span class="badge ' + (pagado ? 'b-green' : 'b-orange') + '">' + (pagado ? 'Pagado' : 'Por pagar') + '</span></td>'
+    + '<td style="text-align:center">' + (pagado ? ''
+        : '<button onclick="this.closest(\'tr\').remove();calcViaticos()" style="background:none;border:none;color:var(--w4);cursor:pointer"><i class="ti ti-x"></i></button>')
+    + '</td>';
+  $('log-gastos-tbody').appendChild(tr);
+  calcViaticos();
+}
+
+function pintarGastosGenerales(cod) {
+  const tbody = $('log-gastos-tbody');
+  if (!tbody) return;
+  tbody.innerHTML = '';
+  TX.filter(t => t.codigo_evento === cod && String(t.descripcion || '').startsWith(AUTO_GASTO))
+    .forEach(t => addFilaGasto(t));
+  calcViaticos();
+}
+
+// Deja en Registro exactamente lo que dice la logística, sin duplicar:
+// - borra los automáticos de este evento que siguen "Por pagar"
+// - no toca los que ya se pagaron
+// - a cada persona le carga solo la diferencia entre su viático y lo que ya se le pagó
+async function sincronizarViaticosRegistro(cod, pers, ev) {
+  const {data: autos, error: e1} = await supa.from('transacciones')
+    .select('*').eq('codigo_evento', cod).like('descripcion', '[auto-log%');
+  if (e1) return {ok:false, error:e1.message};
+
+  const pendientes = (autos || []).filter(t => t.estado !== 'Pagado');
+  const pagadosVia = (autos || []).filter(t => t.estado === 'Pagado' && String(t.descripcion).startsWith(AUTO_VIATICO));
+
+  if (pendientes.length) {
+    const {error} = await supa.from('transacciones').delete().in('id', pendientes.map(t => t.id));
+    if (error) return {ok:false, error:error.message};
+  }
+
+  const yaPagado = {};
+  pagadosVia.forEach(t => {
+    const k = _normNombre(t.concepto);
+    yaPagado[k] = (yaPagado[k] || 0) + (parseFloat(t.egreso) || 0);
+  });
+
+  const base = {
+    fecha_evento: ev.fecha || null,
+    fecha_pago:   null,
+    categoria:    'Evento',
+    subcategoria: 'Viáticos',
+    estado:       'Por pagar',
+    codigo_evento: cod,
+    metodo_pago:  null,
+    responsable:  CURRENT_USER.nombre || null,
+    referente:    null,
+    ingreso:      0
+  };
+
+  const filas = [];
+  pers.forEach(p => {
+    const falta = (p.viaticos || 0) - (yaPagado[_normNombre(p.nombre)] || 0);
+    if (falta > 0.009) filas.push({...base, concepto: p.nombre, egreso: Math.round(falta * 100) / 100, descripcion: AUTO_VIATICO});
+  });
+
+  document.querySelectorAll('.log-gasto-fila:not([data-pagado])').forEach(tr => {
+    const concepto = tr.querySelector('.lg-concepto').value.trim();
+    const monto = parseFloat(tr.querySelector('.lg-monto').value) || 0;
+    if (concepto && monto > 0) filas.push({...base, concepto, egreso: monto, descripcion: AUTO_GASTO});
+  });
+
+  if (filas.length) {
+    const {error} = await supa.from('transacciones').insert(filas);
+    if (error) return {ok:false, error:error.message};
+  }
+  return {ok:true, n: filas.length, total: filas.reduce((s,f) => s + f.egreso, 0)};
 }
 
 async function guardarLogistica() {
@@ -4195,9 +4525,17 @@ async function guardarLogistica() {
   }));
   await avisarYCorreo(avisos);
 
+  // Vi\u00e1ticos y gastos generales \u2192 Registro
+  const sync = await sincronizarViaticosRegistro(cod, pers, ev);
+  await cargarTX();
+  pintarGastosGenerales(cod);
+
   alert('\u2713 Guardado: ' + inv.length + ' equipos, ' + pers.length + ' personas y '
       + seleccion.length + ' asignado' + (seleccion.length === 1 ? '' : 's') + '.'
-      + (nuevos.length ? '\n\n' + nuevos.length + ' persona(s) recibieron aviso del evento.' : ''));
+      + (nuevos.length ? '\n\n' + nuevos.length + ' persona(s) recibieron aviso del evento.' : '')
+      + (sync.ok
+          ? (sync.n ? '\n\nRegistro: ' + sync.n + ' vi\u00e1tico(s)/gasto(s) por pagar, total ' + fmt(sync.total) + '.' : '')
+          : '\n\nOJO: los vi\u00e1ticos no se pudieron pasar a Registro: ' + sync.error));
 }
 
 
@@ -5662,7 +6000,8 @@ function renderHistorial() {
   }
 
   tbody.innerHTML = data.map(c => {
-    const fecha = c.created_at ? new Date(c.created_at).toLocaleDateString('es-VE',{day:'2-digit',month:'short',year:'2-digit'}) : '—';
+    // Fecha del EVENTO, no de cuando se creó la cotización
+    const fecha = c.fecha_evento ? fDate(c.fecha_evento) : '<span style="color:var(--w4)">Sin fecha</span>';
     const total = c.total ? '$'+parseFloat(c.total).toLocaleString() : '—';
     const estado = c.estado || 'Borrador';
     const bc = estado === 'Descargada' ? 'b-green' : estado === 'Borrador' ? 'b-orange' : 'b-blue';
