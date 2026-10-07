@@ -355,6 +355,9 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
   <div class="nlabel">Reportes</div>
   <button class="ni" onclick="sv('estadisticas',this)"><i class="ti ti-chart-bar"></i>Estadísticas</button>
   <div class="ndiv"></div>
+  <div class="nlabel">Creativo</div>
+  <button class="ni" onclick="sv('renders',this)"><i class="ti ti-photo-video"></i>Visuales y renders</button>
+
   <div class="nlabel">Sistema</div>
   <button class="ni" onclick="sv('mensajes',this)"><i class="ti ti-send"></i>Mensajes</button>
   <button class="ni" onclick="sv('admin',this)"><i class="ti ti-shield-lock"></i>Administración</button>
@@ -756,6 +759,15 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
     <div class="ctitle">Eventos del mes</div>
     <div id="cal-lista"></div>
   </div>
+</div>
+
+<!-- CREATIVO · visuales y renders (herramienta en renders.html) -->
+<div id="v-renders" class="view">
+  <div class="ph">
+    <div><div class="aline"></div><div class="ptitle">Visuales y renders</div><div class="psub">Herramienta creativa de Blast</div></div>
+    <a class="btn btn-ghost btn-sm" href="renders.html" target="_blank" rel="noopener"><i class="ti ti-external-link"></i>Pantalla completa</a>
+  </div>
+  <iframe id="renders-frame" title="Visuales y renders" style="width:100%;height:calc(100vh - 130px);border:0;border-radius:10px;background:#000"></iframe>
 </div>
 
 <!-- MENSAJES · comunicaciones internas -->
@@ -1679,6 +1691,7 @@ function sv(id, btn) {
   if (id === 'staff')        llenarSelectEventosStaff();
   if (id === 'admin')        cargarUsuarios();
   if (id === 'mensajes')     abrirMensajes();
+  if (id === 'renders')      { const f = $('renders-frame'); if (f && !f.src) f.src = 'renders.html'; }
   if (id === 'calendario')   renderCalendario();
   if (id === 'estimador')    runEstimador();
   if (id === 'dashboard')    renderDashboard();
@@ -2720,6 +2733,7 @@ const VISTAS = [
   {id:'inventario',   nombre:'Inventario',          grupo:'Logística'},
   {id:'logistica',    nombre:'Logística evento',    grupo:'Logística'},
   {id:'estadisticas', nombre:'Estadísticas',        grupo:'Reportes'},
+  {id:'renders',      nombre:'Visuales y renders',  grupo:'Creativo'},
   {id:'mensajes',     nombre:'Mensajes',            grupo:'Sistema'},
 ];
 
