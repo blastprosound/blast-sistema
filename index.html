@@ -160,6 +160,47 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
 .cir-mv button:hover{color:var(--blue)}
 .cir input,.cir select{padding:5px 7px;font-size:12px}
 .xsub{font-size:12px;color:var(--blue);text-align:center;font-weight:600}
+/* columnas: mover · concepto · categoría · ×días · cant · precio · total · borrar */
+.cih,.cir{grid-template-columns:24px 1fr 130px 0 56px 72px 72px 30px}
+#cot-wrap.multi .cih,#cot-wrap.multi .cir{grid-template-columns:24px 1fr 130px 52px 56px 72px 72px 30px}
+.xdia,.cih-dia{display:none}
+#cot-wrap.multi .xdia{display:flex}
+#cot-wrap.multi .cih-dia{display:block}
+#cot-wrap.multi .cih-movil .cih-dia{display:inline}
+.xdia{align-items:center;justify-content:center;gap:3px;font-size:11px;color:var(--w3);cursor:pointer;white-space:nowrap}
+.xdia input{accent-color:var(--blue);width:15px;height:15px}
+.xcat-tgl{display:none}
+.cih-movil{display:none}
+.cmulti-lbl{display:inline-flex;align-items:center;gap:5px;font-size:10px;letter-spacing:.5px;text-transform:none;color:var(--w3);cursor:pointer}
+.cmulti-lbl input{accent-color:var(--blue)}
+.hsel{display:flex;gap:5px}
+.hsel select{flex:1;min-width:0;padding-left:6px;padding-right:4px}
+textarea.ai-box{width:100%;resize:vertical;font-family:inherit;display:block;font-style:normal}
+.seg{display:inline-flex;background:var(--black3);border:1px solid var(--border);border-radius:7px;padding:2px}
+.seg button{background:none;border:none;color:var(--w4);font-size:11px;padding:4px 10px;border-radius:5px;cursor:pointer;font-family:inherit}
+.seg button.on{background:var(--blue);color:#141414;font-weight:600}
+.btn-wa{background:#25d366;color:#0b2a17;border:1px solid #25d366;font-weight:600}
+.btn-wa:hover{filter:brightness(1.08)}
+@media (max-width:640px){
+  .cih{display:none}
+  .cih-movil{display:block;font-size:9px;letter-spacing:1.2px;text-transform:uppercase;color:var(--w4);padding:2px 0 8px;border-bottom:1px solid var(--border);margin-bottom:8px}
+  .cir,#cot-wrap.multi .cir{grid-template-columns:20px 58px 1fr auto 62px 32px;
+    grid-template-areas:"mv con con con con del" "mv qty pri dia sub tgl" "mv cat cat cat cat cat";
+    gap:6px;padding:9px 0;margin:0;border-bottom:1px solid var(--border)}
+  .cir .cir-mv{grid-area:mv}
+  .cir > div:nth-child(2){grid-area:con}
+  .cir .xcat{grid-area:cat;display:none}
+  .cir.vercat .xcat{display:block}
+  .cir .xdia{grid-area:dia}
+  .cir .xqty{grid-area:qty}
+  .cir .xpri{grid-area:pri}
+  .cir .xsub{grid-area:sub;text-align:right}
+  .cir .xdel{grid-area:del}
+  .cir .xcat-tgl{grid-area:tgl;display:inline-flex}
+  .cir.vercat .xcat-tgl{color:var(--blue)}
+  .cir input{font-size:16px;padding:8px}   /* 16px evita el zoom automático del iPhone */
+  .cir .xcon{font-weight:600}
+}
 .ctotals{background:var(--black3);border-radius:var(--r);padding:12px 15px;margin-top:10px;border:1px solid var(--border)}
 .ctr{display:flex;justify-content:space-between;align-items:center;font-size:12px;padding:3px 0;color:var(--w4);font-weight:300}
 .ctr.fin{color:var(--white);font-size:18px;font-weight:600;border-top:1px solid var(--border);margin-top:7px;padding-top:9px}
@@ -565,17 +606,18 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
 
 <!-- COTIZACIONES -->
 <div id="v-cotizacion" class="view">
-  <div class="ph"><div><div class="aline"></div><div class="ptitle">Cotizaciones</div><div class="psub">Generador con base de datos de precios y descripción por IA</div></div><button class="btn btn-blue btn-sm" onclick="nuevaCotizacion()"><i class="ti ti-file-plus"></i>Nueva cotización</button></div>
+  <div class="ph"><div><div class="aline"></div><div class="ptitle">Cotizaciones</div><div class="psub">Generador con base de precios · envía por WhatsApp o correo</div></div><button class="btn btn-blue btn-sm" onclick="nuevaCotizacion()"><i class="ti ti-file-plus"></i>Nueva cotización</button></div>
   <div class="card">
     <div class="ctitle">Datos del evento</div>
     <div class="cot-grid">
       <div class="fg">
         <div class="fgrp"><label class="flabel">Cliente</label><input type="text" id="cc" placeholder="Nombre del cliente" oninput="updateCotCode();scheduleCotAutosave()"></div>
-        <div class="fgrp"><label class="flabel">Tipo de evento</label><select id="ctype" onchange="checkOtroTipo()" onchange="scheduleCotAutosave()"><option>Fiesta</option><option>Matrimonio</option><option>Corporativo</option><option>Graduación</option><option>Conferencia</option><option>Institucional</option><option>Concierto</option><option>Otro</option></select>
+        <div class="fgrp"><label class="flabel">Tipo de evento</label><select id="ctype" onchange="checkOtroTipo();scheduleCotAutosave()"><option>Fiesta</option><option>Matrimonio</option><option>Corporativo</option><option>Graduación</option><option>Conferencia</option><option>Institucional</option><option>Concierto</option><option>Otro</option></select>
         <input type="text" id="ctype-otro" placeholder="Especifica el tipo de evento..." style="display:none;margin-top:5px" oninput="agregarTipoPersonalizado()"></div>
-        <div class="fgrp"><label class="flabel">Fecha</label><input type="date" id="cdate" oninput="updateCotCode()" onchange="scheduleCotAutosave()"></div>
-        <div class="fgrp"><label class="flabel">Hora inicio</label><input type="time" id="ctime-start" oninput="calcDuracion()"></div>
-        <div class="fgrp"><label class="flabel">Hora fin</label><input type="time" id="ctime-end" oninput="calcDuracion()"></div>
+        <div class="fgrp"><label class="flabel" style="display:flex;justify-content:space-between;align-items:center">Fecha<span class="cmulti-lbl"><input type="checkbox" id="cmulti" onchange="toggleMultiDia()"> Más de un día</span></label><input type="date" id="cdate" oninput="updateCotCode();actualizarDias()" onchange="scheduleCotAutosave()">
+          <div id="cdate-fin-wrap" style="display:none;margin-top:6px"><label class="flabel">Hasta</label><input type="date" id="cdate-fin" oninput="actualizarDias()" onchange="scheduleCotAutosave()"><div id="cdias-info" style="font-size:11px;color:var(--blue);margin-top:4px"></div></div></div>
+        <div class="fgrp"><label class="flabel">Hora inicio</label><div class="hsel" data-target="ctime-start"></div><input type="hidden" id="ctime-start"></div>
+        <div class="fgrp"><label class="flabel">Hora fin</label><div class="hsel" data-target="ctime-end"></div><input type="hidden" id="ctime-end"></div>
         <input type="hidden" id="ctime" value="">
         <input type="hidden" id="ctime-duracion" value="">
         <div class="fgrp"><label class="flabel">Lugar</label><input type="text" id="cplace" placeholder="Nombre del recinto" oninput="scheduleCotAutosave()"></div>
@@ -585,7 +627,6 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
         <div class="ctitle">Código</div>
         <div class="cot-code" id="ccode">COT ——</div>
         <div class="fgrp" style="margin-bottom:9px"><label class="flabel">Responsable</label><select id="cresp" onchange="scheduleCotAutosave()"><option>Gustavo Briceño</option><option>Eduardo Behrens</option><option>Francisco Massari</option></select></div>
-        <div class="fgrp"><label class="flabel">Moneda</label><select id="ccurr"><option>USD ($)</option><option>Euros (€)</option></select></div>
         <div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border);font-size:10px;color:var(--w4)">Duración: <b id="cot-duracion" style="color:var(--blue)">—</b></div>
         <div style="margin-top:5px;font-size:10px;color:var(--w4)">Tasa BCV: <b id="cot-bcv" style="color:var(--blue)">—</b> Bs/$</div>
       </div>
@@ -593,51 +634,64 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
   </div>
   <div class="card">
     <div class="ctitle">Ítems · escribe para buscar en la base de precios</div>
-    <div class="cih"><div></div><div>Concepto</div><div>Categoría</div><div>Cant.</div><div>P. Unitario</div><div>Total</div><div></div></div>
+    <div id="cot-wrap">
+    <div class="cih"><div></div><div>Concepto</div><div>Categoría</div><div class="cih-dia" title="Marca los ítems que se cobran por cada día">× Días</div><div>Cant.</div><div>P. Unitario</div><div>Total</div><div></div></div>
+    <div class="cih-movil">Concepto · Cant. · Precio<span class="cih-dia"> · × días</span> · Total</div>
     <datalist id="cot-cats"></datalist>
     <div id="cot-items"></div>
+    </div>
     <div class="btn-row" style="margin-top:9px">
       <button class="btn btn-ghost btn-sm" onclick="addCotRow()"><i class="ti ti-plus"></i>Agregar ítem</button>
     </div>
     <div class="ctotals">
-      <div class="ctr"><span>Sub total</span><span id="c-sub">$0</span></div>
-      <div class="ctr"><span>Descuento</span><span style="display:flex;align-items:center;gap:5px"><input type="number" id="c-desc" value="0" min="0" max="100" oninput="calcCot()" style="width:48px;padding:3px 6px;font-size:12px;text-align:center"> %</span></div>
       <div class="ctr"><span>Moneda</span><span style="display:flex;align-items:center;gap:5px"><select id="c-moneda" onchange="calcCot()" style="padding:3px 6px;font-size:12px"><option value="USD">USD ($)</option><option value="EUR">EUR (€)</option></select></span></div>
-      <div class="ctr"><span>IVA 16%</span><span style="display:flex;align-items:center;gap:5px"><input type="checkbox" id="c-iva" onchange="calcCot()"> aplicar</span></div>
+      <div class="ctr"><span>Sub total</span><span id="c-sub">$0</span></div>
+      <div class="ctr"><span>Descuento</span><span style="display:flex;align-items:center;gap:5px"><input type="number" id="c-desc" value="0" min="0" max="100" oninput="calcCot()" style="width:48px;padding:3px 6px;font-size:12px;text-align:center"> % <b id="c-desc-monto" style="color:var(--red);min-width:50px;text-align:right"></b></span></div>
+      <div class="ctr"><span>IVA 16%</span><span style="display:flex;align-items:center;gap:5px"><input type="checkbox" id="c-iva" onchange="calcCot()"> aplicar <b id="c-iva-monto" style="min-width:50px;text-align:right"></b></span></div>
       <div class="ctr fin"><span>TOTAL</span><span id="c-total">$0</span></div>
     </div>
   </div>
   <div class="card">
-    <div class="ctitle">Descripción automática · Blast Assistant</div>
-    <div class="btn-row" style="margin-bottom:9px">
+    <div class="ctitle">Descripción · escríbela o genérala y luego edítala</div>
+    <div class="btn-row" style="margin-bottom:6px">
       <button class="btn btn-blue btn-sm" onclick="genIA()"><i class="ti ti-sparkles"></i>Generar descripción</button>
+      <button class="btn btn-ghost btn-sm" onclick="copiarDescripcion()"><i class="ti ti-copy"></i>Copiar</button>
+      <span style="display:flex;align-items:center;gap:6px;margin-left:auto">
+        <input type="checkbox" id="ai-include" checked style="accent-color:var(--blue)">
+        <label for="ai-include" style="font-size:12px;color:var(--w3);cursor:pointer">Incluir en el PDF</label>
+      </span>
+    </div>
+    <textarea id="ai-out" class="ai-box" rows="5" placeholder="Escribe aquí la descripción, o pulsa «Generar descripción» y ajústala a tu gusto..." oninput="scheduleCotAutosave()"></textarea>
+    <div class="ctitle" style="margin-top:16px">Acciones</div>
+    <div class="btn-row">
       <button class="btn btn-ghost btn-sm" id="btn-guardar-cot" onclick="guardarCotizacionManual()"><i class="ti ti-device-floppy"></i>Guardar</button>
       <button class="btn btn-ghost btn-sm" onclick="confirmarCotizacionActual()" style="color:var(--green);border-color:rgba(61,202,110,.35)"><i class="ti ti-circle-check"></i>Confirmar evento</button>
       <button class="btn btn-ghost btn-sm" onclick="exportPDF()"><i class="ti ti-file-download"></i>Ver / Imprimir PDF</button>
+      <button class="btn btn-wa btn-sm" onclick="enviarCotWhatsApp()"><i class="ti ti-brand-whatsapp"></i>WhatsApp</button>
+      <button class="btn btn-ghost btn-sm" onclick="abrirEnviarCorreoCot()"><i class="ti ti-mail"></i>Enviar por correo</button>
       <button class="btn btn-drive btn-sm" onclick="exportarADriveConGuardado()" id="btn-drive">
         <img src="https://upload.wikimedia.org/wikipedia/commons/1/12/Google_Drive_icon_%282020%29.svg" style="width:15px;height:15px" alt=""> Guardar en Drive
       </button>
       <span id="drive-status" class="drive-status" style="display:none"></span>
-      <button class="btn btn-ghost btn-sm" onclick="copiarDescripcion()"><i class="ti ti-copy"></i>Copiar</button>
     </div>
-    <div style="display:flex;align-items:center;gap:8px;margin-top:10px;margin-bottom:6px">
-      <input type="checkbox" id="ai-include" checked style="accent-color:var(--blue)">
-      <label for="ai-include" style="font-size:12px;color:var(--w3);cursor:pointer">Incluir descripción en el PDF</label>
-    </div>
-    <div id="ai-out" class="ai-box ai-dim">La descripción generada aparecerá aquí...</div>
   </div>
 </div>
 
 <!-- SOCIOS -->
 <div id="v-socios" class="view">
-  <div class="ph"><div><div class="aline"></div><div class="ptitle">Socios</div><div class="psub">Balance y participación histórica</div></div></div>
-  <div class="sg3">
-    <div class="soc-card" id="sc-gb"><div class="soc-top" style="background:var(--blue)"></div><div class="sav" style="background:rgba(67,189,237,.1);color:var(--blue)">GB</div><div class="sn">Gustavo Briceño</div><div class="sa">Fukity</div><div class="sst"><div><span class="ssv" id="sc-gb-bal">—</span><span class="ssl">Balance</span></div><div><span class="ssv" id="sc-gb-evs">—</span><span class="ssl">Eventos</span></div></div></div>
-    <div class="soc-card" id="sc-eb"><div class="soc-top" style="background:var(--magenta)"></div><div class="sav" style="background:rgba(234,95,242,.1);color:var(--magenta)">EB</div><div class="sn">Eduardo Behrens</div><div class="sa">Edu</div><div class="sst"><div><span class="ssv" id="sc-eb-bal" style="color:var(--magenta)">—</span><span class="ssl">Balance</span></div><div><span class="ssv" id="sc-eb-evs" style="color:var(--magenta)">—</span><span class="ssl">Eventos</span></div></div></div>
-    <div class="soc-card" id="sc-fm"><div class="soc-top" style="background:var(--orange)"></div><div class="sav" style="background:rgba(244,169,61,.1);color:var(--orange)">FM</div><div class="sn">Francisco Massari</div><div class="sa">Fran</div><div class="sst"><div><span class="ssv" id="sc-fm-bal" style="color:var(--orange)">—</span><span class="ssl">Balance</span></div><div><span class="ssv" id="sc-fm-evs" style="color:var(--orange)">—</span><span class="ssl">Eventos</span></div></div></div>
+  <div class="ph"><div><div class="aline"></div><div class="ptitle">Socios</div><div class="psub">Lo que trae cada socio (eventos donde es referente) y su caja</div></div>
+    <select id="soc-anio" style="width:auto;padding:5px 9px;font-size:12px" onchange="renderSocios()"></select></div>
+  <div class="sg3" id="soc-cards"></div>
+  <div class="card np" style="margin-bottom:13px"><div class="ctitle" style="padding:14px 15px 0">Estadísticas por socio <span style="font-weight:300;text-transform:none;letter-spacing:0;color:var(--w4)">· según quién consiguió el evento</span></div>
+    <div class="twrap"><table>
+      <thead><tr><th>Socio</th><th>Eventos</th><th>Facturado</th><th>% del total</th><th>Utilidad</th><th>% de la utilidad</th><th>Margen</th><th>Ticket prom.</th><th>Por cobrar</th></tr></thead>
+      <tbody id="soc-stats"></tbody></table></div>
+  </div>
+  <div class="card np" style="margin-bottom:13px"><div class="ctitle" style="padding:14px 15px 0">Por año · facturado / utilidad</div>
+    <div class="twrap"><table><thead id="soc-anual-head"></thead><tbody id="soc-anual"></tbody></table></div>
   </div>
   <div class="two eq">
-    <div class="card"><div class="ctitle">Distribución por responsable</div>
+    <div class="card"><div class="ctitle">Caja por responsable (histórico)</div>
       <table><thead><tr><th>Socio</th><th>Agarro</th><th>Entregó</th><th>Balance</th></tr></thead>
       <tbody id="soc-tbody"></tbody></table>
     </div>
@@ -696,6 +750,7 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
 <option>Visuales</option>
     </select>
     <input id="f-prov-q" type="text" placeholder="Buscar proveedor..." style="width:200px;padding:5px 9px;font-size:12px" oninput="renderProveedores()">
+    <label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--w3);cursor:pointer"><input type="checkbox" id="f-prov-todos" onchange="renderProveedores()" style="accent-color:var(--blue)"> Incluir los que no han trabajado en eventos</label>
   </div>
   <div class="card np">
     <div class="twrap"><table>
@@ -1066,8 +1121,13 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
   <!-- Comparación mensual año contra año -->
   <div class="card">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-      <div class="ctitle" style="margin-bottom:0">Comparación anual de facturación</div>
-      <div id="est-chart-legend" style="display:flex;gap:14px;font-size:10px;color:var(--w4)"></div>
+      <div class="ctitle" style="margin-bottom:0">Comparación anual de <span id="est-chart-titulo">facturación</span></div>
+      <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+        <div id="est-chart-legend" style="display:flex;gap:14px;font-size:10px;color:var(--w4)"></div>
+        <div class="seg" id="est-chart-modo">
+          <button class="on" data-modo-anual="fac">Facturación</button><button data-modo-anual="uti">Utilidad</button>
+        </div>
+      </div>
     </div>
     <div id="est-chart-mensual" style="width:100%;overflow-x:auto"></div>
   </div>
@@ -1223,6 +1283,21 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
 </div>
 
 <!-- MODAL: NUEVO CLIENTE -->
+<div class="modal-bg" id="modal-cot-correo">
+  <div class="modal">
+    <div class="modal-title">Enviar cotización por correo</div>
+    <div class="fgrp" style="margin-bottom:11px"><label class="flabel">Para</label><input type="email" id="cotm-to" placeholder="correo@cliente.com"></div>
+    <div class="fgrp" style="margin-bottom:11px"><label class="flabel">Asunto</label><input type="text" id="cotm-subject"></div>
+    <div class="fgrp" style="margin-bottom:6px"><label class="flabel">Mensaje</label><textarea id="cotm-msg" rows="5"></textarea></div>
+    <div style="font-size:11px;color:var(--w4)">Sale desde <b>info@blasteventos.com</b> con el PDF adjunto. Si el cliente responde, llega a ese mismo correo.</div>
+    <div id="cotm-status" style="font-size:12px;margin-top:8px"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="document.getElementById('modal-cot-correo').classList.remove('show')">Cancelar</button>
+      <button class="btn btn-blue" id="cotm-btn" onclick="enviarCotCorreo()"><i class="ti ti-send"></i>Enviar</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-bg" id="modal-cli">
   <div class="modal">
     <div class="modal-title">Nuevo cliente</div>
@@ -1598,7 +1673,7 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
 
 <script>
 // ═══════════════════════════════════════════════
-// BLAST PROSOUND · Sistema de Gestión v6.1
+// BLAST PROSOUND · Sistema de Gestión v6.2
 // ═══════════════════════════════════════════════
 
 // ─── CONFIG ───
@@ -2591,45 +2666,118 @@ function renderBalance() {
 }
 
 // ─── SOCIOS ───
+var SOCIOS_DEF = [
+  {nombre:'Gustavo Briceño',  ini:'GB', alias:'Fukity', color:'var(--blue)',    rgb:'67,189,237'},
+  {nombre:'Eduardo Behrens',  ini:'EB', alias:'Edu',    color:'var(--magenta)', rgb:'234,95,242'},
+  {nombre:'Francisco Massari',ini:'FM', alias:'Fran',   color:'var(--orange)',  rgb:'244,169,61'}
+];
+// El referente puede venir como "Gustavo", "Gustavo Briceño", "Fukity"…
+function socioDeReferente(ref) {
+  const r = String(ref || '').trim().toLowerCase();
+  if (!r) return null;
+  return SOCIOS_DEF.find(s => r === s.nombre.toLowerCase() || r.startsWith(s.nombre.split(' ')[0].toLowerCase()) || r === s.alias.toLowerCase()) || null;
+}
 function renderSocios() {
-  const socios = [
-    {nombre:'Gustavo Briceño',  balId:'sc-gb-bal', evsId:'sc-gb-evs', color:'var(--blue)'},
-    {nombre:'Eduardo Behrens',  balId:'sc-eb-bal', evsId:'sc-eb-evs', color:'var(--magenta)'},
-    {nombre:'Francisco Massari',balId:'sc-fm-bal', evsId:'sc-fm-evs', color:'var(--orange)'},
-  ];
-  const tableRows = [];
-  socios.forEach(s => {
-    const rows   = TX.filter(t => t.responsable === s.nombre);
-    const agarro = rows.filter(t => t.estado === 'Cobrado').reduce((sum,t) => sum + (parseFloat(t.ingreso)||0), 0);
-    const entrego= rows.filter(t => t.estado === 'Pagado' ).reduce((sum,t) => sum + (parseFloat(t.egreso) ||0), 0);
-    const bal    = agarro - entrego;
-    // Count rows where concepto = socio and subcategoria = Honorarios
-    const evs = TX.filter(t =>
-      (t.subcategoria||'').toLowerCase().includes('honorar') &&
-      (t.concepto||'') === s.nombre
-    ).length;
-    $(s.balId).textContent = fmtD(bal);
-    $(s.balId).style.color = bal >= 0 ? s.color : 'var(--red)';
-    $(s.evsId).textContent = evs;
-    tableRows.push('<tr><td>' + s.nombre + '</td><td>' + fmtD(agarro) + '</td><td>' + fmtD(entrego) + '</td><td style="font-weight:600;color:' + (bal>=0?s.color:'var(--red)') + '">' + fmtD(bal) + '</td></tr>');
-  });
-  $('soc-tbody').innerHTML = tableRows.join('');
+  // Selector de año
+  const sel = $('soc-anio');
+  const anios = [...new Set(EVS.filter(e => e.fecha).map(e => e.fecha.slice(0, 4)))].sort().reverse();
+  if (sel && sel.options.length !== anios.length + 1) {
+    const prev = sel.value;
+    sel.innerHTML = '<option value="">Todos los años</option>' + anios.map(a => '<option>' + a + '</option>').join('');
+    sel.value = anios.includes(prev) ? prev : '';
+  }
+  const anio = sel ? sel.value : '';
+  const evs = EVS.filter(e => !anio || (e.fecha || '').startsWith(anio));
 
-  // Captación: events per referente from EVS
-  const refMap = {};
-  EVS.forEach(e => {
-    const r = e.referente || 'Sin referente';
-    if (!refMap[r]) refMap[r] = {evs:0, ing:0};
-    refMap[r].evs++;
-    refMap[r].ing += e.ingreso || 0;
+  // Totales por socio según referente
+  const tot = {fac: 0, uti: 0};
+  const st = {};
+  SOCIOS_DEF.forEach(s => st[s.nombre] = {evs: 0, fac: 0, uti: 0, pc: 0});
+  evs.forEach(e => {
+    tot.fac += e.ingreso; tot.uti += e.ingreso - e.gasto;
+    const s = socioDeReferente(e.referente);
+    if (!s) return;
+    const x = st[s.nombre];
+    x.evs++; x.fac += e.ingreso; x.uti += e.ingreso - e.gasto;
   });
-  const maxR = Math.max(...Object.values(refMap).map(v=>v.evs), 1);
-  const colors = ['var(--blue)','var(--magenta)','var(--orange)'];
-  $('soc-captacion').innerHTML = Object.entries(refMap).sort((a,b)=>b[1].evs-a[1].evs).map(([r,v],i) =>
-    '<div class="br"><div class="bl" style="font-size:10px">' + r.split(' ')[0] + '</div>'
-    + '<div class="bt"><div class="bf" style="width:' + Math.round((v.evs/maxR)*100) + '%;background:' + colors[Math.min(i,2)] + '">' + v.evs + ' ev.</div></div>'
-    + '<div class="ba">' + fmt(v.ing) + '</div></div>'
-  ).join('');
+  // Por cobrar de sus eventos
+  const codSocio = {};
+  evs.forEach(e => { const s = socioDeReferente(e.referente); if (s) codSocio[e.codigo] = s.nombre; });
+  TX.forEach(t => { const n = codSocio[(t.codigo_evento || '').trim()]; if (n && t.estado === 'Por cobrar') st[n].pc += parseFloat(t.ingreso) || 0; });
+
+  const pct = (a, b) => b ? Math.round(a / b * 100) + '%' : '—';
+  // Tarjetas
+  $('soc-cards').innerHTML = SOCIOS_DEF.map(s => {
+    const x = st[s.nombre];
+    const rows = TX.filter(t => t.responsable === s.nombre);
+    const bal = rows.filter(t => t.estado === 'Cobrado').reduce((a, t) => a + (parseFloat(t.ingreso) || 0), 0)
+              - rows.filter(t => t.estado === 'Pagado').reduce((a, t) => a + (parseFloat(t.egreso) || 0), 0);
+    const dato = (v, l, c) => '<div><span class="ssv" style="color:' + c + '">' + v + '</span><span class="ssl">' + l + '</span></div>';
+    return '<div class="soc-card"><div class="soc-top" style="background:' + s.color + '"></div>'
+      + '<div class="sav" style="background:rgba(' + s.rgb + ',.1);color:' + s.color + '">' + s.ini + '</div>'
+      + '<div class="sn">' + s.nombre + '</div><div class="sa">' + s.alias + '</div>'
+      + '<div class="sst" style="grid-template-columns:1fr 1fr;row-gap:10px;display:grid">'
+      + dato(fmtD(x.fac), 'Facturado', s.color) + dato(fmtD(x.uti), 'Utilidad', x.uti >= 0 ? s.color : 'var(--red)')
+      + dato(x.evs, 'Eventos traídos', s.color) + dato(fmtD(bal), 'Balance caja', bal >= 0 ? 'var(--w2)' : 'var(--red)')
+      + '</div></div>';
+  }).join('');
+
+  // Tabla de estadísticas
+  let filas = SOCIOS_DEF.map(s => {
+    const x = st[s.nombre];
+    return '<tr><td style="font-weight:600;color:' + s.color + '">' + s.nombre + '</td>'
+      + '<td style="text-align:center">' + x.evs + '</td>'
+      + '<td style="font-weight:600">' + fmtD(x.fac) + '</td><td>' + pct(x.fac, tot.fac) + '</td>'
+      + '<td style="font-weight:600;color:' + (x.uti >= 0 ? 'var(--green)' : 'var(--red)') + '">' + fmtD(x.uti) + '</td><td>' + pct(x.uti, tot.uti) + '</td>'
+      + '<td>' + pct(x.uti, x.fac) + '</td><td>' + (x.evs ? fmtD(x.fac / x.evs) : '—') + '</td>'
+      + '<td style="color:var(--orange)">' + (x.pc ? fmtD(x.pc) : '—') + '</td></tr>';
+  });
+  const otros = {evs: 0, fac: 0, uti: 0};
+  evs.forEach(e => { if (!socioDeReferente(e.referente)) { otros.evs++; otros.fac += e.ingreso; otros.uti += e.ingreso - e.gasto; } });
+  if (otros.evs) filas.push('<tr style="color:var(--w4)"><td>Otros / sin referente</td><td style="text-align:center">' + otros.evs + '</td><td>' + fmtD(otros.fac) + '</td><td>' + pct(otros.fac, tot.fac) + '</td><td>' + fmtD(otros.uti) + '</td><td>' + pct(otros.uti, tot.uti) + '</td><td>' + pct(otros.uti, otros.fac) + '</td><td>' + fmtD(otros.fac / otros.evs) + '</td><td></td></tr>');
+  filas.push('<tr style="border-top:1px solid var(--border2);font-weight:600"><td>Total</td><td style="text-align:center">' + evs.length + '</td><td>' + fmtD(tot.fac) + '</td><td>100%</td><td>' + fmtD(tot.uti) + '</td><td>100%</td><td>' + pct(tot.uti, tot.fac) + '</td><td>' + (evs.length ? fmtD(tot.fac / evs.length) : '—') + '</td><td></td></tr>');
+  $('soc-stats').innerHTML = filas.join('');
+
+  // Tabla por año (siempre todos los años)
+  const porAnio = {};
+  EVS.forEach(e => {
+    if (!e.fecha) return;
+    const s = socioDeReferente(e.referente); if (!s) return;
+    const a = e.fecha.slice(0, 4);
+    porAnio[a] = porAnio[a] || {};
+    const x = porAnio[a][s.nombre] = porAnio[a][s.nombre] || {fac: 0, uti: 0, evs: 0};
+    x.fac += e.ingreso; x.uti += e.ingreso - e.gasto; x.evs++;
+  });
+  $('soc-anual-head').innerHTML = '<tr><th>Año</th>' + SOCIOS_DEF.map(s => '<th style="color:' + s.color + '">' + s.nombre.split(' ')[0] + '</th>').join('') + '</tr>';
+  $('soc-anual').innerHTML = Object.keys(porAnio).sort().reverse().map(a => '<tr><td style="font-weight:600">' + a + '</td>'
+    + SOCIOS_DEF.map(s => { const x = porAnio[a][s.nombre];
+        return '<td>' + (x ? fmtD(x.fac) + ' <span style="color:var(--w4)">/</span> <span style="color:' + (x.uti >= 0 ? 'var(--green)' : 'var(--red)') + '">' + fmtD(x.uti) + '</span> <span style="color:var(--w4);font-size:10px">· ' + x.evs + ' ev.</span>' : '—') + '</td>'; }).join('')
+    + '</tr>').join('') || '<tr><td colspan="4" style="color:var(--w4)">Sin datos</td></tr>';
+
+  // Caja por responsable (histórico, igual que antes)
+  $('soc-tbody').innerHTML = SOCIOS_DEF.map(s => {
+    const rows = TX.filter(t => t.responsable === s.nombre);
+    const ag = rows.filter(t => t.estado === 'Cobrado').reduce((a, t) => a + (parseFloat(t.ingreso) || 0), 0);
+    const en = rows.filter(t => t.estado === 'Pagado').reduce((a, t) => a + (parseFloat(t.egreso) || 0), 0);
+    const b = ag - en;
+    return '<tr><td>' + s.nombre + '</td><td>' + fmtD(ag) + '</td><td>' + fmtD(en) + '</td><td style="font-weight:600;color:' + (b >= 0 ? s.color : 'var(--red)') + '">' + fmtD(b) + '</td></tr>';
+  }).join('');
+
+  // Captación (del año elegido)
+  const refMap = {};
+  evs.forEach(e => {
+    const s = socioDeReferente(e.referente);
+    const r = s ? s.nombre : (e.referente || 'Sin referente');
+    if (!refMap[r]) refMap[r] = {evs: 0, ing: 0};
+    refMap[r].evs++; refMap[r].ing += e.ingreso || 0;
+  });
+  const maxR = Math.max(...Object.values(refMap).map(v => v.evs), 1);
+  $('soc-captacion').innerHTML = Object.entries(refMap).sort((a, b) => b[1].evs - a[1].evs).map(([r, v]) => {
+    const s = socioDeReferente(r);
+    return '<div class="br"><div class="bl" style="font-size:10px">' + esc(r.split(' ')[0]) + '</div>'
+      + '<div class="bt"><div class="bf" style="width:' + Math.round((v.evs / maxR) * 100) + '%;background:' + (s ? s.color : 'var(--w4)') + '">' + v.evs + ' ev.</div></div>'
+      + '<div class="ba">' + fmt(v.ing) + '</div></div>';
+  }).join('');
 }
 
 // ─── PROVEEDORES ───
@@ -4790,6 +4938,14 @@ async function guardarLogistica() {
 
 
 // ─── GRÁFICO: comparación mensual año contra año ───
+var EST_MODO_ANUAL = 'fac';   // 'fac' = facturación, 'uti' = utilidad
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-modo-anual]');
+  if (!b) return;
+  EST_MODO_ANUAL = b.dataset.modoAnual;
+  document.querySelectorAll('[data-modo-anual]').forEach(x => x.classList.toggle('on', x === b));
+  renderChartMensual();
+});
 function renderChartMensual() {
   const cont = $('est-chart-mensual');
   if (!cont) return;
@@ -4797,43 +4953,52 @@ function renderChartMensual() {
   const MESES = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
   const COLORES = ['#43bded','#f4a93d','#ea5ff2','#3dca6e','#a0a0a0'];
 
-  // Agrupa ingresos por año y mes
+  const uti = EST_MODO_ANUAL === 'uti';
+  if ($('est-chart-titulo')) $('est-chart-titulo').textContent = uti ? 'utilidad' : 'facturación';
+  // Agrupa por año y mes: facturación = ingresos; utilidad = ingresos − gastos (Pagado y Por pagar)
   const porAnio = {};
+  const conDatos = {};
   TX.forEach(t => {
     if (!t.fecha_evento) return;
     const ing = parseFloat(t.ingreso) || 0;
-    if (ing <= 0) return;
+    const egr = (t.estado === 'Pagado' || t.estado === 'Por pagar') ? (parseFloat(t.egreso) || 0) : 0;
+    const val = uti ? ing - egr : ing;
+    if (!val) return;
     const yr = t.fecha_evento.substring(0,4);
     const mo = parseInt(t.fecha_evento.substring(5,7), 10) - 1;
     if (isNaN(mo) || mo < 0 || mo > 11) return;
-    if (!porAnio[yr]) porAnio[yr] = new Array(12).fill(0);
-    porAnio[yr][mo] += ing;
+    if (!porAnio[yr]) { porAnio[yr] = new Array(12).fill(0); conDatos[yr] = new Array(12).fill(false); }
+    porAnio[yr][mo] += val;
+    conDatos[yr][mo] = true;
   });
 
   const anios = Object.keys(porAnio).sort();
   if (!anios.length) { cont.innerHTML = '<div style="color:var(--w4);font-size:12px;padding:20px">Sin datos suficientes</div>'; return; }
 
   // Escala
-  let maxVal = 0;
-  anios.forEach(y => porAnio[y].forEach(v => { if (v > maxVal) maxVal = v; }));
+  let maxVal = 0, minVal = 0;
+  anios.forEach(y => porAnio[y].forEach(v => { if (v > maxVal) maxVal = v; if (v < minVal) minVal = v; }));
   if (maxVal <= 0) maxVal = 1;
-  const techo = Math.ceil(maxVal / 5000) * 5000;
+  const paso = maxVal - minVal > 20000 ? 5000 : 1000;
+  const techo = Math.ceil(maxVal / paso) * paso;
+  const piso  = Math.floor(minVal / paso) * paso;   // 0 salvo que haya meses con pérdida
 
   // Dimensiones SVG
   const W = 900, H = 300, padL = 62, padR = 16, padT = 14, padB = 34;
   const plotW = W - padL - padR, plotH = H - padT - padB;
   const xFor = i => padL + (plotW / 11) * i;
-  const yFor = v => padT + plotH - (v / techo) * plotH;
+  const yFor = v => padT + plotH - ((v - piso) / (techo - piso)) * plotH;
 
   let svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" style="width:100%;min-width:640px;height:auto;display:block">';
 
   // Grid horizontal + etiquetas eje Y
   for (let g = 0; g <= 4; g++) {
-    const val = (techo / 4) * g;
+    const val = piso + ((techo - piso) / 4) * g;
     const y = yFor(val);
     svg += '<line x1="' + padL + '" y1="' + y + '" x2="' + (W - padR) + '" y2="' + y + '" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>';
-    svg += '<text x="' + (padL - 8) + '" y="' + (y + 4) + '" text-anchor="end" font-size="10" fill="#606060">$' + (val >= 1000 ? (val/1000) + 'k' : val) + '</text>';
+    svg += '<text x="' + (padL - 8) + '" y="' + (y + 4) + '" text-anchor="end" font-size="10" fill="#606060">' + (val < 0 ? '-' : '') + '$' + (Math.abs(val) >= 1000 ? Math.round(Math.abs(val)/100)/10 + 'k' : Math.abs(Math.round(val))) + '</text>';
   }
+  if (piso < 0) svg += '<line x1="' + padL + '" y1="' + yFor(0) + '" x2="' + (W - padR) + '" y2="' + yFor(0) + '" stroke="rgba(224,85,85,0.45)" stroke-width="1" stroke-dasharray="4 4"/>';
 
   // Etiquetas eje X
   MESES.forEach((m, i) => {
@@ -4846,7 +5011,7 @@ function renderChartMensual() {
     const serie = porAnio[yr];
     // Solo dibuja hasta el último mes con datos (evita caída a cero del año en curso)
     let ultimo = 11;
-    for (let i = 11; i >= 0; i--) { if (serie[i] > 0) { ultimo = i; break; } }
+    for (let i = 11; i >= 0; i--) { if (conDatos[yr][i]) { ultimo = i; break; } }
 
     let d = '';
     for (let i = 0; i <= ultimo; i++) {
@@ -5171,10 +5336,12 @@ function addCotRow(data) {
     +   '<div class="dd-list" id="dd-' + id + '"></div>'
     + '</div>'
     + '<input type="text" class="xcat" placeholder="Categoría" list="cot-cats" style="width:100%;font-size:11px;color:var(--w3)" value="' + esc(data.categoria || '') + '">'
-    + '<input type="number" class="xqty" value="' + (data.cantidad || 1) + '" min="1" style="text-align:center">'
-    + '<input type="number" class="xpri" placeholder="0" style="color:var(--blue);font-weight:600" value="' + (data.precio || '') + '">'
+    + '<label class="xdia" title="Se cobra por cada día del evento"><input type="checkbox" class="xdia-chk"><span class="xdia-n"></span></label>'
+    + '<input type="number" class="xqty" value="' + (data.cantidad || 1) + '" min="1" inputmode="numeric" style="text-align:center">'
+    + '<input type="number" class="xpri" placeholder="0" inputmode="decimal" style="color:var(--blue);font-weight:600" value="' + (data.precio || '') + '">'
     + '<div class="xsub" style="text-align:center;font-size:12px;color:var(--blue);font-weight:600">—</div>'
-    + '<button class="btn btn-ghost btn-sm" style="padding:3px 5px" onclick="this.closest(\'.cir\').remove();calcCot()"><i class="ti ti-trash"></i></button>';
+    + '<button class="btn btn-ghost btn-sm xcat-tgl" style="padding:3px 6px" title="Ver / editar categoría" onclick="this.closest(\'.cir\').classList.toggle(\'vercat\')"><i class="ti ti-tag"></i></button>'
+    + '<button class="btn btn-ghost btn-sm xdel" style="padding:3px 5px" onclick="this.closest(\'.cir\').remove();calcCot()"><i class="ti ti-trash"></i></button>';
   $('cot-items').appendChild(div);
 
   const input = div.querySelector('.xcon');
@@ -5182,6 +5349,11 @@ function addCotRow(data) {
   const dd    = div.querySelector('.dd-list');
   const qty   = div.querySelector('.xqty');
   const pri   = div.querySelector('.xpri');
+  const dia   = div.querySelector('.xdia-chk');
+  // Por defecto todo se cobra por día menos el transporte; se puede cambiar a mano
+  dia.checked = (data.por_dia !== undefined) ? !!data.por_dia : !/transporte|flete/i.test(data.categoria || '');
+  if (data.por_dia === undefined) div.dataset.diaAuto = '1';
+  dia.addEventListener('change', function(){ delete div.dataset.diaAuto; calcCot(); });
 
   input.addEventListener('input', function() {
     const q = this.value.toLowerCase().trim();
@@ -5202,6 +5374,7 @@ function addCotRow(data) {
     pri.value   = item.dataset.precio;
     cat.value   = item.dataset.cat;
     div.dataset.cat = item.dataset.cat;
+    if (div.dataset.diaAuto) dia.checked = !/transporte|flete/i.test(item.dataset.cat || '');
     dd.classList.remove('show');
     calcCot();
   });
@@ -5244,8 +5417,12 @@ function nuevaCotizacion() {
   if ($('cdate'))  $('cdate').value  = '';
   if ($('c-desc')) $('c-desc').value = 0;
   if ($('c-iva'))  $('c-iva').checked = false;
-  if ($('ai-out')) { $('ai-out').textContent = 'La descripción generada aparecerá aquí...'; $('ai-out').className = 'ai-box ai-dim'; }
+  if ($('ai-out')) $('ai-out').value = '';
   if ($('ccode'))  { $('ccode').textContent = 'COT ——'; delete $('ccode').dataset.manual; }
+  if ($('cmulti')) $('cmulti').checked = false;
+  if ($('cdate-fin')) $('cdate-fin').value = '';
+  setHoraSel('ctime-start', ''); setHoraSel('ctime-end', '');
+  toggleMultiDia();
   $('cot-items').innerHTML = '';
   cotRowIdx = 0;
   addCotRow();
@@ -5253,23 +5430,138 @@ function nuevaCotizacion() {
   if ($('cc')) $('cc').focus();
 }
 
-function calcCot() {
+// ─── MULTI-DÍA ───
+// Cantidad de días del evento (1 si no está marcado "más de un día")
+function diasCot() {
+  if (!$('cmulti') || !$('cmulti').checked) return 1;
+  const a = $('cdate').value, b = $('cdate-fin').value;
+  if (!a || !b) return 1;
+  const n = Math.round((new Date(b + 'T12:00:00') - new Date(a + 'T12:00:00')) / 86400000) + 1;
+  return n > 1 ? n : 1;
+}
+function toggleMultiDia() {
+  const on = $('cmulti') && $('cmulti').checked;
+  if ($('cdate-fin-wrap')) $('cdate-fin-wrap').style.display = on ? '' : 'none';
+  if ($('cot-wrap')) $('cot-wrap').classList.toggle('multi', !!on);
+  actualizarDias();
+}
+function actualizarDias() {
+  const info = $('cdias-info');
+  if (info) {
+    const a = $('cdate').value, b = $('cdate-fin').value;
+    if ($('cmulti') && $('cmulti').checked && a && b && b < a) info.innerHTML = '<span style="color:var(--red)">La fecha final es antes que la inicial</span>';
+    else info.textContent = diasCot() > 1 ? diasCot() + ' días' : '';
+  }
+  calcCot();
+}
+// Texto de fecha para mostrar: "15 de junio de 2026" o "15 al 17 de junio de 2026"
+function textoFechasCot() {
+  const a = $('cdate').value;
+  if (!a) return 'Por confirmar';
+  const fmt = (iso, opt) => new Date(iso + 'T12:00:00').toLocaleDateString('es-VE', opt);
+  const largo = {day:'2-digit', month:'long', year:'numeric'};
+  if (diasCot() <= 1) return fmt(a, largo);
+  const b = $('cdate-fin').value;
+  const da = new Date(a + 'T12:00:00'), db = new Date(b + 'T12:00:00');
+  if (da.getFullYear() === db.getFullYear() && da.getMonth() === db.getMonth())
+    return da.getDate() + ' al ' + fmt(b, largo) + ' (' + diasCot() + ' días)';
+  return fmt(a, {day:'2-digit', month:'long'}) + ' al ' + fmt(b, largo) + ' (' + diasCot() + ' días)';
+}
+
+// ─── HORA EN SELECTORES (cada media hora, 1–12 am/pm) ───
+function armarSelectoresHora() {
+  document.querySelectorAll('.hsel').forEach(box => {
+    if (box.dataset.ok) return;
+    box.dataset.ok = '1';
+    let h = '<select class="hs-h"><option value="">—</option>';
+    for (let i = 1; i <= 12; i++) h += '<option>' + i + '</option>';
+    h += '</select><select class="hs-m"><option>00</option><option>30</option></select>'
+       + '<select class="hs-p"><option value="pm">pm</option><option value="am">am</option></select>';
+    box.innerHTML = h;
+    box.addEventListener('change', () => {
+      const hh = box.querySelector('.hs-h').value;
+      const oculto = $(box.dataset.target);
+      if (!hh) { oculto.value = ''; }
+      else {
+        let n = parseInt(hh, 10) % 12;
+        if (box.querySelector('.hs-p').value === 'pm') n += 12;
+        oculto.value = String(n).padStart(2, '0') + ':' + box.querySelector('.hs-m').value;
+      }
+      calcDuracion();
+      scheduleCotAutosave();
+    });
+  });
+}
+// Pone un valor "HH:MM" (24h) en los selectores; redondea a la media hora
+function setHoraSel(target, hhmm) {
+  armarSelectoresHora();
+  const box = document.querySelector('.hsel[data-target="' + target + '"]');
+  const oculto = $(target);
+  if (!box || !oculto) return;
+  if (!hhmm) { box.querySelector('.hs-h').value = ''; oculto.value = ''; calcDuracion(); return; }
+  let [h, m] = hhmm.split(':').map(Number);
+  m = m < 15 ? 0 : (m < 45 ? 30 : 0);
+  if (m === 0 && hhmm.split(':')[1] >= 45) h = (h + 1) % 24;
+  box.querySelector('.hs-h').value = String(h % 12 || 12);
+  box.querySelector('.hs-m').value = m ? '30' : '00';
+  box.querySelector('.hs-p').value = h >= 12 ? 'pm' : 'am';
+  oculto.value = String(h).padStart(2, '0') + ':' + (m ? '30' : '00');
+  calcDuracion();
+}
+// Lee "8pm – 2am" o "8:30pm" guardado en la cotización y lo convierte a "HH:MM"
+function parseHora12(s) {
+  const m = String(s || '').trim().toLowerCase().match(/^(\d{1,2})(?::(\d{2}))?\s*(am|pm)$/);
+  if (!m) return '';
+  let h = parseInt(m[1], 10) % 12;
+  if (m[3] === 'pm') h += 12;
+  return String(h).padStart(2, '0') + ':' + (m[2] || '00');
+}
+
+// ─── ÍTEMS Y TOTALES (una sola fuente para pantalla, PDF y guardado) ───
+function leerItemsCot() {
+  const dias = diasCot();
+  const items = [];
+  document.querySelectorAll('.cir').forEach(r => {
+    const con = r.querySelector('.xcon').value.trim();
+    const catEl = r.querySelector('.xcat');
+    const cat = (catEl ? catEl.value : '') || r.dataset.cat || '';
+    const qty = parseFloat(r.querySelector('.xqty').value) || 0;
+    const pri = parseFloat(r.querySelector('.xpri').value) || 0;
+    const chk = r.querySelector('.xdia-chk');
+    const porDia = chk ? chk.checked : true;
+    const d = (dias > 1 && porDia) ? dias : 1;
+    items.push({fila: r, concepto: con, categoria: cat, cantidad: qty, precio: pri,
+                por_dia: porDia, dias: d, total: qty * pri * d});
+  });
+  return items;
+}
+function totalesCot() {
   const moneda = $('c-moneda') ? $('c-moneda').value : 'USD';
   const simbolo = moneda === 'EUR' ? '€' : '$';
-  let sub = 0;
-  document.querySelectorAll('.cir').forEach(r => {
-    const q = parseFloat(r.querySelector('.xqty').value) || 0;
-    const p = parseFloat(r.querySelector('.xpri').value) || 0;
-    const t = q * p;
-    r.querySelector('.xsub').textContent = t > 0 ? simbolo + t.toFixed(0) : '—';
-    sub += t;
+  const items = leerItemsCot();
+  const sub = items.reduce((s, i) => s + i.total, 0);
+  const descPct = Math.min(100, Math.max(0, parseFloat($('c-desc').value) || 0));
+  const descMonto = sub * descPct / 100;
+  const base = sub - descMonto;
+  const ivaOn = $('c-iva').checked;
+  const ivaMonto = ivaOn ? base * 0.16 : 0;
+  return {moneda, simbolo, items, sub, descPct, descMonto, base, ivaOn, ivaMonto, total: base + ivaMonto};
+}
+function fmtMonto(simbolo, n) {
+  return simbolo + Number(n || 0).toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 2});
+}
+
+function calcCot() {
+  const T = totalesCot();
+  T.items.forEach(i => {
+    i.fila.querySelector('.xsub').textContent = i.total > 0 ? fmtMonto(T.simbolo, i.total) : '—';
+    const n = i.fila.querySelector('.xdia-n');
+    if (n) n.textContent = diasCot() > 1 ? '×' + diasCot() : '';
   });
-  const desc  = parseFloat($('c-desc').value) || 0;
-  const iva   = $('c-iva').checked;
-  const after = sub * (1 - desc/100);
-  const total = iva ? after * 1.16 : after;
-  $('c-sub').textContent   = simbolo + sub.toFixed(0);
-  $('c-total').textContent = simbolo + Math.round(total).toLocaleString();
+  $('c-sub').textContent   = fmtMonto(T.simbolo, T.sub);
+  $('c-desc-monto').textContent = T.descMonto > 0 ? '−' + fmtMonto(T.simbolo, T.descMonto) : '';
+  $('c-iva-monto').textContent  = T.ivaOn ? '+' + fmtMonto(T.simbolo, T.ivaMonto) : '';
+  $('c-total').textContent = fmtMonto(T.simbolo, T.total);
   scheduleCotAutosave();
 }
 
@@ -5277,191 +5569,310 @@ async function genIA() {
   const cliente   = $('cc').value   || 'el cliente';
   const tipo      = $('ctype').value;
   const lugar     = $('cplace').value || 'por definir';
-  const fecha     = $('cdate').value;
   const horario   = getCotHorario();
-  const total     = $('c-total').textContent;
-  const items = [];
-  document.querySelectorAll('.cir').forEach(r => {
-    const con = r.querySelector('.xcon').value;
-    const catEl2 = r.querySelector('.xcat');
-    const cat = (catEl2?catEl2.value:'') || r.dataset.cat || '';
-    const qty = r.querySelector('.xqty').value;
-    const pri = r.querySelector('.xpri').value;
-    if (con && pri) items.push((cat?cat+': ':'')+con+' x'+qty+' ($'+pri+')');
-  });
-
+  const T = totalesCot();
+  const items = T.items.filter(i => i.concepto && i.precio).map(i => (i.categoria ? i.categoria + ': ' : '') + i.concepto);
   const box = $('ai-out');
-  box.textContent = 'Generando descripción...';
-  box.className   = 'ai-box ai-dim';
-
-  const prompt = 'Eres asistente de Blast ProSound, empresa de sonido en Caracas. '
-    + 'Escribe una descripción de cotización en español, 3-4 líneas máximo, cálida y profesional. '
-    + 'Menciona brevemente los servicios y al final indica que se requiere 50% de abono. Sin markdown.\n\n'
-    + 'Cliente: '+cliente+' | Evento: '+tipo+' | Lugar: '+lugar+' | Fecha: '+(fecha||'por confirmar')
-    +' | Horario: '+(horario||'por confirmar')+' | Total: '+total+'\n'
-    +'Servicios: '+items.join(', ');
-
-  try {
-    // Use CORS proxy to call Anthropic API from GitHub Pages
-    const payload = {
-      model: 'claude-haiku-4-5-20251001',
-      max_tokens: 300,
-      messages: [{role:'user', content: prompt}]
-    };
-    // Use Anthropic API directly - works when called from the artifact context
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify(payload)
-    });
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const data = await res.json();
-    box.textContent = data.content ? data.content.map(x => x.text||'').join('') : 'No se pudo generar.';
-    box.className = 'ai-box';
-  } catch(e) {
-    // Fallback: generate locally without API
-    box.textContent = generarDescripcionLocal(cliente, tipo, lugar, fecha, horario, total, items);
-    box.className = 'ai-box';
-  }
+  if (box.value.trim() && !confirm('¿Reemplazar la descripción que ya escribiste?')) return;
+  // Se arma aquí mismo (sin servicios externos) y queda editable
+  box.value = generarDescripcionLocal(cliente, tipo, lugar, textoFechasCot(), horario, fmtMonto(T.simbolo, T.total), items);
+  box.focus();
+  scheduleCotAutosave();
 }
 
 function generarDescripcionLocal(cliente, tipo, lugar, fecha, horario, total, items) {
-  const fechaStr = fecha ? new Date(fecha+'T12:00:00').toLocaleDateString('es-VE',{day:'2-digit',month:'long',year:'numeric'}) : 'por confirmar';
+  const fechaStr = fecha || 'por confirmar';
   const servicios = items.length > 0 ? items.slice(0,4).join(', ') + (items.length>4?' y más':'') : 'sonido profesional e iluminación';
   return 'Estimado/a '+cliente+', es un placer presentarle la cotización para su '+tipo.toLowerCase()
-    +' en '+lugar+' el '+fechaStr+(horario?' de '+horario:'')+'. '
+    +' en '+lugar+(diasCot()>1?' del ':' el ')+fechaStr+(horario?' de '+horario:'')+'. '
     +'El servicio incluye: '+servicios+'. '
     +'En Blast ProSound garantizamos equipos de alta calidad y un equipo técnico con amplia experiencia. '
     +'El monto total es de '+total+'. Para confirmar la reserva se requiere un abono del 50%. '
     +'Quedamos a su disposición para cualquier consulta.';
 }
 
-function buildPDFHTML() {
-  const cliente  = $('cc').value||'Cliente';
-  const codigo   = $('ccode').textContent;
-  const tipo     = $('ctype').value === 'Otro' ? ($('ctype-otro') ? $('ctype-otro').value : 'Otro') : $('ctype').value;
-  const fecha    = $('cdate').value;
-  const lugar    = $('cplace').value||'Por confirmar';
-  const horario  = getCotHorario()||'Por confirmar';
-  const duracion = getCotDuracion();
-  const invitados= $('cguests').value||'—';
-  const total    = $('c-total').textContent;
-  const sub      = $('c-sub').textContent;
-  const descPct  = parseFloat($('c-desc').value)||0;
-  const ivaOn    = $('c-iva').checked;
-  const moneda   = $('c-moneda') ? $('c-moneda').value : 'USD';
-  const simbolo  = moneda === 'EUR' ? '€' : '$';
-  const aiText   = $('ai-out').textContent;
-  const incluirAI= $('ai-include') ? $('ai-include').checked : true;
-  const showAI   = incluirAI && aiText && aiText.length > 10 && !aiText.includes('aparecerá');
-  let fechaStr = 'Por confirmar';
-  if(fecha){try{fechaStr=new Date(fecha+'T12:00:00').toLocaleDateString('es-VE',{day:'2-digit',month:'long',year:'numeric'});}catch(e){}}
-  const hoy = new Date().toLocaleDateString('es-VE');
+// Términos y condiciones (editar aquí). {IVA} se reemplaza según la casilla de IVA.
+var TERMINOS_COT = [
+  ['Validez', 'Esta cotización tiene una validez de cinco (5) días hábiles desde su fecha de emisión. {IVA}'],
+  ['Reserva', 'La solicitud y el envío de esta cotización no garantizan la disponibilidad de la fecha. La fecha queda reservada únicamente al recibir el abono del 50% del monto total.'],
+  ['Saldo', 'El 50% restante debe cancelarse a más tardar 48 horas antes del evento, incluyendo cualquier ajuste o servicio adicional acordado.'],
+  ['Modificaciones', 'Cualquier cambio de fecha, horario, lugar o servicios debe notificarse por escrito con al menos 72 horas de antelación y puede modificar el monto de la cotización.'],
+  ['Cancelaciones', 'Las cancelaciones con menos de 48 horas de anticipación pierden el abono. Se exceptúan los casos de fuerza mayor (desastres naturales, suspensión de garantías u otros hechos que impidan realizar el evento); en esos casos no hay penalización y las partes acordarán una nueva fecha.'],
+  ['Horarios y acceso', 'El cliente garantizará el acceso al lugar en los horarios acordados para montaje, prueba de sonido y desmontaje.'],
+  ['Condiciones del lugar', 'El cliente debe informar por escrito, antes del evento, cualquier limitación del lugar (acceso, espacio, altura, suministro eléctrico). Si el lugar no cumple con los requerimientos técnicos, los servicios adicionales necesarios corren por cuenta del cliente.'],
+  ['Área para el personal', 'El personal técnico debe contar con un área de resguardo con mesa, sillas, hidratación y acceso a baños durante el evento.'],
+  ['Cuidado de los equipos', 'El manejo técnico de los equipos es exclusivo del personal de Blast ProSound. El cliente responde por los daños o pérdidas causados por él, sus invitados o terceros, incluyendo fallas en las condiciones eléctricas del lugar, sabotaje o cualquier otra causa ajena a la operación profesional.'],
+  ['Seguridad', 'Blast ProSound se reserva el derecho de no realizar el montaje o de suspender el servicio si las condiciones de seguridad del lugar no están garantizadas.'],
+  ['Responsabilidad', 'Blast ProSound no se hace responsable por interrupciones causadas por factores externos (fallas eléctricas del lugar, clima, etc.) y actúa únicamente como proveedor de servicios técnicos y/o de producción.'],
+  ['Aceptación', 'La aprobación de esta cotización por correo electrónico, WhatsApp o firma implica la aceptación de todos estos términos.']
+];
+var CORREO_PUBLICO = 'info@blasteventos.com';
 
-  let itemsHTML = ''; let idx2 = 0;
-  document.querySelectorAll('.cir').forEach(r => {
-    const con = r.querySelector('.xcon').value;
-    const catEl3 = r.querySelector('.xcat');
-    const cat = (catEl3?catEl3.value:'') || r.dataset.cat || '—';
-    const qty = r.querySelector('.xqty').value;
-    const pri = r.querySelector('.xpri').value;
-    const t2  = (parseFloat(qty)||0)*(parseFloat(pri)||0);
-    if(con&&pri){
-      const bg = idx2%2===0?'#ffffff':'#f9f9f9';
-      itemsHTML += '<tr style="background:'+bg+'"><td style="padding:8px 12px;border-bottom:1px solid #eee;font-size:12px">'+cat+'</td><td style="padding:8px 12px;border-bottom:1px solid #eee;font-size:12px">'+con+'</td><td style="padding:8px 12px;border-bottom:1px solid #eee;font-size:12px;text-align:center">'+qty+'</td><td style="padding:8px 12px;border-bottom:1px solid #eee;font-size:12px;text-align:right">'+simbolo+parseFloat(pri).toFixed(0)+'</td><td style="padding:8px 12px;border-bottom:1px solid #eee;font-size:12px;font-weight:bold;text-align:right">'+simbolo+t2.toFixed(0)+'</td></tr>';
-      idx2++;
-    }
+function datosCot() {
+  const T = totalesCot();
+  const tipo = $('ctype').value === 'Otro' ? (($('ctype-otro') && $('ctype-otro').value) || 'Otro') : $('ctype').value;
+  return Object.assign(T, {
+    cliente:  $('cc').value || 'Cliente',
+    codigo:   $('ccode').textContent,
+    tipo,
+    lugar:    $('cplace').value || 'Por confirmar',
+    horario:  getCotHorario() || 'Por confirmar',
+    duracion: getCotDuracion(),
+    invitados:$('cguests').value || '—',
+    fechaTxt: textoFechasCot(),
+    dias:     diasCot(),
+    desc:     $('ai-out').value.trim(),
+    incluirDesc: $('ai-include') ? $('ai-include').checked : true
+  });
+}
+
+function buildPDFHTML(paraArchivo) {
+  const D = datosCot();
+  const S = D.simbolo;
+  const hoy = new Date().toLocaleDateString('es-VE');
+  const multi = D.dias > 1;
+  const td = 'padding:8px 10px;border-bottom:1px solid #eee;font-size:12px;';
+  const th = 'background-color:#141414;padding:7px 10px;font-size:9px;color:#ffffff;letter-spacing:1px;';
+
+  let itemsHTML = '', idx = 0;
+  D.items.forEach(i => {
+    if (!i.concepto || !i.precio) return;
+    const bg = idx++ % 2 === 0 ? '#ffffff' : '#f9f9f9';
+    itemsHTML += '<tr class="pdf-blk" style="background:' + bg + '">'
+      + '<td style="' + td + 'color:#777">' + esc(i.categoria || '—') + '</td>'
+      + '<td style="' + td + '">' + esc(i.concepto) + '</td>'
+      + '<td style="' + td + 'text-align:center">' + i.cantidad + '</td>'
+      + (multi ? '<td style="' + td + 'text-align:center">' + i.dias + '</td>' : '')
+      + '<td style="' + td + 'text-align:right">' + fmtMonto(S, i.precio) + '</td>'
+      + '<td style="' + td + 'font-weight:bold;text-align:right">' + fmtMonto(S, i.total) + '</td></tr>';
   });
 
-  const aiBlock = showAI ? '<div style="margin:14px 0;padding:12px 14px;background:#f0fbff;border-left:4px solid #43bded;font-size:12px;line-height:1.7;color:#444">'+aiText+'</div>' : '';
-  const horarioFull = horario + (duracion ? ' (' + duracion + ')' : '');
+  const fila = (lbl, val, color, peso) => '<tr><td style="font-size:12px;color:' + color + ';padding:3px 0;font-weight:' + (peso||'normal') + '">' + lbl + '</td><td style="font-size:12px;color:' + color + ';text-align:right;padding:3px 0;font-weight:' + (peso||'normal') + '">' + val + '</td></tr>';
+  let totales = fila('Subtotal', fmtMonto(S, D.sub), '#555');
+  if (D.descMonto > 0) totales += fila('Descuento (' + D.descPct + '%)', '−' + fmtMonto(S, D.descMonto), '#e05555');
+  if (D.descMonto > 0 && D.ivaOn) totales += fila('Base imponible', fmtMonto(S, D.base), '#555');
+  if (D.ivaOn) totales += fila('IVA (16%)', '+' + fmtMonto(S, D.ivaMonto), '#555');
 
-  return '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>'+codigo+' - '+cliente+'</title>'
-    +'<style>'
-    +'*{margin:0;padding:0;box-sizing:border-box}'
-    +'body{font-family:Arial,Helvetica,sans-serif;background:#fff;color:#222}'
-    +'@media print{'
-    +'.noprint{display:none!important}'
-    +'@page{margin:8mm;size:A4}'
-    +'*{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;color-adjust:exact!important}'
-    +'}'
-    +'</style></head><body>'
-    // Print bar
-    +'<div class="noprint" style="background:#43bded;padding:10px 18px;text-align:right;position:sticky;top:0">'
-    +'<span style="color:#141414;font-size:12px;font-weight:bold;margin-right:12px">'+codigo+' · '+cliente+'</span>'
-    +'<button onclick="window.print()" style="background:#141414;color:#fff;border:none;padding:8px 18px;font-size:13px;font-weight:bold;cursor:pointer;border-radius:4px">IMPRIMIR / GUARDAR PDF</button>'
-    +'<div style="font-size:10px;color:#141414;margin-top:4px">Activar "Gráficos de fondo" en opciones para ver colores completos</div>'
-    +'</div>'
-    +'<div style="max-width:760px;margin:0 auto">'
-    // Header — forced background color
-    +'<table width="100%" cellpadding="0" cellspacing="0" style="-webkit-print-color-adjust:exact;print-color-adjust:exact"><tr>'
-    +'<td style="background-color:#141414;background:#141414;padding:22px 26px;-webkit-print-color-adjust:exact;print-color-adjust:exact">'
-    +'<img src="https://blastprosound.github.io/blast-sistema/logo-white.png" style="height:32px;width:auto" alt="Blast ProSound">'
-    +'</td>'
-    +'<td style="background-color:#141414;background:#141414;padding:22px 26px;text-align:right;-webkit-print-color-adjust:exact;print-color-adjust:exact">'
-    +'<div style="font-size:15px;font-weight:700;color:#43bded;letter-spacing:2px">'+codigo+'</div>'
-    +'<div style="font-size:10px;color:#aaaaaa;margin-top:5px">blast.prosound@gmail.com · @blast.sonido</div>'
-    +'</td></tr></table>'
-    // Blue bar
-    +'<div style="height:4px;background-color:#43bded;background:#43bded;-webkit-print-color-adjust:exact;print-color-adjust:exact"></div>'
-    // Event info
-    +'<table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f7f7f7;background:#f7f7f7;border-bottom:2px solid #e0e0e0"><tr>'
-    +'<td width="50%" style="background-color:#f7f7f7;padding:16px 26px;vertical-align:top">'
-    +'<div style="font-size:9px;color:#888;letter-spacing:1.5px;text-transform:uppercase;font-weight:bold;margin-bottom:3px">Cliente</div>'
-    +'<div style="font-size:15px;font-weight:bold;margin-bottom:10px;color:#111">'+cliente+'</div>'
-    +'<div style="font-size:9px;color:#888;letter-spacing:1.5px;text-transform:uppercase;font-weight:bold;margin-bottom:3px">Tipo de evento</div>'
-    +'<div style="font-size:13px;margin-bottom:10px">'+tipo+'</div>'
-    +'<div style="font-size:9px;color:#888;letter-spacing:1.5px;text-transform:uppercase;font-weight:bold;margin-bottom:3px">Lugar</div>'
-    +'<div style="font-size:13px">'+lugar+'</div>'
-    +'</td>'
-    +'<td width="50%" style="background-color:#f7f7f7;padding:16px 26px;vertical-align:top">'
-    +'<div style="font-size:9px;color:#888;letter-spacing:1.5px;text-transform:uppercase;font-weight:bold;margin-bottom:3px">Fecha</div>'
-    +'<div style="font-size:13px;margin-bottom:10px">'+fechaStr+'</div>'
-    +'<div style="font-size:9px;color:#888;letter-spacing:1.5px;text-transform:uppercase;font-weight:bold;margin-bottom:3px">Horario</div>'
-    +'<div style="font-size:13px;margin-bottom:10px">'+horarioFull+'</div>'
-    +'<div style="font-size:9px;color:#888;letter-spacing:1.5px;text-transform:uppercase;font-weight:bold;margin-bottom:3px">Invitados</div>'
-    +'<div style="font-size:13px">'+invitados+'</div>'
-    +'</td></tr></table>'
-    // Services
-    +'<div style="padding:16px 26px 0">'
-    +'<div style="font-size:9px;color:#888;letter-spacing:2px;text-transform:uppercase;font-weight:bold;padding-bottom:5px;border-bottom:1px solid #ddd;margin-bottom:0">Servicios incluidos</div>'
-    +'<table width="100%" cellpadding="0" cellspacing="0">'
-    +'<thead><tr style="background-color:#141414;background:#141414;-webkit-print-color-adjust:exact;print-color-adjust:exact">'
-    +'<th style="background-color:#141414;padding:7px 12px;text-align:left;font-size:9px;color:#ffffff;letter-spacing:1px">CATEGORÍA</th>'
-    +'<th style="background-color:#141414;padding:7px 12px;text-align:left;font-size:9px;color:#ffffff;letter-spacing:1px">CONCEPTO</th>'
-    +'<th style="background-color:#141414;padding:7px 12px;text-align:center;font-size:9px;color:#ffffff;letter-spacing:1px">CANT.</th>'
-    +'<th style="background-color:#141414;padding:7px 12px;text-align:right;font-size:9px;color:#ffffff;letter-spacing:1px">P. UNIT.</th>'
-    +'<th style="background-color:#141414;padding:7px 12px;text-align:right;font-size:9px;color:#ffffff;letter-spacing:1px">TOTAL</th>'
-    +'</tr></thead><tbody>'+itemsHTML+'</tbody></table></div>'
-    // Totals
-    +'<div style="margin:14px 26px 0;padding:12px 16px;background-color:#f5f5f5;background:#f5f5f5;border-radius:4px;-webkit-print-color-adjust:exact;print-color-adjust:exact">'
-    +'<table width="100%" cellpadding="0" cellspacing="3">'
-    +'<tr><td style="font-size:12px;color:#666">Sub total</td><td style="font-size:12px;color:#666;text-align:right">'+sub+'</td></tr>'
-    +(descPct>0?'<tr><td style="font-size:12px;color:#e05555">Descuento ('+descPct+'%)</td><td style="font-size:12px;color:#e05555;text-align:right">aplicado</td></tr>':'')
-    +(ivaOn?'<tr><td style="font-size:12px;color:#666">IVA (16%)</td><td style="font-size:12px;color:#666;text-align:right">incluido</td></tr>':'')
-    +'<tr><td colspan="2" style="padding:6px 0 0"><div style="height:2px;background-color:#43bded;background:#43bded;-webkit-print-color-adjust:exact"></div></td></tr>'
-    +'<tr><td style="font-size:20px;font-weight:900;color:#141414;padding-top:5px">TOTAL</td>'
-    +'<td style="font-size:20px;font-weight:900;color:#43bded;text-align:right;padding-top:5px;-webkit-print-color-adjust:exact">'+total+'</td></tr>'
-    +'</table></div>'
-    // AI description
-    +(showAI?'<div style="margin:14px 26px 0">'+aiBlock+'</div>':'')
-    // Full terms
-    +'<div style="margin:14px 26px 0;padding:12px 14px;border:1px solid #eeeeee;border-radius:4px;background:#fafafa">'
-    +'<div style="font-size:10px;font-weight:bold;color:#444;margin-bottom:6px;letter-spacing:1px;text-transform:uppercase">Términos y condiciones</div>'
-    +'<p style="font-size:9px;color:#888;line-height:1.7;margin:0">1. Validez: Este presupuesto tiene validez de 5 días hábiles. 2. Confirmación: Se requiere un abono del 50% del total para garantizar la fecha. El saldo restante debe cancelarse 48 horas antes del evento. 3. Cancelaciones: Modificaciones deben notificarse con 72 horas de antelación. Cancelaciones con menos de 48 horas pierden el abono. 4. Montaje: El cliente garantizará acceso al lugar en los horarios acordados. 5. Equipos: Los equipos deben permanecer protegidos. El manejo técnico es exclusivo del personal de Blast. 6. Responsabilidad: Blast no se hace responsable por interrupciones causadas por factores externos (fallas eléctricas, clima, etc.). 7. Limitación: Blast actúa únicamente como proveedor de servicios técnicos y/o producción. 8. Aceptación: La aprobación de este presupuesto, por cualquier medio, implica la aceptación expresa de estos términos.</p>'
-    +'</div>'
-    // Footer
-    +'<table width="100%" cellpadding="0" cellspacing="0" style="margin:12px 0 0;padding:9px 26px;border-top:1px solid #eee"><tr>'
-    +'<td style="font-size:9px;color:#bbb">Blast ProSound · Caracas, Venezuela · blast.prosound@gmail.com</td>'
-    +'<td style="font-size:9px;color:#bbb;text-align:right">Generado el '+hoy+'</td>'
-    +'</tr></table>'
-    +'</div></body></html>';
+  const ivaTxt = D.ivaOn ? 'Los montos incluyen el IVA (16%).' : 'Los montos no incluyen el IVA.';
+  const terminos = TERMINOS_COT.map((t, n) =>
+    '<div class="pdf-blk" style="font-size:10.5px;color:#444;line-height:1.6;margin:0 0 8px;text-align:justify">'
+    + '<b style="color:#141414">' + (n + 1) + '. ' + t[0] + '.</b> ' + t[1].replace('{IVA}', ivaTxt) + '</div>').join('');
+
+  const lbl = t => '<div style="font-size:9px;color:#888;letter-spacing:1.5px;text-transform:uppercase;font-weight:bold;margin-bottom:3px">' + t + '</div>';
+  const showDesc = D.incluirDesc && D.desc.length > 3;
+
+  const cuerpo = ''
+    + '<div style="max-width:760px;margin:0 auto">'
+    + '<table class="pdf-blk" width="100%" cellpadding="0" cellspacing="0"><tr>'
+    +   '<td style="background-color:#141414;padding:22px 26px"><img src="https://blastprosound.github.io/blast-sistema/logo-white.png" crossorigin="anonymous" style="height:32px;width:auto" alt="Blast ProSound"></td>'
+    +   '<td style="background-color:#141414;padding:22px 26px;text-align:right">'
+    +     '<div style="font-size:15px;font-weight:700;color:#43bded;letter-spacing:2px">' + esc(D.codigo) + '</div>'
+    +     '<div style="font-size:10px;color:#aaaaaa;margin-top:5px">' + CORREO_PUBLICO + ' · @blast.sonido</div>'
+    +   '</td></tr></table>'
+    + '<div style="height:4px;background-color:#43bded"></div>'
+    + '<table class="pdf-blk" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f7f7f7;border-bottom:2px solid #e0e0e0"><tr>'
+    +   '<td width="50%" style="padding:16px 26px;vertical-align:top">'
+    +     lbl('Cliente') + '<div style="font-size:15px;font-weight:bold;margin-bottom:10px;color:#111">' + esc(D.cliente) + '</div>'
+    +     lbl('Tipo de evento') + '<div style="font-size:13px;margin-bottom:10px">' + esc(D.tipo) + '</div>'
+    +     lbl('Lugar') + '<div style="font-size:13px">' + esc(D.lugar) + '</div>'
+    +   '</td><td width="50%" style="padding:16px 26px;vertical-align:top">'
+    +     lbl(multi ? 'Fechas' : 'Fecha') + '<div style="font-size:13px;margin-bottom:10px">' + esc(D.fechaTxt) + '</div>'
+    +     lbl('Horario' + (multi ? ' (cada día)' : '')) + '<div style="font-size:13px;margin-bottom:10px">' + esc(D.horario + (D.duracion ? ' (' + D.duracion + ')' : '')) + '</div>'
+    +     lbl('Invitados') + '<div style="font-size:13px">' + esc(D.invitados) + '</div>'
+    +   '</td></tr></table>'
+    + '<div style="padding:16px 26px 0">'
+    +   '<div class="pdf-blk" style="font-size:9px;color:#888;letter-spacing:2px;text-transform:uppercase;font-weight:bold;padding-bottom:5px;border-bottom:1px solid #ddd">Servicios incluidos</div>'
+    +   '<table width="100%" cellpadding="0" cellspacing="0"><thead><tr class="pdf-blk">'
+    +     '<th style="' + th + 'text-align:left">CATEGORÍA</th><th style="' + th + 'text-align:left">CONCEPTO</th>'
+    +     '<th style="' + th + 'text-align:center">CANT.</th>' + (multi ? '<th style="' + th + 'text-align:center">DÍAS</th>' : '')
+    +     '<th style="' + th + 'text-align:right">P. UNIT.</th><th style="' + th + 'text-align:right">TOTAL</th>'
+    +   '</tr></thead><tbody>' + itemsHTML + '</tbody></table></div>'
+    + '<div class="pdf-blk" style="margin:14px 26px 0;padding:12px 16px;background-color:#f5f5f5;border-radius:4px">'
+    +   '<table width="100%" cellpadding="0" cellspacing="0">' + totales
+    +   '<tr><td colspan="2" style="padding:6px 0 0"><div style="height:2px;background-color:#43bded"></div></td></tr>'
+    +   '<tr><td style="font-size:20px;font-weight:900;color:#141414;padding-top:5px">TOTAL</td>'
+    +   '<td style="font-size:20px;font-weight:900;color:#43bded;text-align:right;padding-top:5px">' + fmtMonto(S, D.total) + '</td></tr>'
+    +   '</table></div>'
+    + (showDesc ? '<div class="pdf-blk" style="margin:14px 26px 0;padding:12px 14px;background:#f0fbff;border-left:4px solid #43bded;font-size:12px;line-height:1.7;color:#444;white-space:pre-line">' + esc(D.desc) + '</div>' : '')
+    + '<div style="margin:18px 26px 0">'
+    +   '<div class="pdf-blk" style="font-size:11px;font-weight:bold;color:#141414;margin-bottom:10px;letter-spacing:1.5px;text-transform:uppercase;border-bottom:2px solid #43bded;padding-bottom:5px">Términos y condiciones</div>'
+    +   terminos
+    + '</div>'
+    + '<table class="pdf-blk" width="100%" cellpadding="0" cellspacing="0" style="margin:12px 0 0;border-top:1px solid #eee"><tr>'
+    +   '<td style="font-size:9px;color:#999;padding:9px 26px">Blast ProSound · Caracas, Venezuela · ' + CORREO_PUBLICO + '</td>'
+    +   '<td style="font-size:9px;color:#999;text-align:right;padding:9px 26px">Generado el ' + hoy + '</td>'
+    + '</tr></table>'
+    + '</div>';
+
+  const barra = paraArchivo ? '' :
+      '<div class="noprint" style="background:#43bded;padding:10px 18px;text-align:right;position:sticky;top:0">'
+    + '<span style="color:#141414;font-size:12px;font-weight:bold;margin-right:12px">' + esc(D.codigo + ' · ' + D.cliente) + '</span>'
+    + '<button onclick="window.print()" style="background:#141414;color:#fff;border:none;padding:8px 18px;font-size:13px;font-weight:bold;cursor:pointer;border-radius:4px">IMPRIMIR / GUARDAR PDF</button>'
+    + '<div style="font-size:10px;color:#141414;margin-top:4px">Activar "Gráficos de fondo" en opciones para ver colores completos</div></div>';
+
+  return '<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>' + esc(D.codigo + ' - ' + D.cliente) + '</title>'
+    + '<style>*{margin:0;padding:0;box-sizing:border-box;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}'
+    + 'body{font-family:Arial,Helvetica,sans-serif;background:#fff;color:#222}'
+    + '@media print{.noprint{display:none!important}@page{margin:8mm;size:A4}.pdf-blk{break-inside:avoid;page-break-inside:avoid}}</style>'
+    + '</head><body>' + barra + cuerpo + '</body></html>';
+}
+
+// ─── PDF REAL (archivo) para compartir y adjuntar ───
+function cargarScript(src) {
+  return new Promise((ok, fallo) => {
+    if (document.querySelector('script[src="' + src + '"]')) return ok();
+    const s = document.createElement('script');
+    s.src = src; s.onload = ok; s.onerror = () => fallo(new Error('No se pudo cargar ' + src));
+    document.head.appendChild(s);
+  });
+}
+function nombreArchivoCot() {
+  const c = ($('cc').value || 'Cliente').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-zA-Z0-9]+/g, '_');
+  return $('ccode').textContent.replace(/[^a-zA-Z0-9-]+/g, '_') + '_' + c + '.pdf';
+}
+// Devuelve un Blob PDF tamaño A4. Corta las páginas entre bloques, nunca a mitad de una línea.
+async function generarPDFBlob() {
+  await cargarScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js');
+  await cargarScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');
+  const ANCHO = 794, ALTO = Math.floor(794 * 297 / 210), MARGEN = 30;
+  const ifr = document.createElement('iframe');
+  ifr.style.cssText = 'position:fixed;left:-10000px;top:0;width:' + ANCHO + 'px;height:' + ALTO + 'px;border:0';
+  document.body.appendChild(ifr);
+  try {
+    const doc = ifr.contentDocument;
+    doc.open(); doc.write(buildPDFHTML(true)); doc.close();
+    await new Promise(r => { const im = doc.images; let n = im.length; if (!n) return r();
+      for (const i of im) { if (i.complete) { if (!--n) r(); } else { i.onload = i.onerror = () => { if (!--n) r(); }; } }
+      setTimeout(r, 4000); });
+    // Empuja a la página siguiente los bloques que quedarían cortados
+    const util = ALTO - MARGEN * 2;
+    doc.querySelectorAll('.pdf-blk').forEach(el => {
+      const top = el.getBoundingClientRect().top + doc.defaultView.scrollY;
+      const h = el.offsetHeight;
+      const fin = top + h;
+      const pag = Math.floor(top / util);
+      if (h < util && fin > (pag + 1) * util) {
+        const falta = (pag + 1) * util - top;
+        if (el.tagName === 'TR') {
+          const sp = doc.createElement('tr');
+          sp.innerHTML = '<td colspan="9" style="height:' + falta + 'px;padding:0;border:0"></td>';
+          el.parentNode.insertBefore(sp, el);
+        } else {
+          // padding (no margin) para que no se colapse con el margen del bloque anterior
+          const sp = doc.createElement('div');
+          sp.style.cssText = 'height:' + falta + 'px';
+          el.parentNode.insertBefore(sp, el);
+        }
+      }
+    });
+    const canvas = await window.html2canvas(doc.body, {scale: 2, useCORS: true, backgroundColor: '#ffffff', width: ANCHO, windowWidth: ANCHO});
+    const pdf = new window.jspdf.jsPDF({unit: 'pt', format: 'a4'});
+    const pw = pdf.internal.pageSize.getWidth(), ph = pdf.internal.pageSize.getHeight();
+    const esc2 = canvas.width / ANCHO;                   // px de canvas por px css
+    const sliceCss = util, sliceCv = Math.floor(sliceCss * esc2);
+    const margenPt = MARGEN * pw / ANCHO;
+    for (let y = 0, n = 0; y < canvas.height; y += sliceCv, n++) {
+      const h = Math.min(sliceCv, canvas.height - y);
+      const c = document.createElement('canvas');
+      c.width = canvas.width; c.height = h;
+      c.getContext('2d').drawImage(canvas, 0, y, canvas.width, h, 0, 0, canvas.width, h);
+      if (n) pdf.addPage();
+      pdf.addImage(c.toDataURL('image/jpeg', 0.92), 'JPEG', 0, margenPt, pw, h / esc2 * pw / ANCHO);
+    }
+    return pdf.output('blob');
+  } finally {
+    ifr.remove();
+  }
+}
+function hayItemsCot() {
+  return leerItemsCot().some(i => i.concepto && i.precio);
+}
+function blobABase64(blob) {
+  return new Promise((ok, fallo) => {
+    const r = new FileReader();
+    r.onload = () => ok(String(r.result).split(',')[1]);
+    r.onerror = fallo;
+    r.readAsDataURL(blob);
+  });
+}
+
+// WhatsApp: en el celular abre "Compartir" con el PDF adjunto
+async function enviarCotWhatsApp() {
+  if (!hayItemsCot()) { alert('Agrega al menos un ítem antes de enviar.'); return; }
+  const D = datosCot();
+  const texto = 'Hola ' + ($('cc').value || '') + ', te envío la cotización ' + D.codigo + ' de Blast ProSound para tu ' + D.tipo.toLowerCase()
+    + ' (' + D.fechaTxt + '). Total: ' + fmtMonto(D.simbolo, D.total) + '. Cualquier duda quedo atento.';
+  let blob;
+  try { blob = await generarPDFBlob(); }
+  catch (e) { alert('No se pudo generar el PDF: ' + e.message); return; }
+  guardarCotizacionDB(true);
+  const file = new File([blob], nombreArchivoCot(), {type: 'application/pdf'});
+  if (navigator.canShare && navigator.canShare({files: [file]})) {
+    try { await navigator.share({files: [file], text: texto}); }
+    catch (e) { if (e.name !== 'AbortError') alert('No se pudo compartir: ' + e.message); }
+    return;
+  }
+  // Computadora: descarga el PDF y abre WhatsApp Web con el mensaje para adjuntarlo
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = file.name; a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+  window.open('https://wa.me/?text=' + encodeURIComponent(texto), '_blank');
+  alert('En computadora WhatsApp no deja adjuntar automático: el PDF se descargó, arrástralo al chat que se abrió.');
+}
+
+// Correo: abre la ventanita con el correo del cliente si está registrado
+function abrirEnviarCorreoCot() {
+  if (!hayItemsCot()) { alert('Agrega al menos un ítem antes de enviar.'); return; }
+  const D = datosCot();
+  const nom = ($('cc').value || '').trim().toLowerCase();
+  const cli = (typeof DB_CLIENTES_LOCAL !== 'undefined' ? DB_CLIENTES_LOCAL : []).find(c => (c.nombre || '').trim().toLowerCase() === nom);
+  $('cotm-to').value = (cli && cli.email) || '';
+  $('cotm-subject').value = 'Cotización ' + D.codigo + ' · Blast ProSound';
+  $('cotm-msg').value = 'Hola ' + ($('cc').value || '') + ',\n\nTe enviamos adjunta la cotización para tu ' + D.tipo.toLowerCase()
+    + ' (' + D.fechaTxt + ').\nTotal: ' + fmtMonto(D.simbolo, D.total) + '.\n\nQuedamos atentos a cualquier duda.\n\nSaludos,\n' + ($('cresp').value || 'Blast ProSound');
+  $('cotm-status').textContent = '';
+  $('modal-cot-correo').classList.add('show');
+}
+async function enviarCotCorreo() {
+  const to = $('cotm-to').value.trim();
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(to)) { alert('Escribe un correo válido.'); return; }
+  const btn = $('cotm-btn'), st = $('cotm-status');
+  btn.disabled = true;
+  st.style.color = 'var(--w3)'; st.textContent = 'Generando PDF...';
+  try {
+    const blob = await generarPDFBlob();
+    st.textContent = 'Enviando...';
+    const cuerpo = esc($('cotm-msg').value).replace(/\n/g, '<br>');
+    const html = '<!DOCTYPE html><html><body style="margin:0;background:#f2f2f2;font-family:Arial,Helvetica,sans-serif">'
+      + '<table width="100%" cellpadding="0" cellspacing="0" style="padding:24px 12px"><tr><td align="center">'
+      + '<table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#fff;border-radius:12px;overflow:hidden">'
+      + '<tr><td style="background:#141414;padding:22px" align="center"><img src="https://blastprosound.github.io/blast-sistema/logo-white.png" alt="Blast ProSound" style="height:28px"></td></tr>'
+      + '<tr><td style="padding:26px 28px;font-size:14px;line-height:1.6;color:#333">' + cuerpo + '</td></tr>'
+      + '<tr><td style="padding:14px 28px;border-top:1px solid #eee;font-size:11px;color:#999">Blast ProSound · Caracas · ' + CORREO_PUBLICO + '</td></tr>'
+      + '</table></td></tr></table></body></html>';
+    const r = await invocarFuncion('enviar-correo', {
+      to, subject: $('cotm-subject').value, html,
+      from: 'Blast ProSound <' + CORREO_PUBLICO + '>', reply_to: CORREO_PUBLICO,
+      attachments: [{filename: nombreArchivoCot(), content: await blobABase64(blob)}]
+    });
+    if (!r.ok) throw new Error(r.error);
+    st.style.color = 'var(--green)'; st.textContent = '✓ Enviado a ' + to;
+    const res = await guardarCotizacionDB(true);
+    const codigo = $('ccode').textContent;
+    if (res === 'ok') {
+      const {data} = await supa.from('cotizaciones').select('estado').eq('codigo', codigo).maybeSingle();
+      if (data && data.estado === 'Borrador') await supa.from('cotizaciones').update({estado: 'Descargada'}).eq('codigo', codigo);
+      cargarHistorial();
+    }
+    setTimeout(() => $('modal-cot-correo').classList.remove('show'), 1500);
+  } catch (e) {
+    st.style.color = 'var(--red)'; st.textContent = 'No se pudo enviar: ' + e.message;
+  }
+  btn.disabled = false;
 }
 
 async function exportPDF() {
-  let hasItems = false;
-  document.querySelectorAll('.cir').forEach(r => { if(r.querySelector('.xcon').value && r.querySelector('.xpri').value) hasItems = true; });
-  if(!hasItems){alert('Agrega al menos un ítem antes de exportar.');return;}
+  if(!hayItemsCot()){alert('Agrega al menos un ítem antes de exportar.');return;}
   const w = window.open('','_blank');
   if(!w){alert('Permite ventanas emergentes en Chrome para exportar el PDF.');return;}
   w.document.open(); w.document.write(buildPDFHTML()); w.document.close();
@@ -5469,7 +5880,8 @@ async function exportPDF() {
   const res = await guardarCotizacionDB(true);
   const codigo = $('ccode').textContent;
   if (res === 'ok' && codigo && codigo !== 'COT ——') {
-    await supa.from('cotizaciones').update({estado:'Descargada'}).eq('codigo', codigo);
+    // Solo pasa a Descargada si estaba en Borrador (no pisar Confirmada/Perdida)
+    await supa.from('cotizaciones').update({estado:'Descargada'}).eq('codigo', codigo).eq('estado','Borrador');
     await cargarHistorial();
   } else if (res === 'error') {
     alert('El PDF se generó, pero no se pudo guardar en el historial. Revisa la consola.');
@@ -5477,9 +5889,9 @@ async function exportPDF() {
 }
 
 function copiarDescripcion(){
-  const t=$('ai-out').textContent;
-  if(t&&!t.includes('aparecerá'))navigator.clipboard.writeText(t).then(()=>alert('Copiado al portapapeles'));
-  else alert('Primero genera la descripción.');
+  const t=$('ai-out').value.trim();
+  if(t)navigator.clipboard.writeText(t).then(()=>alert('Copiado al portapapeles'));
+  else alert('La descripción está vacía.');
 }
 
 // ─── GOOGLE DRIVE ───
@@ -5508,9 +5920,7 @@ async function findOrCreate(token, name, parentId){
 }
 
 async function exportarADrive(){
-  let hasItems=false;
-  document.querySelectorAll('.cir').forEach(r=>{if(r.querySelector('.xcon').value&&r.querySelector('.xpri').value)hasItems=true;});
-  if(!hasItems){alert('Agrega al menos un ítem antes de exportar.');return;}
+  if(!hayItemsCot()){alert('Agrega al menos un ítem antes de exportar.');return;}
   const btn=$('btn-drive'); btn.disabled=true;
   showDriveStatus('Conectando con Google Drive...','loading');
   getDriveToken(async token=>{
@@ -5522,12 +5932,13 @@ async function exportarADrive(){
       const yearId =await findOrCreate(token,yr,cotId);
       const monthId=await findOrCreate(token,mName,yearId);
       const cliente=$('cc').value||'Cliente', codigo=$('ccode').textContent;
-      const fname=codigo.replace(/[^a-zA-Z0-9]/g,'_')+'_'+cliente.replace(/\s+/g,'_').replace(/[^a-zA-Z0-9_]/g,'')+'.html';
+      const fname=nombreArchivoCot();
+      showDriveStatus('Generando PDF...','loading');
+      const pdfBlob=await generarPDFBlob();
       showDriveStatus('Subiendo '+fname+'...','loading');
-      const html=buildPDFHTML();
       const form=new FormData();
-      form.append('metadata',new Blob([JSON.stringify({name:fname,parents:[monthId],mimeType:'text/html'})],{type:'application/json'}));
-      form.append('file',new Blob([html],{type:'text/html'}));
+      form.append('metadata',new Blob([JSON.stringify({name:fname,parents:[monthId],mimeType:'application/pdf'})],{type:'application/json'}));
+      form.append('file',pdfBlob);
       const up=await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name,webViewLink',{method:'POST',headers:{'Authorization':'Bearer '+token},body:form});
       const file=await up.json();
       if(file.id){showDriveStatus('✓ Guardado en Ventas/Cotizaciones/'+yr+'/'+mName,'ok');setTimeout(()=>window.open(file.webViewLink,'_blank'),400);}
@@ -5540,31 +5951,35 @@ async function exportarADrive(){
 async function guardarCotizacionDB(silencioso){
   const codigo=$('ccode').textContent, cliente=$('cc').value;
   if(!cliente||codigo==='COT ——') return 'incompleto';
-  const items=[];
-  document.querySelectorAll('.cir').forEach(r=>{
-    const con=r.querySelector('.xcon').value;
-    const catEl=r.querySelector('.xcat');
-    const cat=(catEl?catEl.value:'')||r.dataset.cat||'—';
-    const qty=parseFloat(r.querySelector('.xqty').value)||0, pri=parseFloat(r.querySelector('.xpri').value)||0;
-    if(con&&pri) items.push({concepto:con,categoria:cat,cantidad:qty,precio:pri,total:qty*pri});
-  });
+  const T=totalesCot();
+  const items=T.items.filter(i=>i.concepto&&i.precio).map(i=>({
+    concepto:i.concepto,categoria:i.categoria||'—',cantidad:i.cantidad,precio:i.precio,
+    por_dia:i.por_dia,dias:i.dias,total:i.total}));
   if (!items.length) return 'incompleto';
-  const moneda = $('c-moneda') ? $('c-moneda').value : 'USD';
+  const multi=diasCot()>1;
   // Get current estado from DB if exists, default to Borrador
   const {data: existing} = await supa.from('cotizaciones').select('estado').eq('codigo', codigo).maybeSingle();
   const estadoActual = existing ? existing.estado : 'Borrador';
-  const {error} = await supa.from('cotizaciones').upsert({
+  const fila={
     codigo,cliente,tipo_evento:$('ctype').value,
     fecha_evento:$('cdate').value||null,lugar:$('cplace').value,horario:getCotHorario(),duracion:getCotDuracion(),
     invitados:parseInt($('cguests').value)||null,responsable:$('cresp').value,
-    moneda,
-    subtotal:parseFloat($('c-sub').textContent.replace(/[$€,]/g,''))||0,
-    descuento:parseFloat($('c-desc').value)||0,iva:$('c-iva').checked,
-    total:parseFloat($('c-total').textContent.replace(/[$€,]/g,''))||0,
-    descripcion_ia:$('ai-out').textContent.includes('aparecerá')?null:$('ai-out').textContent,
+    moneda:T.moneda,
+    subtotal:Math.round(T.sub*100)/100,
+    descuento:T.descPct,iva:T.ivaOn,
+    total:Math.round(T.total*100)/100,
+    descripcion_ia:$('ai-out').value.trim()||null,
+    fecha_fin: multi ? ($('cdate-fin').value||null) : null,
     estado: estadoActual,
     items
-  },{onConflict:'codigo'});
+  };
+  let {error} = await supa.from('cotizaciones').upsert(fila,{onConflict:'codigo'});
+  // Si todavía no se corrió el SQL de fecha_fin, guarda igual sin esa columna
+  if (error && /fecha_fin/.test(error.message||'')) {
+    console.warn('Falta la columna fecha_fin en cotizaciones (correr SQL v6.2)');
+    delete fila.fecha_fin;
+    ({error} = await supa.from('cotizaciones').upsert(fila,{onConflict:'codigo'}));
+  }
   if (error) {
     console.error('Error guardando cotización:', error);
     if (!silencioso) alert('No se pudo guardar: ' + error.message);
@@ -6042,6 +6457,10 @@ function editarCliente(id, nombre) {
 // ─── PROVEEDORES ───
 let DB_PROVEEDORES_LOCAL = [];
 
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-prov-edit]');
+  if (b) editarProveedor(b.dataset.provEdit);
+});
 async function cargarProveedores() {
   const {data, error} = await supa.from('proveedores').select('*').order('nombre');
   if (!error && data) DB_PROVEEDORES_LOCAL = data;
@@ -6052,27 +6471,32 @@ function renderProveedores() {
   const q    = $('f-prov-q')    ? $('f-prov-q').value.toLowerCase().trim() : '';
   const tipo = $('f-prov-tipo') ? $('f-prov-tipo').value : '';
 
-  // Build stats from TX (only if loaded)
+  // Solo proveedores reales de eventos: egresos de la categoría Evento,
+  // sin honorarios, viáticos, comisiones, dividendos ni mantenimiento, y sin Blast.
+  // Un socio o alguien del equipo sí aparece si cobró un servicio (DJ, producción, sonido…).
+  const EXCLUIR_SUB = /honorar|vi[aá]tico|comisi|dividend|manten/i;
   const provMap = {};
   (TX||[]).forEach(t => {
-    if (t.egreso > 0 && t.concepto && t.estado === 'Pagado') {
-      const n = t.concepto;
-      if (!provMap[n]) provMap[n] = {eventos:new Set(), pagado:0, tipo: t.subcategoria||''};
-      provMap[n].pagado += parseFloat(t.egreso)||0;
-      // Count events only where person received honorarios
-      const sub = (t.subcategoria||'').toLowerCase();
-      if (t.codigo_evento && sub.includes('honorar')) provMap[n].eventos.add(t.codigo_evento);
-      else if (t.codigo_evento && !provMap[n].tipo) provMap[n].eventos.add(t.codigo_evento);
-    }
+    const egr = parseFloat(t.egreso) || 0;
+    if (egr <= 0 || !t.concepto) return;
+    if (t.estado !== 'Pagado' && t.estado !== 'Por pagar') return;
+    if (!/^evento/i.test(t.categoria || '')) return;
+    if (EXCLUIR_SUB.test(t.subcategoria || '')) return;
+    if (/blast/i.test(t.concepto)) return;
+    const n = t.concepto.trim();
+    if (!provMap[n]) provMap[n] = {eventos:new Set(), pagado:0, tipo: t.subcategoria||''};
+    if (t.estado === 'Pagado') provMap[n].pagado += egr;
+    if (t.codigo_evento) provMap[n].eventos.add(t.codigo_evento.trim());
   });
+  const verTodos = $('f-prov-todos') && $('f-prov-todos').checked;
 
-  // Merge with DB
-  const allNombres = new Set([...Object.keys(provMap), ...DB_PROVEEDORES_LOCAL.map(p=>p.nombre)]);
+  // Une con el directorio guardado (contacto, notas, calificación)
+  const allNombres = new Set([...Object.keys(provMap), ...(verTodos ? DB_PROVEEDORES_LOCAL.map(p=>p.nombre) : [])]);
   let rows = Array.from(allNombres).map(nombre => {
     const stats  = provMap[nombre] || {eventos: new Set(), pagado:0, tipo:''};
     const dbData = DB_PROVEEDORES_LOCAL.find(p => p.nombre === nombre) || {};
-    return { nombre, eventos: stats.eventos.size, pagado: stats.pagado, tipo: dbData.tipo||stats.tipo, ...dbData };
-  }).filter(r => r.pagado > 0 || DB_PROVEEDORES_LOCAL.find(p=>p.nombre===r.nombre));
+    return { ...dbData, nombre, eventos: stats.eventos.size, pagado: stats.pagado, tipo: dbData.tipo||stats.tipo };
+  });
 
   rows.sort((a,b) => (b.pagado||0) - (a.pagado||0));
   if (tipo) rows = rows.filter(r => r.tipo === tipo);
@@ -6100,7 +6524,7 @@ function renderProveedores() {
       + '<td style="text-align:center">' + target + '</td>'
       + '<td style="color:var(--orange)">' + stars + '</td>'
       + '<td style="color:var(--w4);font-size:11px">' + esc(r.notas||'—') + '</td>'
-      + '<td><button class="btn btn-ghost btn-sm" style="padding:2px 6px;font-size:10px" onclick="editarProveedor(\'' + esc(r.nombre) + '\')"><i class="ti ti-pencil"></i></button></td>'
+      + '<td><button class="btn btn-ghost btn-sm" style="padding:2px 6px;font-size:10px" data-prov-edit="' + esc(r.nombre) + '"><i class="ti ti-pencil"></i></button></td>'
       + '</tr>';
   }).join('');
 }
@@ -6193,17 +6617,20 @@ function cargarCotizacion(codigo) {
     if($('cc'))    $('cc').value    = c.cliente      || '';
     if($('ctype')) $('ctype').value = c.tipo_evento  || 'Fiesta';
     if($('cdate')) $('cdate').value = c.fecha_evento || '';
+    if($('cmulti')) $('cmulti').checked = !!(c.fecha_fin && c.fecha_fin > (c.fecha_evento||''));
+    if($('cdate-fin')) $('cdate-fin').value = c.fecha_fin || '';
     if($('cplace'))$('cplace').value= c.lugar        || '';
-    if($('ctime-start') && c.horario) {
-      const parts = c.horario.split('–')[0].trim();
-      // try to parse time
-    }
+    if($('c-moneda') && c.moneda) $('c-moneda').value = c.moneda === 'EUR' ? 'EUR' : 'USD';
+    const hs = String(c.horario||'').split(/\s*[–-]\s*/);
+    setHoraSel('ctime-start', parseHora12(hs[0]));
+    setHoraSel('ctime-end',   parseHora12(hs[1]));
     if($('cguests')) $('cguests').value = c.invitados || '';
     if($('cresp'))   $('cresp').value   = c.responsable || 'Gustavo Briceño';
     if($('c-desc'))  $('c-desc').value  = parseFloat(c.descuento)||0;
     if($('c-iva'))   $('c-iva').checked = c.iva || false;
-    if($('ai-out') && c.descripcion_ia) { $('ai-out').textContent = c.descripcion_ia; $('ai-out').className = 'ai-box'; }
+    if($('ai-out')) $('ai-out').value = c.descripcion_ia || '';
     if($('ccode')) $('ccode').textContent = c.codigo || '';
+    toggleMultiDia();
     // Load items
     $('cot-items').innerHTML = '';
     cotRowIdx = 0;
@@ -6212,12 +6639,13 @@ function cargarCotizacion(codigo) {
         concepto:  item.concepto  || '',
         categoria: item.categoria || '',
         cantidad:  item.cantidad  || 1,
-        precio:    item.precio    || 0
+        precio:    item.precio    || 0,
+        por_dia:   item.por_dia
       }));
       calcCot();
     }
     if (!document.querySelectorAll('.cir').length) addCotRow();
-    updateCotCode();
+    calcCot();
   }, 100);
 }
 
@@ -7195,6 +7623,7 @@ async function init() {
   const now = new Date();
   $('dash-date').textContent = 'Al ' + now.toLocaleDateString('es-VE', {day:'numeric', month:'long', year:'numeric'});
   loadBCV();
+  armarSelectoresHora();
   addCotRow();
   await cargarTX();
   await Promise.all([cargarClientesDB(), cargarHistorial(), cargarPlantillas()]);
