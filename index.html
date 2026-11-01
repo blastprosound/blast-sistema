@@ -176,6 +176,29 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
 .hsel{display:flex;gap:5px}
 .hsel select{flex:1;min-width:0;padding-left:6px;padding-right:4px}
 textarea.ai-box{width:100%;resize:vertical;font-family:inherit;display:block;font-style:normal}
+.semaf{width:11px;height:11px;border-radius:50%;flex-shrink:0;box-shadow:0 0 0 3px rgba(255,255,255,.04)}
+.semaf.rojo{background:var(--red)}.semaf.amarillo{background:var(--orange)}.semaf.verde{background:var(--green)}.semaf.gris{background:var(--w4)}
+.seg-fila{display:flex;align-items:center;gap:11px;padding:10px 2px;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.seg-fila:last-child{border-bottom:none}
+.seg-fila .seg-main{flex:1;min-width:180px}
+.seg-fila .seg-nom{font-size:13px;font-weight:600;color:var(--w2)}
+.seg-fila .seg-det{font-size:11px;color:var(--w4);margin-top:2px}
+.seg-fila .seg-txt{font-size:11px;font-weight:600;min-width:120px}
+.seg-fila .seg-acc{display:flex;gap:5px;flex-wrap:wrap}
+.seg-txt.rojo{color:var(--red)}.seg-txt.amarillo{color:var(--orange)}.seg-txt.verde{color:var(--green)}.seg-txt.gris{color:var(--w4)}
+.seg-ev-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px}
+.seg-ev{background:var(--black3);border:1px solid var(--border);border-left:3px solid var(--w4);border-radius:var(--r2);padding:12px 13px}
+.seg-ev.rojo{border-left-color:var(--red)}.seg-ev.amarillo{border-left-color:var(--orange)}.seg-ev.verde{border-left-color:var(--green)}
+.seg-chips{display:flex;flex-wrap:wrap;gap:5px;margin:9px 0 10px}
+.chip{display:inline-flex;align-items:center;gap:4px;font-size:10.5px;padding:3px 8px;border-radius:12px;background:rgba(255,255,255,.05);color:var(--w3)}
+.chip.rojo{background:rgba(224,85,85,.13);color:var(--red)}.chip.amarillo{background:rgba(244,169,61,.13);color:var(--orange)}.chip.verde{background:rgba(61,202,110,.12);color:var(--green)}
+.tarea{display:flex;align-items:flex-start;gap:10px;padding:9px 2px;border-bottom:1px solid var(--border)}
+.tarea:last-child{border-bottom:none}
+.tarea input[type=checkbox]{width:18px;height:18px;accent-color:var(--green);margin-top:1px;flex-shrink:0}
+.tarea .t-txt{flex:1;min-width:0;font-size:13px;color:var(--w2)}
+.tarea.hecha .t-txt{text-decoration:line-through;color:var(--w4)}
+.tarea .t-det{font-size:11px;color:var(--w4);margin-top:2px}
+.t-vence{color:var(--red);font-weight:600}
 .seg{display:inline-flex;background:var(--black3);border:1px solid var(--border);border-radius:7px;padding:2px}
 .seg button{background:none;border:none;color:var(--w4);font-size:11px;padding:4px 10px;border-radius:5px;cursor:pointer;font-family:inherit}
 .seg button.on{background:var(--blue);color:#141414;font-weight:600}
@@ -291,6 +314,8 @@ textarea.ai-box{width:100%;resize:vertical;font-family:inherit;display:block;fon
 }
 @media (max-width: 480px) {
   .sg { grid-template-columns: 1fr }
+  #v-seguimiento .sg { grid-template-columns: 1fr 1fr }
+  #v-seguimiento .ssub { display: none }
   .sval { font-size: 18px }
   th, td { padding: 6px 8px; font-size: 11px }
 }
@@ -393,6 +418,7 @@ textarea.ai-box{width:100%;resize:vertical;font-family:inherit;display:block;fon
   <button class="ni on" onclick="sv('dashboard',this)"><i class="ti ti-layout-dashboard"></i>Dashboard</button>
   <button class="ni" onclick="sv('eventos',this)"><i class="ti ti-calendar-event"></i>Eventos</button>
   <button class="ni" onclick="sv('calendario',this)"><i class="ti ti-calendar-month"></i>Calendario</button>
+  <button class="ni" onclick="sv('seguimiento',this)"><i class="ti ti-traffic-lights"></i>Seguimiento</button>
   <button class="ni" onclick="sv('registro',this)"><i class="ti ti-receipt-2"></i>Registro</button>
   <button class="ni" onclick="sv('pendientes',this)"><i class="ti ti-clock-exclamation"></i>Cuentas pendientes</button>
   <button class="ni" onclick="sv('balance',this)"><i class="ti ti-scale"></i>Balance</button>
@@ -833,6 +859,36 @@ textarea.ai-box{width:100%;resize:vertical;font-family:inherit;display:block;fon
 </div>
 
 <!-- CREATIVO · visuales y renders (herramienta en renders.html) -->
+<!-- SEGUIMIENTO · semáforo de cotizaciones, panel de eventos y tareas -->
+<div id="v-seguimiento" class="view">
+  <div class="ph">
+    <div><div class="aline"></div><div class="ptitle">Seguimiento</div><div class="psub">Cotizaciones por cerrar, próximos eventos y tareas</div></div>
+    <div class="btn-row">
+      <div class="seg"><button class="on" data-seg-mias="0">Todo</button><button data-seg-mias="1">Solo lo mío</button></div>
+      <button class="btn btn-ghost btn-sm" id="seg-btn-recordar" onclick="probarRecordatorios()" style="display:none" title="Te manda a ti el resumen de hoy, para probar"><i class="ti ti-bell-ringing"></i>Probar recordatorio</button>
+    </div>
+  </div>
+  <div id="seg-aviso"></div>
+  <div class="sg" style="margin-bottom:13px">
+    <div class="sc"><div class="sc-top" style="background:var(--red)"></div><div class="slabel">Cotizaciones en rojo</div><div class="sval" id="seg-k-rojo" style="color:var(--red)">—</div><div class="ssub">5+ días sin contacto o evento en &lt; 7 días</div></div>
+    <div class="sc"><div class="sc-top" style="background:var(--orange)"></div><div class="slabel">En amarillo</div><div class="sval" id="seg-k-amarillo" style="color:var(--orange)">—</div><div class="ssub">2 a 4 días sin contacto</div></div>
+    <div class="sc"><div class="sc-top" style="background:var(--green)"></div><div class="slabel">Al día</div><div class="sval" id="seg-k-verde" style="color:var(--green)">—</div><div class="ssub" id="seg-k-verde-sub">menos de 2 días</div></div>
+    <div class="sc"><div class="sc-top" style="background:var(--magenta)"></div><div class="slabel">Tareas vencidas</div><div class="sval" id="seg-k-tareas" style="color:var(--magenta)">—</div><div class="ssub" id="seg-k-tareas-sub">—</div></div>
+  </div>
+  <div class="card">
+    <div class="ctitle">Cotizaciones abiertas · semáforo</div>
+    <div id="seg-cots"><div style="color:var(--w4);font-size:12px">Cargando...</div></div>
+  </div>
+  <div class="card">
+    <div class="ctitle">Próximos eventos · estatus</div>
+    <div id="seg-eventos" class="seg-ev-grid"></div>
+  </div>
+  <div class="card">
+    <div class="ctitle">Tareas pendientes</div>
+    <div id="seg-tareas"></div>
+  </div>
+</div>
+
 <div id="v-renders" class="view">
   <div class="ph">
     <div><div class="aline"></div><div class="ptitle">Visuales y renders</div><div class="psub">Herramienta creativa de Blast</div></div>
@@ -919,6 +975,7 @@ textarea.ai-box{width:100%;resize:vertical;font-family:inherit;display:block;fon
   </div>
 
   <div id="staff-avisos" style="margin-bottom:13px"></div>
+  <div id="staff-tareas" style="margin-bottom:13px"></div>
 
   <!-- Calendario del personal -->
   <div class="card np" id="staff-cal-wrap" style="margin-bottom:13px;overflow:hidden;display:none">
@@ -1314,6 +1371,37 @@ textarea.ai-box{width:100%;resize:vertical;font-family:inherit;display:block;fon
   </div>
 </div>
 
+<div class="modal-bg" id="modal-tareas">
+  <div class="modal" style="width:540px;max-height:92vh;overflow-y:auto">
+    <div class="modal-title" id="mt-titulo">Tareas</div>
+    <div id="mt-sub" style="font-size:11px;color:var(--w4);margin:-6px 0 12px"></div>
+    <div id="mt-lista"></div>
+    <div class="ctitle" style="margin-top:16px">Nueva tarea</div>
+    <div class="fgrp" style="margin-bottom:9px"><input type="text" id="mt-texto" placeholder="Ej: pedir el stand al carpintero"></div>
+    <div class="fg" style="grid-template-columns:1fr 1fr">
+      <div class="fgrp"><label class="flabel">Responsable</label><select id="mt-resp"></select></div>
+      <div class="fgrp"><label class="flabel">Fecha límite</label><input type="date" id="mt-fecha"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="document.getElementById('modal-tareas').classList.remove('show')">Cerrar</button>
+      <button class="btn btn-blue" id="mt-btn" onclick="agregarTarea()"><i class="ti ti-plus"></i>Agregar</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal-seg">
+  <div class="modal" style="width:440px">
+    <div class="modal-title" id="ms-titulo">Seguimiento</div>
+    <div id="ms-ultima" style="font-size:11px;color:var(--w4);margin:-6px 0 10px"></div>
+    <div class="fgrp"><label class="flabel">¿Qué pasó? (opcional)</label><textarea id="ms-nota" rows="3" placeholder="Ej: le escribí por WhatsApp, responde el lunes"></textarea></div>
+    <div style="font-size:11px;color:var(--w4);margin-top:6px">El semáforo vuelve a verde desde hoy.</div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="document.getElementById('modal-seg').classList.remove('show')">Cancelar</button>
+      <button class="btn btn-blue" onclick="guardarSeguimiento()"><i class="ti ti-check"></i>Registrar seguimiento</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-bg" id="modal-cli">
   <div class="modal">
     <div class="modal-title">Nuevo cliente</div>
@@ -1689,7 +1777,7 @@ textarea.ai-box{width:100%;resize:vertical;font-family:inherit;display:block;fon
 
 <script>
 // ═══════════════════════════════════════════════
-// BLAST PROSOUND · Sistema de Gestión v6.3
+// BLAST PROSOUND · Sistema de Gestión v6.4
 // ═══════════════════════════════════════════════
 
 // ─── CONFIG ───
@@ -1784,6 +1872,7 @@ function sv(id, btn) {
   if (id === 'mensajes')     abrirMensajes();
   if (id === 'renders')      { const f = $('renders-frame'); if (f && !f.src) f.src = 'renders.html'; }
   if (id === 'calendario')   renderCalendario();
+  if (id === 'seguimiento')  cargarSeguimiento();
   if (id === 'estimador')    runEstimador();
   if (id === 'dashboard')    renderDashboard();
 }
@@ -2885,6 +2974,7 @@ const VISTAS = [
   {id:'dashboard',    nombre:'Dashboard',           grupo:'Principal'},
   {id:'eventos',      nombre:'Eventos',             grupo:'Principal'},
   {id:'calendario',   nombre:'Calendario',          grupo:'Principal'},
+  {id:'seguimiento',  nombre:'Seguimiento',         grupo:'Principal'},
   {id:'registro',     nombre:'Registro',            grupo:'Principal'},
   {id:'pendientes',   nombre:'Cuentas pendientes',  grupo:'Principal'},
   {id:'balance',      nombre:'Balance',             grupo:'Principal'},
@@ -3847,6 +3937,7 @@ async function llenarSelectEventosStaff() {
   (asig.data || []).forEach(a => respuestas[a.codigo_evento] = a.respuesta || 'pendiente');
 
   pintarAvisosStaff(notif.data || []);
+  pintarTareasStaff();
 
   const codigos = (asig.data || []).map(a => a.codigo_evento);
   if (!codigos.length) {
@@ -5851,7 +5942,8 @@ async function enviarCotWhatsApp() {
   let blob;
   try { blob = await generarPDFBlob(); }
   catch (e) { alert('No se pudo generar el PDF: ' + e.message); return; }
-  guardarCotizacionDB(true);
+  const _codEnv = $('ccode').textContent;
+  guardarCotizacionDB(true).then(r => { if (r === 'ok') marcarEnviadaCot(_codEnv); });
   const file = new File([blob], nombreArchivoCot(), {type: 'application/pdf'});
   if (navigator.canShare && navigator.canShare({files: [file]})) {
     try { await navigator.share({files: [file], text: texto}); }
@@ -5908,6 +6000,7 @@ async function enviarCotCorreo() {
     if (res === 'ok') {
       const {data} = await supa.from('cotizaciones').select('estado').eq('codigo', codigo).maybeSingle();
       if (data && data.estado === 'Borrador') await supa.from('cotizaciones').update({estado: 'Descargada'}).eq('codigo', codigo);
+      await marcarEnviadaCot(codigo);
       cargarHistorial();
     }
     setTimeout(() => $('modal-cot-correo').classList.remove('show'), 1500);
@@ -5932,6 +6025,7 @@ async function exportPDF() {
   if (res === 'ok' && codigo && codigo !== 'COT ——') {
     // Solo pasa a Descargada si estaba en Borrador (no pisar Confirmada/Perdida)
     await supa.from('cotizaciones').update({estado:'Descargada'}).eq('codigo', codigo).eq('estado','Borrador');
+    await marcarEnviadaCot(codigo);
     await cargarHistorial();
   } else if (res === 'error') {
     alert('El PDF se generó, pero no se pudo guardar en el historial. Revisa la consola.');
@@ -6652,6 +6746,7 @@ async function cargarHistorial() {
   const {data, error} = await supa.from('cotizaciones').select('*').order('created_at', {ascending: false});
   if (!error && data) _historialData = data;
   renderHistorial();
+  if ($('v-seguimiento') && $('v-seguimiento').classList.contains('on')) renderSeguimiento();
 }
 
 function cargarCotizacion(codigo) {
@@ -6911,6 +7006,7 @@ async function abrirDetalleCal(key) {
     + _filaDato('Referente', esc(ev.referente))
     + '<div id="mc-log" style="margin-top:8px;color:var(--w4)">Cargando logística...</div>';
   acc.innerHTML = cerrar
+    + '<button class="btn btn-ghost btn-accion-cal" data-acc="tareas" data-ev="' + esc(ev.codigo) + '" data-nom="' + esc(ev.cliente || '') + '"><i class="ti ti-checklist"></i>Tareas</button>'
     + '<button class="btn btn-blue btn-accion-cal" data-acc="logistica" data-ev="' + esc(ev.codigo) + '"><i class="ti ti-clipboard-list"></i>Ir a logística</button>';
   $('modal-cal').classList.add('show');
 
@@ -6941,6 +7037,7 @@ document.addEventListener('click', e => {
   if (acc === 'reabrir')   cambiarEstadoCot(cot, 'Borrador');
   if (acc === 'abrir')     cargarCotizacion(cot);
   if (acc === 'logistica') irALogistica(b.dataset.ev);
+  if (acc === 'tareas')    abrirTareas(b.dataset.ev, b.dataset.nom);
 });
 
 function badgeRespuesta(r) {
@@ -7681,6 +7778,329 @@ async function init() {
   await cargarProductos();
 }
 
+
+// ═══════════════════════════════════════════════════════════
+// SEGUIMIENTO (Fase 3) · semáforo de cotizaciones, panel de eventos y tareas
+// ═══════════════════════════════════════════════════════════
+var SEG_REGLAS = {amarillo: 2, rojo: 5, eventoCerca: 7};   // días
+var SEG = {mias: false, tareas: [], segCodigo: null, tareasCod: null, tareasNom: '', faltaSQL: false};
+
+function isoLocal(d) { return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+function hoyLocalISO() { return isoLocal(new Date()); }
+function diasEntre(a, b) { return Math.round((new Date(b + 'T12:00:00') - new Date(a + 'T12:00:00')) / 86400000); }
+function mismaPersona(a, b) {
+  const n = x => String(x || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim().split(/\s+/).slice(0, 2).join(' ');
+  return !!n(a) && n(a) === n(b);
+}
+function fCorta(iso) { if (!iso) return ''; const d = new Date(iso + 'T12:00:00'); return d.getDate() + ' ' + MESES_CORTOS[d.getMonth()]; }
+function textoDias(n) { return n === 0 ? 'hoy' : n === 1 ? '1 día' : n + ' días'; }
+
+// Color de una cotización abierta. null = no aplica (confirmada o perdida)
+function semaforoCot(c) {
+  if (!c || c.estado === 'Confirmada' || c.estado === 'Perdida') return null;
+  const hoy = hoyLocalISO();
+  const dEv = c.fecha_evento ? diasEntre(hoy, c.fecha_evento) : null;
+  if (dEv !== null && dEv < 0) return {c: 'gris', txt: 'Evento pasado sin cerrar', dEv, orden: 4};
+  const cerca = dEv !== null && dEv < SEG_REGLAS.eventoCerca;
+  const base = c.ultimo_seguimiento || c.enviada_at || (c.estado && c.estado !== 'Borrador' ? c.created_at : null);
+  if (!base) return cerca ? {c: 'rojo', txt: 'Sin enviar · evento en ' + textoDias(dEv), dEv, orden: 0}
+                          : {c: 'gris', txt: 'Sin enviar', dEv, orden: 3};
+  const dias = diasEntre(isoLocal(new Date(base)), hoy);
+  const desde = (c.ultimo_seguimiento ? 'Último contacto ' : 'Enviada ') + (dias === 0 ? 'hoy' : 'hace ' + textoDias(dias));
+  if (dias >= SEG_REGLAS.rojo || cerca) return {c: 'rojo', txt: desde + (cerca ? ' · evento en ' + textoDias(dEv) : ''), dEv, dias, orden: 0};
+  if (dias >= SEG_REGLAS.amarillo)      return {c: 'amarillo', txt: desde, dEv, dias, orden: 1};
+  return {c: 'verde', txt: desde, dEv, dias, orden: 2};
+}
+
+// Marca la cotización como enviada (solo la primera vez)
+async function marcarEnviadaCot(codigo) {
+  if (!codigo || codigo === 'COT ——') return;
+  const {error} = await supa.from('cotizaciones').update({enviada_at: new Date().toISOString()}).eq('codigo', codigo).is('enviada_at', null);
+  if (error) console.warn('enviada_at (¿falta el SQL de la Fase 3?):', error.message);
+}
+
+document.addEventListener('click', e => {
+  const m = e.target.closest('[data-seg-mias]');
+  if (m) {
+    SEG.mias = m.dataset.segMias === '1';
+    document.querySelectorAll('[data-seg-mias]').forEach(x => x.classList.toggle('on', x === m));
+    renderSeguimiento();
+    return;
+  }
+  const b = e.target.closest('[data-seg]');
+  if (!b) return;
+  const cod = b.dataset.cod, acc = b.dataset.seg;
+  if (acc === 'hecho')   abrirSeguimiento(cod);
+  if (acc === 'abrir')   cargarCotizacion(cod);
+  if (acc === 'perdida') cambiarEstadoCot(cod, 'Perdida').then(renderSeguimiento);
+  if (acc === 'tareas')  abrirTareas(cod, b.dataset.nom);
+  if (acc === 'log')     irALogistica(cod);
+});
+
+async function cargarSeguimiento() {
+  if ($('seg-btn-recordar')) $('seg-btn-recordar').style.display = CURRENT_USER.rol === 'admin' ? '' : 'none';
+  const tareasQ = supa.from('evento_tareas').select('*').order('fecha_limite', {ascending: true, nullsFirst: false});
+  const [, , t] = await Promise.all([cargarHistorial(), USUARIOS.length ? null : cargarUsuarios(), tareasQ]);
+  SEG.faltaSQL = !!(t && t.error);
+  SEG.tareas = (t && t.data) || [];
+  renderSeguimiento();
+  await pintarPanelEventos();
+}
+
+function renderSeguimiento() {
+  const aviso = $('seg-aviso');
+  if (aviso) aviso.innerHTML = SEG.faltaSQL
+    ? '<div class="card" style="border-color:rgba(244,169,61,.4);color:var(--orange);font-size:12px">Falta correr el SQL de la Fase 3 en Supabase (tareas y fechas de envío).</div>' : '';
+
+  // ── Cotizaciones
+  let cots = (_historialData || []).map(c => ({c, s: semaforoCot(c)})).filter(x => x.s);
+  if (SEG.mias) cots = cots.filter(x => mismaPersona(x.c.responsable, CURRENT_USER.nombre));
+  cots.sort((a, b) => a.s.orden - b.s.orden || ((a.s.dEv ?? 999) - (b.s.dEv ?? 999)));
+  const n = k => cots.filter(x => x.s.c === k).length;
+  $('seg-k-rojo').textContent = n('rojo');
+  $('seg-k-amarillo').textContent = n('amarillo');
+  $('seg-k-verde').textContent = n('verde');
+  $('seg-k-verde-sub').textContent = 'menos de 2 días' + (n('gris') ? ' · ' + n('gris') + ' sin enviar o pasadas' : '');
+
+  const fila = ({c, s}) => {
+    const cod = esc(c.codigo);
+    const sim = c.moneda === 'EUR' ? '€' : '$';
+    const det = [c.codigo, c.fecha_evento ? 'evento ' + fCorta(c.fecha_evento) : 'sin fecha', c.responsable, c.total ? sim + Number(c.total).toLocaleString('es-VE') : '']
+      .filter(Boolean).map(esc).join(' · ');
+    return '<div class="seg-fila">'
+      + '<span class="semaf ' + s.c + '"></span>'
+      + '<div class="seg-main"><div class="seg-nom">' + esc(c.cliente || c.codigo) + '</div><div class="seg-det">' + det + '</div>'
+      +   (c.seguimiento_nota ? '<div class="seg-det" style="font-style:italic">“' + esc(c.seguimiento_nota) + '”</div>' : '') + '</div>'
+      + '<div class="seg-txt ' + s.c + '">' + esc(s.txt) + '</div>'
+      + '<div class="seg-acc">'
+      +   (s.orden === 4 ? '' : '<button class="btn btn-ghost btn-sm" data-seg="hecho" data-cod="' + cod + '" title="Ya lo contacté"><i class="ti ti-phone-check"></i>Seguimiento</button>')
+      +   '<button class="btn btn-ghost btn-sm" data-seg="abrir" data-cod="' + cod + '" title="Abrir"><i class="ti ti-edit"></i></button>'
+      +   '<button class="btn btn-ghost btn-sm btn-confirmar-cot" data-cot="' + cod + '" style="color:var(--green)" title="Confirmar"><i class="ti ti-circle-check"></i></button>'
+      +   '<button class="btn btn-ghost btn-sm" data-seg="perdida" data-cod="' + cod + '" style="color:var(--red)" title="Perdida"><i class="ti ti-x"></i></button>'
+      + '</div></div>';
+  };
+  $('seg-cots').innerHTML = cots.length ? cots.map(fila).join('')
+    : '<div style="color:var(--w4);font-size:12px;padding:10px 0">No hay cotizaciones abiertas.</div>';
+
+  // ── Tareas pendientes
+  const hoy = hoyLocalISO();
+  let pend = SEG.tareas.filter(t => !t.hecha);
+  if (SEG.mias) pend = pend.filter(t => (t.responsable_email || '').toLowerCase() === CURRENT_USER.email.toLowerCase());
+  const venc = pend.filter(t => t.fecha_limite && t.fecha_limite < hoy).length;
+  $('seg-k-tareas').textContent = venc;
+  $('seg-k-tareas-sub').textContent = pend.length + ' pendiente' + (pend.length === 1 ? '' : 's') + ' en total';
+  $('seg-tareas').innerHTML = pend.length ? pend.map(t => filaTarea(t, true)).join('')
+    : '<div style="color:var(--w4);font-size:12px;padding:10px 0">' + (SEG.faltaSQL ? 'Disponible al correr el SQL.' : 'Sin tareas pendientes 🎉') + '</div>';
+}
+
+function filaTarea(t, conEvento) {
+  const hoy = hoyLocalISO();
+  let vence = '';
+  if (t.fecha_limite) {
+    const d = diasEntre(hoy, t.fecha_limite);
+    vence = d < 0 ? '<span class="t-vence">vencida ' + fCorta(t.fecha_limite) + '</span>'
+          : d === 0 ? '<span class="t-vence" style="color:var(--orange)">vence hoy</span>'
+          : 'para el ' + fCorta(t.fecha_limite);
+  }
+  const det = [conEvento ? esc((t.evento_nombre ? t.evento_nombre + ' · ' : '') + t.codigo_evento) : '', esc(t.responsable_nombre || ''), vence,
+               t.hecha && t.hecha_por ? 'hecha por ' + esc(t.hecha_por) : ''].filter(Boolean).join(' · ');
+  const puedeBorrar = CURRENT_USER.rol !== 'staff';
+  return '<div class="tarea' + (t.hecha ? ' hecha' : '') + '">'
+    + '<input type="checkbox" data-tarea-chk="' + t.id + '"' + (t.hecha ? ' checked' : '') + '>'
+    + '<div class="t-txt">' + esc(t.titulo) + '<div class="t-det">' + det + '</div></div>'
+    + (conEvento && puedeBorrar ? '<button class="btn btn-ghost btn-sm" data-seg="tareas" data-cod="' + esc(t.codigo_evento) + '" data-nom="' + esc(t.evento_nombre || '') + '" title="Ver tareas del evento"><i class="ti ti-list-details"></i></button>' : '')
+    + (!conEvento && puedeBorrar ? '<button class="btn btn-ghost btn-sm" data-tarea-del="' + t.id + '" title="Borrar"><i class="ti ti-trash"></i></button>' : '')
+    + '</div>';
+}
+
+// ── Panel de próximos eventos (confirmados)
+async function pintarPanelEventos() {
+  const box = $('seg-eventos');
+  if (!box) return;
+  const hoy = hoyLocalISO();
+  const evs = EVS.filter(e => e.fecha && e.fecha >= hoy && diasEntre(hoy, e.fecha) <= 45).sort((a, b) => a.fecha.localeCompare(b.fecha));
+  if (!evs.length) { box.innerHTML = '<div style="color:var(--w4);font-size:12px">No hay eventos confirmados en los próximos 45 días.</div>'; return; }
+  box.innerHTML = '<div style="color:var(--w4);font-size:12px">Cargando estatus...</div>';
+  const cods = evs.map(e => e.codigo);
+  const [f, a, inv] = await Promise.all([
+    supa.from('eventos_logistica').select('codigo_evento,estado_montaje,lugar,hora_montaje').in('codigo_evento', cods),
+    supa.from('evento_asignaciones').select('codigo_evento,respuesta').in('codigo_evento', cods),
+    supa.from('evento_inventario').select('codigo_evento').in('codigo_evento', cods)
+  ]);
+  const fichas = {}; (f.data || []).forEach(x => fichas[x.codigo_evento] = x);
+  const asig = {};   (a.data || []).forEach(x => (asig[x.codigo_evento] = asig[x.codigo_evento] || []).push(x.respuesta || 'pendiente'));
+  const nInv = {};   (inv.data || []).forEach(x => nInv[x.codigo_evento] = (nInv[x.codigo_evento] || 0) + 1);
+  const porCobrar = {};
+  TX.forEach(t => { const c = (t.codigo_evento || '').trim(); if (t.estado === 'Por cobrar') porCobrar[c] = (porCobrar[c] || 0) + (parseFloat(t.ingreso) || 0); });
+
+  const chip = (col, ico, txt) => '<span class="chip ' + col + '"><i class="ti ti-' + ico + '"></i>' + txt + '</span>';
+  box.innerHTML = evs.map(e => {
+    const d = diasEntre(hoy, e.fecha);
+    const F = fichas[e.codigo] || {};
+    const A = asig[e.codigo] || [];
+    const T = SEG.tareas.filter(t => t.codigo_evento === e.codigo);
+    const chips = [];
+    // Personal
+    const conf = A.filter(r => r === 'confirmado').length, noP = A.filter(r => r === 'no_puede').length;
+    if (!A.length)       chips.push(['' + (d <= 3 ? 'rojo' : 'amarillo'), 'users', 'Sin personal']);
+    else if (noP)        chips.push(['rojo', 'users', noP + ' no puede · ' + conf + '/' + A.length]);
+    else if (conf < A.length) chips.push(['amarillo', 'users', conf + '/' + A.length + ' confirmados']);
+    else                 chips.push(['verde', 'users', 'Personal listo']);
+    // Equipos
+    chips.push(nInv[e.codigo] ? ['', 'speakerphone', nInv[e.codigo] + ' equipos'] : [d <= 3 ? 'amarillo' : '', 'speakerphone', 'Sin lista de equipos']);
+    // Montaje
+    const em = F.estado_montaje || 'Pendiente';
+    chips.push([em === 'Montado' || em === 'Devuelto' ? 'verde' : '', 'truck', em]);
+    // Tareas
+    if (T.length) {
+      const hechas = T.filter(t => t.hecha).length, venc = T.filter(t => !t.hecha && t.fecha_limite && t.fecha_limite < hoy).length;
+      chips.push(venc ? ['rojo', 'checklist', venc + ' tarea' + (venc > 1 ? 's' : '') + ' vencida' + (venc > 1 ? 's' : '')]
+                : hechas === T.length ? ['verde', 'checklist', 'Tareas listas'] : ['amarillo', 'checklist', hechas + '/' + T.length + ' tareas']);
+    }
+    // Cobro
+    chips.push(porCobrar[e.codigo] > 0 ? [d <= 2 ? 'rojo' : 'amarillo', 'cash', 'Por cobrar ' + fmt(porCobrar[e.codigo])] : ['verde', 'cash', 'Cobrado']);
+    const peor = chips.some(c => c[0] === 'rojo') ? 'rojo' : chips.some(c => c[0] === 'amarillo') ? 'amarillo' : 'verde';
+    return '<div class="seg-ev ' + peor + '">'
+      + '<div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start">'
+      +   '<div style="min-width:0"><div class="seg-nom" style="font-size:13px;font-weight:600;color:var(--w2)">' + esc(e.cliente || e.codigo) + '</div>'
+      +   '<div style="font-size:11px;color:var(--w4)">' + esc(e.codigo) + (F.lugar ? ' · ' + esc(F.lugar) : '') + '</div></div>'
+      +   '<div style="text-align:right;flex-shrink:0"><div style="font-size:12px;font-weight:600;color:var(--w2)">' + fCorta(e.fecha) + '</div>'
+      +   '<div style="font-size:10px;color:' + (d <= 3 ? 'var(--orange)' : 'var(--w4)') + '">' + (d === 0 ? 'HOY' : 'en ' + textoDias(d)) + '</div></div>'
+      + '</div>'
+      + '<div class="seg-chips">' + chips.map(c => chip(c[0], c[1], esc(c[2]))).join('') + '</div>'
+      + '<div style="display:flex;gap:6px">'
+      +   '<button class="btn btn-ghost btn-sm" data-seg="tareas" data-cod="' + esc(e.codigo) + '" data-nom="' + esc(e.cliente || '') + '"><i class="ti ti-checklist"></i>Tareas' + (T.length ? ' (' + T.filter(t => !t.hecha).length + ')' : '') + '</button>'
+      +   '<button class="btn btn-ghost btn-sm" data-seg="log" data-cod="' + esc(e.codigo) + '"><i class="ti ti-clipboard-list"></i>Logística</button>'
+      + '</div></div>';
+  }).join('');
+}
+
+// ── Registrar un seguimiento
+function abrirSeguimiento(codigo) {
+  const c = (_historialData || []).find(x => x.codigo === codigo);
+  if (!c) return;
+  SEG.segCodigo = codigo;
+  $('ms-titulo').textContent = 'Seguimiento · ' + (c.cliente || codigo);
+  $('ms-ultima').textContent = c.seguimiento_nota ? 'Última nota: “' + c.seguimiento_nota + '”' : '';
+  $('ms-nota').value = '';
+  $('modal-seg').classList.add('show');
+  setTimeout(() => $('ms-nota').focus(), 50);
+}
+async function guardarSeguimiento() {
+  const nota = $('ms-nota').value.trim();
+  const fila = {ultimo_seguimiento: new Date().toISOString()};
+  if (nota) fila.seguimiento_nota = nota.slice(0, 300);
+  const {error} = await supa.from('cotizaciones').update(fila).eq('codigo', SEG.segCodigo);
+  if (error) { alert('No se pudo guardar' + (/column/.test(error.message) ? ': falta correr el SQL de la Fase 3.' : ': ' + error.message)); return; }
+  $('modal-seg').classList.remove('show');
+  await cargarHistorial();
+  renderSeguimiento();
+}
+
+// ── Tareas por evento
+async function abrirTareas(codigo, nombre) {
+  if (!codigo) return;
+  if (!USUARIOS.length) await cargarUsuarios();
+  SEG.tareasCod = codigo;
+  SEG.tareasNom = nombre || (EVS.find(e => e.codigo === codigo) || {}).cliente || '';
+  $('mt-titulo').textContent = 'Tareas · ' + (SEG.tareasNom || codigo);
+  const ev = EVS.find(e => e.codigo === codigo);
+  $('mt-sub').textContent = codigo + (ev && ev.fecha ? ' · evento ' + fDate(ev.fecha) : '');
+  $('mt-resp').innerHTML = USUARIOS.filter(u => u.activo !== false)
+    .map(u => '<option value="' + esc(u.email) + '"' + (u.email === CURRENT_USER.email ? ' selected' : '') + '>' + esc(u.nombre || u.email) + (u.rol === 'staff' ? ' (personal)' : '') + '</option>').join('');
+  $('mt-texto').value = '';
+  $('mt-fecha').value = ev && ev.fecha ? ev.fecha : '';
+  $('mt-fecha').max = '';
+  $('mt-lista').innerHTML = '<div style="color:var(--w4);font-size:12px">Cargando...</div>';
+  $('modal-tareas').classList.add('show');
+  await pintarTareasModal();
+}
+async function pintarTareasModal() {
+  const {data, error} = await supa.from('evento_tareas').select('*').eq('codigo_evento', SEG.tareasCod).order('hecha').order('fecha_limite', {nullsFirst: false});
+  if (error) { $('mt-lista').innerHTML = '<div style="color:var(--orange);font-size:12px">Falta correr el SQL de la Fase 3 en Supabase.</div>'; return; }
+  $('mt-lista').innerHTML = (data || []).length ? data.map(t => filaTarea(t, false)).join('')
+    : '<div style="color:var(--w4);font-size:12px;padding:6px 0">Este evento no tiene tareas todavía.</div>';
+}
+async function agregarTarea() {
+  const titulo = $('mt-texto').value.trim();
+  if (!titulo) { $('mt-texto').focus(); return; }
+  const email = $('mt-resp').value;
+  const u = USUARIOS.find(x => x.email === email) || {};
+  const fila = {
+    codigo_evento: SEG.tareasCod, evento_nombre: SEG.tareasNom || null, titulo: titulo.slice(0, 200),
+    responsable_email: email, responsable_nombre: u.nombre || email,
+    fecha_limite: $('mt-fecha').value || null, creado_por: CURRENT_USER.email
+  };
+  $('mt-btn').disabled = true;
+  const {error} = await supa.from('evento_tareas').insert(fila);
+  $('mt-btn').disabled = false;
+  if (error) { alert('No se pudo agregar: ' + error.message); return; }
+  if (email && email.toLowerCase() !== CURRENT_USER.email.toLowerCase()) {
+    avisarYCorreo([{email, codigo_evento: SEG.tareasCod, tipo: 'tarea',
+      titulo: 'Nueva tarea: ' + fila.titulo,
+      mensaje: 'Evento: ' + (SEG.tareasNom ? SEG.tareasNom + ' (' + SEG.tareasCod + ')' : SEG.tareasCod)
+             + (fila.fecha_limite ? '\nFecha límite: ' + fDate(fila.fecha_limite) : '')
+             + '\nTe la asignó: ' + (CURRENT_USER.nombre || CURRENT_USER.email)}]);
+  }
+  $('mt-texto').value = '';
+  await refrescarTareas();
+}
+
+document.addEventListener('change', async e => {
+  const chk = e.target.closest('[data-tarea-chk]');
+  if (!chk) return;
+  const id = chk.dataset.tareaChk, hecha = chk.checked;
+  chk.disabled = true;
+  const {data, error} = await supa.from('evento_tareas')
+    .update({hecha, hecha_at: hecha ? new Date().toISOString() : null, hecha_por: hecha ? (CURRENT_USER.nombre || CURRENT_USER.email) : null})
+    .eq('id', id).select().maybeSingle();
+  chk.disabled = false;
+  if (error) { chk.checked = !hecha; alert('No se pudo actualizar: ' + error.message); return; }
+  // Avisa (solo campanita) a quien la creó, si la terminó otra persona
+  if (hecha && data && data.creado_por && data.creado_por.toLowerCase() !== CURRENT_USER.email.toLowerCase()) {
+    avisarYCorreo([{email: data.creado_por, codigo_evento: data.codigo_evento, tipo: 'tarea',
+      titulo: '✓ Tarea hecha: ' + data.titulo, mensaje: (CURRENT_USER.nombre || CURRENT_USER.email) + ' marcó la tarea como hecha (' + data.codigo_evento + ').'}], {correo: false});
+  }
+  await refrescarTareas();
+});
+document.addEventListener('click', async e => {
+  const b = e.target.closest('[data-tarea-del]');
+  if (!b) return;
+  if (!confirm('¿Borrar esta tarea?')) return;
+  const {error} = await supa.from('evento_tareas').delete().eq('id', b.dataset.tareaDel);
+  if (error) { alert('No se pudo borrar: ' + error.message); return; }
+  await refrescarTareas();
+});
+async function refrescarTareas() {
+  if ($('modal-tareas').classList.contains('show')) await pintarTareasModal();
+  if ($('v-seguimiento') && $('v-seguimiento').classList.contains('on')) {
+    const {data} = await supa.from('evento_tareas').select('*').order('fecha_limite', {ascending: true, nullsFirst: false});
+    SEG.tareas = data || [];
+    renderSeguimiento();
+    pintarPanelEventos();
+  }
+  if ($('v-staff') && $('v-staff').classList.contains('on')) pintarTareasStaff();
+}
+
+// ── Portal del personal: sus tareas
+async function pintarTareasStaff() {
+  const box = $('staff-tareas');
+  if (!box) return;
+  const {data, error} = await supa.from('evento_tareas').select('*').eq('responsable_email', CURRENT_USER.email).eq('hecha', false).order('fecha_limite', {nullsFirst: false});
+  if (error || !(data || []).length) { box.innerHTML = ''; return; }
+  box.innerHTML = '<div class="card" style="margin-bottom:0"><div class="ctitle">Mis tareas pendientes (' + data.length + ')</div>'
+    + data.map(t => filaTarea(t, true)).join('') + '</div>';
+}
+
+// ── Prueba del recordatorio diario (solo admin, solo a sí mismo)
+async function probarRecordatorios() {
+  const b = $('seg-btn-recordar');
+  b.disabled = true;
+  const r = await invocarFuncion('recordatorios-diarios', {solo_yo: true});
+  b.disabled = false;
+  if (!r.ok) { alert('No se pudo: ' + r.error); return; }
+  alert(r.data.enviados ? '✓ Te llegó el resumen de hoy (campanita' + (r.data.correos ? ' y correo' : '') + ').' : 'Hoy no tienes nada en amarillo, rojo ni tareas por vencer, así que no se envía nada.');
+}
 
 // ─── AUTH ───
 // Recuerda el último usuario que entró en este equipo (solo el identificador, nunca la clave)
