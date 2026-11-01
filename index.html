@@ -273,6 +273,22 @@ textarea.ai-box{width:100%;resize:vertical;font-family:inherit;display:block;fon
   .dd-list { right: 0 }
   .ptitle { font-size: 17px }
 }
+/* Celular: nada puede ser más ancho que la pantalla */
+@media (max-width: 768px) {
+  html, body { max-width: 100%; overflow-x: hidden }
+  .layout, .main { min-width: 0; max-width: 100vw }
+  .main > .view, .card { min-width: 0; max-width: 100% }
+  .tasa-pill { display: none }                       /* la tasa no se muestra en el celular */
+  .topbar-right { gap: 4px }
+  .user-chip #user-name { display: none }            /* solo el punto y la flecha */
+  .user-chip { padding: 6px 9px }
+  .brand img { height: 22px !important }
+  input, select, textarea { max-width: 100%; min-width: 0; font-size: 16px }   /* 16px: el iPhone no hace zoom */
+  input[type=date], input[type=time] { -webkit-appearance: none; appearance: none; display: block; width: 100%; min-height: 40px; text-align: left }
+  .fgrp { min-width: 0 }
+  .twrap { overflow-x: auto; max-width: 100% }
+  .card > table, .card > div:not(.twrap) > table { display: block; overflow-x: auto; max-width: 100% }
+}
 @media (max-width: 480px) {
   .sg { grid-template-columns: 1fr }
   .sval { font-size: 18px }
@@ -1673,7 +1689,7 @@ textarea.ai-box{width:100%;resize:vertical;font-family:inherit;display:block;fon
 
 <script>
 // ═══════════════════════════════════════════════
-// BLAST PROSOUND · Sistema de Gestión v6.2
+// BLAST PROSOUND · Sistema de Gestión v6.3
 // ═══════════════════════════════════════════════
 
 // ─── CONFIG ───
@@ -5626,97 +5642,6 @@ function datosCot() {
   });
 }
 
-function buildPDFHTML(paraArchivo) {
-  const D = datosCot();
-  const S = D.simbolo;
-  const hoy = new Date().toLocaleDateString('es-VE');
-  const multi = D.dias > 1;
-  const td = 'padding:8px 10px;border-bottom:1px solid #eee;font-size:12px;';
-  const th = 'background-color:#141414;padding:7px 10px;font-size:9px;color:#ffffff;letter-spacing:1px;';
-
-  let itemsHTML = '', idx = 0;
-  D.items.forEach(i => {
-    if (!i.concepto || !i.precio) return;
-    const bg = idx++ % 2 === 0 ? '#ffffff' : '#f9f9f9';
-    itemsHTML += '<tr class="pdf-blk" style="background:' + bg + '">'
-      + '<td style="' + td + 'color:#777">' + esc(i.categoria || '—') + '</td>'
-      + '<td style="' + td + '">' + esc(i.concepto) + '</td>'
-      + '<td style="' + td + 'text-align:center">' + i.cantidad + '</td>'
-      + (multi ? '<td style="' + td + 'text-align:center">' + i.dias + '</td>' : '')
-      + '<td style="' + td + 'text-align:right">' + fmtMonto(S, i.precio) + '</td>'
-      + '<td style="' + td + 'font-weight:bold;text-align:right">' + fmtMonto(S, i.total) + '</td></tr>';
-  });
-
-  const fila = (lbl, val, color, peso) => '<tr><td style="font-size:12px;color:' + color + ';padding:3px 0;font-weight:' + (peso||'normal') + '">' + lbl + '</td><td style="font-size:12px;color:' + color + ';text-align:right;padding:3px 0;font-weight:' + (peso||'normal') + '">' + val + '</td></tr>';
-  let totales = fila('Subtotal', fmtMonto(S, D.sub), '#555');
-  if (D.descMonto > 0) totales += fila('Descuento (' + D.descPct + '%)', '−' + fmtMonto(S, D.descMonto), '#e05555');
-  if (D.descMonto > 0 && D.ivaOn) totales += fila('Base imponible', fmtMonto(S, D.base), '#555');
-  if (D.ivaOn) totales += fila('IVA (16%)', '+' + fmtMonto(S, D.ivaMonto), '#555');
-
-  const ivaTxt = D.ivaOn ? 'Los montos incluyen el IVA (16%).' : 'Los montos no incluyen el IVA.';
-  const terminos = TERMINOS_COT.map((t, n) =>
-    '<div class="pdf-blk" style="font-size:10.5px;color:#444;line-height:1.6;margin:0 0 8px;text-align:justify">'
-    + '<b style="color:#141414">' + (n + 1) + '. ' + t[0] + '.</b> ' + t[1].replace('{IVA}', ivaTxt) + '</div>').join('');
-
-  const lbl = t => '<div style="font-size:9px;color:#888;letter-spacing:1.5px;text-transform:uppercase;font-weight:bold;margin-bottom:3px">' + t + '</div>';
-  const showDesc = D.incluirDesc && D.desc.length > 3;
-
-  const cuerpo = ''
-    + '<div style="max-width:760px;margin:0 auto">'
-    + '<table class="pdf-blk" width="100%" cellpadding="0" cellspacing="0"><tr>'
-    +   '<td style="background-color:#141414;padding:22px 26px"><img src="https://blastprosound.github.io/blast-sistema/logo-white.png" crossorigin="anonymous" style="height:32px;width:auto" alt="Blast ProSound"></td>'
-    +   '<td style="background-color:#141414;padding:22px 26px;text-align:right">'
-    +     '<div style="font-size:15px;font-weight:700;color:#43bded;letter-spacing:2px">' + esc(D.codigo) + '</div>'
-    +     '<div style="font-size:10px;color:#aaaaaa;margin-top:5px">' + CORREO_PUBLICO + ' · @blast.sonido</div>'
-    +   '</td></tr></table>'
-    + '<div style="height:4px;background-color:#43bded"></div>'
-    + '<table class="pdf-blk" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f7f7f7;border-bottom:2px solid #e0e0e0"><tr>'
-    +   '<td width="50%" style="padding:16px 26px;vertical-align:top">'
-    +     lbl('Cliente') + '<div style="font-size:15px;font-weight:bold;margin-bottom:10px;color:#111">' + esc(D.cliente) + '</div>'
-    +     lbl('Tipo de evento') + '<div style="font-size:13px;margin-bottom:10px">' + esc(D.tipo) + '</div>'
-    +     lbl('Lugar') + '<div style="font-size:13px">' + esc(D.lugar) + '</div>'
-    +   '</td><td width="50%" style="padding:16px 26px;vertical-align:top">'
-    +     lbl(multi ? 'Fechas' : 'Fecha') + '<div style="font-size:13px;margin-bottom:10px">' + esc(D.fechaTxt) + '</div>'
-    +     lbl('Horario' + (multi ? ' (cada día)' : '')) + '<div style="font-size:13px;margin-bottom:10px">' + esc(D.horario + (D.duracion ? ' (' + D.duracion + ')' : '')) + '</div>'
-    +     lbl('Invitados') + '<div style="font-size:13px">' + esc(D.invitados) + '</div>'
-    +   '</td></tr></table>'
-    + '<div style="padding:16px 26px 0">'
-    +   '<div class="pdf-blk" style="font-size:9px;color:#888;letter-spacing:2px;text-transform:uppercase;font-weight:bold;padding-bottom:5px;border-bottom:1px solid #ddd">Servicios incluidos</div>'
-    +   '<table width="100%" cellpadding="0" cellspacing="0"><thead><tr class="pdf-blk">'
-    +     '<th style="' + th + 'text-align:left">CATEGORÍA</th><th style="' + th + 'text-align:left">CONCEPTO</th>'
-    +     '<th style="' + th + 'text-align:center">CANT.</th>' + (multi ? '<th style="' + th + 'text-align:center">DÍAS</th>' : '')
-    +     '<th style="' + th + 'text-align:right">P. UNIT.</th><th style="' + th + 'text-align:right">TOTAL</th>'
-    +   '</tr></thead><tbody>' + itemsHTML + '</tbody></table></div>'
-    + '<div class="pdf-blk" style="margin:14px 26px 0;padding:12px 16px;background-color:#f5f5f5;border-radius:4px">'
-    +   '<table width="100%" cellpadding="0" cellspacing="0">' + totales
-    +   '<tr><td colspan="2" style="padding:6px 0 0"><div style="height:2px;background-color:#43bded"></div></td></tr>'
-    +   '<tr><td style="font-size:20px;font-weight:900;color:#141414;padding-top:5px">TOTAL</td>'
-    +   '<td style="font-size:20px;font-weight:900;color:#43bded;text-align:right;padding-top:5px">' + fmtMonto(S, D.total) + '</td></tr>'
-    +   '</table></div>'
-    + (showDesc ? '<div class="pdf-blk" style="margin:14px 26px 0;padding:12px 14px;background:#f0fbff;border-left:4px solid #43bded;font-size:12px;line-height:1.7;color:#444;white-space:pre-line">' + esc(D.desc) + '</div>' : '')
-    + '<div style="margin:18px 26px 0">'
-    +   '<div class="pdf-blk" style="font-size:11px;font-weight:bold;color:#141414;margin-bottom:10px;letter-spacing:1.5px;text-transform:uppercase;border-bottom:2px solid #43bded;padding-bottom:5px">Términos y condiciones</div>'
-    +   terminos
-    + '</div>'
-    + '<table class="pdf-blk" width="100%" cellpadding="0" cellspacing="0" style="margin:12px 0 0;border-top:1px solid #eee"><tr>'
-    +   '<td style="font-size:9px;color:#999;padding:9px 26px">Blast ProSound · Caracas, Venezuela · ' + CORREO_PUBLICO + '</td>'
-    +   '<td style="font-size:9px;color:#999;text-align:right;padding:9px 26px">Generado el ' + hoy + '</td>'
-    + '</tr></table>'
-    + '</div>';
-
-  const barra = paraArchivo ? '' :
-      '<div class="noprint" style="background:#43bded;padding:10px 18px;text-align:right;position:sticky;top:0">'
-    + '<span style="color:#141414;font-size:12px;font-weight:bold;margin-right:12px">' + esc(D.codigo + ' · ' + D.cliente) + '</span>'
-    + '<button onclick="window.print()" style="background:#141414;color:#fff;border:none;padding:8px 18px;font-size:13px;font-weight:bold;cursor:pointer;border-radius:4px">IMPRIMIR / GUARDAR PDF</button>'
-    + '<div style="font-size:10px;color:#141414;margin-top:4px">Activar "Gráficos de fondo" en opciones para ver colores completos</div></div>';
-
-  return '<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>' + esc(D.codigo + ' - ' + D.cliente) + '</title>'
-    + '<style>*{margin:0;padding:0;box-sizing:border-box;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}'
-    + 'body{font-family:Arial,Helvetica,sans-serif;background:#fff;color:#222}'
-    + '@media print{.noprint{display:none!important}@page{margin:8mm;size:A4}.pdf-blk{break-inside:avoid;page-break-inside:avoid}}</style>'
-    + '</head><body>' + barra + cuerpo + '</body></html>';
-}
-
 // ─── PDF REAL (archivo) para compartir y adjuntar ───
 function cargarScript(src) {
   return new Promise((ok, fallo) => {
@@ -5730,59 +5655,180 @@ function nombreArchivoCot() {
   const c = ($('cc').value || 'Cliente').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-zA-Z0-9]+/g, '_');
   return $('ccode').textContent.replace(/[^a-zA-Z0-9-]+/g, '_') + '_' + c + '.pdf';
 }
-// Devuelve un Blob PDF tamaño A4. Corta las páginas entre bloques, nunca a mitad de una línea.
+// Logo en blanco para la cabecera negra (se carga una vez)
+var _logoPDF = null;
+function cargarLogoPDF() {
+  if (_logoPDF) return Promise.resolve(_logoPDF);
+  return new Promise(ok => {
+    const im = new Image();
+    im.crossOrigin = 'anonymous';
+    im.onload = () => {
+      try {
+        // El archivo original es enorme (12500 px): se reduce y se pone sobre negro
+        const ancho = 700, alto = Math.round(700 * im.naturalHeight / im.naturalWidth);
+        const c = document.createElement('canvas');
+        c.width = ancho; c.height = alto;
+        const g = c.getContext('2d');
+        g.fillStyle = '#141414'; g.fillRect(0, 0, ancho, alto);
+        g.drawImage(im, 0, 0, ancho, alto);
+        _logoPDF = {data: c.toDataURL('image/jpeg', 0.92), w: ancho, h: alto, tipo: 'JPEG'};
+      } catch (e) { _logoPDF = null; }
+      ok(_logoPDF);
+    };
+    im.onerror = () => ok(null);
+    im.src = 'https://blastprosound.github.io/blast-sistema/logo-white.png';
+  });
+}
+// Texto apto para las fuentes del PDF (sin signos que la fuente no tiene)
+function pdfTxt(t) { return String(t == null ? '' : t).replace(/−/g, '-').replace(/[‘’]/g, "'").replace(/[“”]/g, '"').replace(/[^\u0000-ÿ€–—•]/g, ''); }
+function pctTxt(n) { return (Math.round(n * 100) / 100) + '%'; }
+
+// PDF A4 dibujado directo (texto real): sale idéntico en celular y computadora.
 async function generarPDFBlob() {
-  await cargarScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js');
   await cargarScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');
-  const ANCHO = 794, ALTO = Math.floor(794 * 297 / 210), MARGEN = 30;
-  const ifr = document.createElement('iframe');
-  ifr.style.cssText = 'position:fixed;left:-10000px;top:0;width:' + ANCHO + 'px;height:' + ALTO + 'px;border:0';
-  document.body.appendChild(ifr);
-  try {
-    const doc = ifr.contentDocument;
-    doc.open(); doc.write(buildPDFHTML(true)); doc.close();
-    await new Promise(r => { const im = doc.images; let n = im.length; if (!n) return r();
-      for (const i of im) { if (i.complete) { if (!--n) r(); } else { i.onload = i.onerror = () => { if (!--n) r(); }; } }
-      setTimeout(r, 4000); });
-    // Empuja a la página siguiente los bloques que quedarían cortados
-    const util = ALTO - MARGEN * 2;
-    doc.querySelectorAll('.pdf-blk').forEach(el => {
-      const top = el.getBoundingClientRect().top + doc.defaultView.scrollY;
-      const h = el.offsetHeight;
-      const fin = top + h;
-      const pag = Math.floor(top / util);
-      if (h < util && fin > (pag + 1) * util) {
-        const falta = (pag + 1) * util - top;
-        if (el.tagName === 'TR') {
-          const sp = doc.createElement('tr');
-          sp.innerHTML = '<td colspan="9" style="height:' + falta + 'px;padding:0;border:0"></td>';
-          el.parentNode.insertBefore(sp, el);
-        } else {
-          // padding (no margin) para que no se colapse con el margen del bloque anterior
-          const sp = doc.createElement('div');
-          sp.style.cssText = 'height:' + falta + 'px';
-          el.parentNode.insertBefore(sp, el);
-        }
-      }
+  const logo = await cargarLogoPDF();
+  const D = datosCot();
+  const S = D.simbolo;
+  const multi = D.dias > 1;
+  const pdf = new window.jspdf.jsPDF({unit: 'pt', format: 'a4'});
+  const W = pdf.internal.pageSize.getWidth(), H = pdf.internal.pageSize.getHeight();
+  const M = 42, AN = W - M * 2, PIE = 40;
+  const NEGRO = [20, 20, 20], AZUL = [67, 189, 237], GRIS = [120, 120, 120], TXT = [40, 40, 40], ROJO = [224, 85, 85];
+  const F = (tam, estilo, color) => { pdf.setFont('helvetica', estilo || 'normal'); pdf.setFontSize(tam); pdf.setTextColor.apply(pdf, color || TXT); };
+  const etiqueta = (t, x, y) => { F(6.5, 'bold', GRIS); pdf.setCharSpace(1); pdf.text(pdfTxt(t).toUpperCase(), x, y); pdf.setCharSpace(0); };
+  let y = 0;
+  const salto = h => { if (y + h > H - PIE - 10) { pdf.addPage(); y = M; } };
+
+  // ── Cabecera
+  pdf.setFillColor.apply(pdf, NEGRO); pdf.rect(0, 0, W, 74, 'F');
+  if (logo) { const lh = 22; pdf.addImage(logo.data, logo.tipo, M, 26, lh * logo.w / logo.h, lh); }
+  else { F(20, 'bold', [255, 255, 255]); pdf.text('BLAST', M, 45); }
+  F(13, 'bold', AZUL); pdf.setCharSpace(1.5); pdf.text(pdfTxt(D.codigo), W - M, 38, {align: 'right'}); pdf.setCharSpace(0);
+  F(7.5, 'normal', [170, 170, 170]); pdf.text(CORREO_PUBLICO + '  ·  @blast.sonido', W - M, 52, {align: 'right'});
+  pdf.setFillColor.apply(pdf, AZUL); pdf.rect(0, 74, W, 3, 'F');
+
+  // ── Datos del evento (dos columnas)
+  const col2 = M + AN / 2 + 10, anchoCol = AN / 2 - 14;
+  const datos = [
+    [['Cliente', D.cliente, true], ['Tipo de evento', D.tipo], ['Lugar', D.lugar]],
+    [[multi ? 'Fechas' : 'Fecha', D.fechaTxt], ['Horario' + (multi ? ' (cada día)' : ''), D.horario + (D.duracion ? '  (' + D.duracion + ')' : '')], ['Invitados', D.invitados]]
+  ];
+  const altoCol = c => c.reduce((h, d) => h + 12 + pdf.splitTextToSize(pdfTxt(d[1]), anchoCol).length * 12 + 8, 0);
+  F(9.5); const altoDatos = Math.max(altoCol(datos[0]), altoCol(datos[1])) + 18;
+  pdf.setFillColor(246, 246, 246); pdf.rect(0, 77, W, altoDatos, 'F');
+  [[M, datos[0]], [col2, datos[1]]].forEach(([x, col]) => {
+    let yy = 77 + 22;
+    col.forEach(([lbl, val, fuerte]) => {
+      etiqueta(lbl, x, yy);
+      F(fuerte ? 11 : 9.5, fuerte ? 'bold' : 'normal', fuerte ? NEGRO : TXT);
+      const lin = pdf.splitTextToSize(pdfTxt(val), anchoCol);
+      pdf.text(lin, x, yy + 13);
+      yy += 12 + lin.length * 12 + 8;
     });
-    const canvas = await window.html2canvas(doc.body, {scale: 2, useCORS: true, backgroundColor: '#ffffff', width: ANCHO, windowWidth: ANCHO});
-    const pdf = new window.jspdf.jsPDF({unit: 'pt', format: 'a4'});
-    const pw = pdf.internal.pageSize.getWidth(), ph = pdf.internal.pageSize.getHeight();
-    const esc2 = canvas.width / ANCHO;                   // px de canvas por px css
-    const sliceCss = util, sliceCv = Math.floor(sliceCss * esc2);
-    const margenPt = MARGEN * pw / ANCHO;
-    for (let y = 0, n = 0; y < canvas.height; y += sliceCv, n++) {
-      const h = Math.min(sliceCv, canvas.height - y);
-      const c = document.createElement('canvas');
-      c.width = canvas.width; c.height = h;
-      c.getContext('2d').drawImage(canvas, 0, y, canvas.width, h, 0, 0, canvas.width, h);
-      if (n) pdf.addPage();
-      pdf.addImage(c.toDataURL('image/jpeg', 0.92), 'JPEG', 0, margenPt, pw, h / esc2 * pw / ANCHO);
-    }
-    return pdf.output('blob');
-  } finally {
-    ifr.remove();
+  });
+  y = 77 + altoDatos + 24;
+
+  // ── Tabla de servicios
+  etiqueta('Servicios incluidos', M, y); y += 8;
+  const cols = [{t: 'Categoría', w: 92, a: 'left'}, {t: 'Concepto', w: 0, a: 'left'}, {t: 'Cant.', w: 38, a: 'center'}];
+  if (multi) cols.push({t: 'Días', w: 34, a: 'center'});
+  cols.push({t: 'P. unit.', w: 66, a: 'right'}, {t: 'Total', w: 72, a: 'right'});
+  cols[1].w = AN - cols.reduce((s, c) => s + c.w, 0);
+  let x0 = M; cols.forEach(c => { c.x = x0; x0 += c.w; });
+  const PAD = 7;
+  const xTexto = c => c.a === 'right' ? c.x + c.w - PAD : c.a === 'center' ? c.x + c.w / 2 : c.x + PAD;
+  const cabeceraTabla = () => {
+    pdf.setFillColor.apply(pdf, NEGRO); pdf.rect(M, y, AN, 20, 'F');
+    F(6.5, 'bold', [255, 255, 255]); pdf.setCharSpace(0.8);
+    cols.forEach(c => pdf.text(c.t.toUpperCase(), xTexto(c), y + 13, {align: c.a}));
+    pdf.setCharSpace(0); y += 20;
+  };
+  cabeceraTabla();
+  const filas = D.items.filter(i => i.concepto && i.precio);
+  filas.forEach((i, n) => {
+    F(8.5);
+    const lc = pdf.splitTextToSize(pdfTxt(i.concepto), cols[1].w - PAD * 2);
+    const lcat = pdf.splitTextToSize(pdfTxt(i.categoria || '—'), cols[0].w - PAD * 2);
+    const h = Math.max(lc.length, lcat.length) * 11 + 11;
+    if (y + h > H - PIE - 10) { pdf.addPage(); y = M; cabeceraTabla(); }
+    if (n % 2) { pdf.setFillColor(249, 249, 249); pdf.rect(M, y, AN, h, 'F'); }
+    pdf.setDrawColor(232, 232, 232); pdf.setLineWidth(0.5); pdf.line(M, y + h, M + AN, y + h);
+    const yt = y + 14;
+    F(8.5, 'normal', GRIS); pdf.text(lcat, xTexto(cols[0]), yt);
+    F(8.5, 'normal', TXT);  pdf.text(lc, xTexto(cols[1]), yt);
+    let k = 2;
+    pdf.text(String(i.cantidad), xTexto(cols[k]), yt, {align: 'center'}); k++;
+    if (multi) { pdf.text(String(i.dias), xTexto(cols[k]), yt, {align: 'center'}); k++; }
+    pdf.text(pdfTxt(fmtMonto(S, i.precio)), xTexto(cols[k]), yt, {align: 'right'}); k++;
+    F(8.5, 'bold', NEGRO); pdf.text(pdfTxt(fmtMonto(S, i.total)), xTexto(cols[k]), yt, {align: 'right'});
+    y += h;
+  });
+
+  // ── Totales (caja a la derecha)
+  const tot = [['Subtotal', fmtMonto(S, D.sub), TXT]];
+  if (D.descMonto > 0) tot.push(['Descuento (' + pctTxt(D.descPct) + ')', '-' + fmtMonto(S, D.descMonto), ROJO]);
+  if (D.descMonto > 0 && D.ivaOn) tot.push(['Base imponible', fmtMonto(S, D.base), TXT]);
+  if (D.ivaOn) tot.push(['IVA (16%)', '+' + fmtMonto(S, D.ivaMonto), TXT]);
+  const altoTot = tot.length * 15 + 42;
+  y += 14; salto(altoTot);
+  const bx = M + AN - 230;
+  pdf.setFillColor(245, 245, 245); pdf.roundedRect(bx, y, 230, altoTot, 3, 3, 'F');
+  let ty = y + 18;
+  tot.forEach(([l, v, c]) => {
+    F(8.5, 'normal', c); pdf.text(pdfTxt(l), bx + 12, ty); pdf.text(pdfTxt(v), bx + 218, ty, {align: 'right'}); ty += 15;
+  });
+  pdf.setFillColor.apply(pdf, AZUL); pdf.rect(bx + 12, ty - 6, 206, 1.5, 'F');
+  F(13, 'bold', NEGRO); pdf.text('TOTAL', bx + 12, ty + 13);
+  F(13, 'bold', AZUL);  pdf.text(pdfTxt(fmtMonto(S, D.total)), bx + 218, ty + 13, {align: 'right'});
+  y += altoTot + 18;
+
+  // ── Descripción
+  if (D.incluirDesc && D.desc.length > 3) {
+    F(8.5, 'normal', TXT);
+    const ld = pdf.splitTextToSize(pdfTxt(D.desc), AN - 26);
+    const h = ld.length * 12 + 16;
+    salto(h);
+    pdf.setFillColor(240, 250, 255); pdf.rect(M, y, AN, h, 'F');
+    pdf.setFillColor.apply(pdf, AZUL); pdf.rect(M, y, 2.5, h, 'F');
+    pdf.text(ld, M + 14, y + 15);
+    y += h + 18;
   }
+
+  // ── Términos y condiciones (letra pequeña)
+  salto(40);
+  F(7.5, 'bold', NEGRO); pdf.setCharSpace(1); pdf.text('TÉRMINOS Y CONDICIONES', M, y); pdf.setCharSpace(0);
+  pdf.setFillColor.apply(pdf, AZUL); pdf.rect(M, y + 4, AN, 1, 'F');
+  y += 16;
+  const ivaTxt = D.ivaOn ? 'Los montos incluyen el IVA (16%).' : 'Los montos no incluyen el IVA.';
+  TERMINOS_COT.forEach((t, n) => {
+    const tit = (n + 1) + '. ' + t[0] + '. ';
+    F(7, 'bold'); const anchoTit = pdf.getTextWidth(tit);
+    F(7, 'normal', [70, 70, 70]);
+    // la primera línea arranca después del título en negrita
+    const cuerpo = pdfTxt(t[1].replace('{IVA}', ivaTxt));
+    const palabras = cuerpo.split(' ');
+    let primera = '';
+    while (palabras.length && pdf.getTextWidth(primera + palabras[0] + ' ') < AN - anchoTit) primera += palabras.shift() + ' ';
+    const resto = palabras.length ? pdf.splitTextToSize(palabras.join(' '), AN) : [];
+    const h = (1 + resto.length) * 9.5 + 4;
+    salto(h);
+    F(7, 'bold', NEGRO); pdf.text(tit, M, y);
+    F(7, 'normal', [70, 70, 70]); pdf.text(primera.trim(), M + anchoTit, y);
+    if (resto.length) pdf.text(resto, M, y + 9.5);
+    y += h;
+  });
+
+  // ── Pie en todas las páginas
+  const total = pdf.getNumberOfPages(), hoy = new Date().toLocaleDateString('es-VE');
+  for (let p = 1; p <= total; p++) {
+    pdf.setPage(p);
+    pdf.setDrawColor(225, 225, 225); pdf.setLineWidth(0.5); pdf.line(M, H - PIE + 8, W - M, H - PIE + 8);
+    F(6.5, 'normal', [150, 150, 150]);
+    pdf.text('Blast ProSound  ·  Caracas, Venezuela  ·  ' + CORREO_PUBLICO, M, H - PIE + 20);
+    pdf.text(pdfTxt(D.codigo) + '  ·  ' + hoy + '  ·  Página ' + p + ' de ' + total, W - M, H - PIE + 20, {align: 'right'});
+  }
+  pdf.setProperties({title: pdfTxt(D.codigo + ' - ' + D.cliente), author: 'Blast ProSound'});
+  return pdf.output('blob');
 }
 function hayItemsCot() {
   return leerItemsCot().some(i => i.concepto && i.precio);
@@ -5873,9 +5919,13 @@ async function enviarCotCorreo() {
 
 async function exportPDF() {
   if(!hayItemsCot()){alert('Agrega al menos un ítem antes de exportar.');return;}
-  const w = window.open('','_blank');
-  if(!w){alert('Permite ventanas emergentes en Chrome para exportar el PDF.');return;}
-  w.document.open(); w.document.write(buildPDFHTML()); w.document.close();
+  const w = window.open('','_blank');      // se abre ya, si no el navegador lo bloquea
+  if(!w){alert('Permite ventanas emergentes para ver el PDF.');return;}
+  w.document.write('<p style="font-family:Arial;padding:20px">Generando PDF…</p>');
+  try {
+    const blob = await generarPDFBlob();
+    w.location.href = URL.createObjectURL(blob);
+  } catch (e) { w.close(); alert('No se pudo generar el PDF: ' + e.message); return; }
   // Save and mark as Descargada
   const res = await guardarCotizacionDB(true);
   const codigo = $('ccode').textContent;
