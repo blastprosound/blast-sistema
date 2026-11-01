@@ -176,6 +176,49 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
 .hsel{display:flex;gap:5px}
 .hsel select{flex:1;min-width:0;padding-left:6px;padding-right:4px}
 textarea.ai-box{width:100%;resize:vertical;font-family:inherit;display:block;font-style:normal}
+.pj-board{display:flex;gap:10px;overflow-x:auto;padding-bottom:8px;margin-bottom:6px;align-items:flex-start}
+.pj-col{flex:1 0 185px;background:var(--black2);border:1px solid var(--border);border-radius:var(--r2);padding:10px 9px 6px;min-height:80px}
+.pj-col-h{display:flex;align-items:center;gap:7px;font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--w3);padding:0 3px 9px;cursor:pointer;user-select:none}
+.pj-col-h i.dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.pj-col-h .n{margin-left:auto;color:var(--w4);font-weight:400}
+.pj-card{background:var(--black3);border:1px solid var(--border);border-radius:8px;padding:9px 10px;margin-bottom:7px;cursor:pointer;transition:border-color .12s}
+.pj-card:hover{border-color:var(--border2)}
+.pj-card .t{display:flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;color:var(--w2)}
+.pj-card .t b{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
+.pj-card .f{font-size:11px;color:var(--w4);font-weight:400;flex-shrink:0}
+.pj-card .s{font-size:10.5px;color:var(--w4);margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pj-card .s.alerta{color:var(--red)}
+.pj-bar{display:flex;align-items:center;gap:6px;margin-top:7px;font-size:10px;color:var(--w4)}
+.pj-bar span.b{flex:1;height:4px;border-radius:2px;background:rgba(255,255,255,.07);overflow:hidden}
+.pj-bar span.b i{display:block;height:100%;border-radius:2px}
+.pj-ini{display:inline-flex;align-items:center;justify-content:center;width:19px;height:19px;border-radius:50%;font-size:8.5px;font-weight:700;background:rgba(67,189,237,.13);color:var(--blue);flex-shrink:0}
+.pj-web{font-size:8.5px;font-weight:700;letter-spacing:.5px;color:var(--magenta);background:rgba(234,95,242,.12);padding:1px 5px;border-radius:5px}
+.pj-vacio{font-size:11px;color:var(--w4);padding:4px 3px 8px}
+.pj-lista .pj-g{font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--w3);padding:14px 2px 6px;display:flex;align-items:center;gap:7px;border-bottom:1px solid var(--border)}
+.pj-lista .pj-g i.dot{width:8px;height:8px;border-radius:50%}
+.pj-row{display:grid;grid-template-columns:14px minmax(140px,1.6fr) 70px 1fr 120px 26px;gap:10px;align-items:center;padding:9px 2px;border-bottom:1px solid var(--border);cursor:pointer;font-size:12px}
+.pj-row:hover{background:rgba(255,255,255,.02)}
+.pj-row .c{font-weight:600;color:var(--w2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pj-row .falta{font-size:11px;color:var(--w4);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pj-pasos{display:flex;gap:3px;margin-bottom:14px}
+.pj-pasos div{flex:1;text-align:center;font-size:9px;letter-spacing:.5px;text-transform:uppercase;color:var(--w4);padding-top:7px;border-top:3px solid rgba(255,255,255,.08)}
+.pj-pasos div.hecho{border-top-color:rgba(61,202,110,.55);color:var(--w3)}
+.pj-pasos div.actual{border-top-color:var(--blue);color:var(--blue);font-weight:700}
+.pj-chk{display:flex;align-items:center;gap:10px;padding:8px 2px;border-bottom:1px solid var(--border);font-size:13px;color:var(--w2)}
+.pj-chk input{width:18px;height:18px;accent-color:var(--green);flex-shrink:0}
+.pj-chk.ok span{color:var(--w4);text-decoration:line-through}
+.pj-chk small{margin-left:auto;font-size:10px;color:var(--w4);white-space:nowrap}
+.pj-info{font-size:12px;color:var(--w3);background:var(--black3);border-radius:8px;padding:9px 11px;margin-bottom:12px;white-space:pre-line}
+@media (max-width:768px){
+  .pj-board{flex-direction:column;overflow:visible}
+  .pj-col{flex:auto;width:100%}
+  .pj-col.cerrada .pj-card,.pj-col.cerrada .pj-vacio{display:none}
+  .pj-col.cerrada{min-height:0;padding-bottom:0}
+  .pj-row{grid-template-columns:12px 1fr 58px;row-gap:3px}
+  .pj-row .falta,.pj-row .pj-bar-c{grid-column:2 / 4}
+  .pj-row .resp{display:none}
+  .pj-pasos div{font-size:0;padding-top:0}
+}
 .semaf{width:11px;height:11px;border-radius:50%;flex-shrink:0;box-shadow:0 0 0 3px rgba(255,255,255,.04)}
 .semaf.rojo{background:var(--red)}.semaf.amarillo{background:var(--orange)}.semaf.verde{background:var(--green)}.semaf.gris{background:var(--w4)}
 .seg-fila{display:flex;align-items:center;gap:11px;padding:10px 2px;border-bottom:1px solid var(--border);flex-wrap:wrap}
@@ -859,31 +902,23 @@ textarea.ai-box{width:100%;resize:vertical;font-family:inherit;display:block;fon
 </div>
 
 <!-- CREATIVO · visuales y renders (herramienta en renders.html) -->
-<!-- SEGUIMIENTO · semáforo de cotizaciones, panel de eventos y tareas -->
+<!-- SEGUIMIENTO · ciclo completo del evento -->
 <div id="v-seguimiento" class="view">
   <div class="ph">
-    <div><div class="aline"></div><div class="ptitle">Seguimiento</div><div class="psub">Cotizaciones por cerrar, próximos eventos y tareas</div></div>
+    <div><div class="aline"></div><div class="ptitle">Seguimiento</div><div class="psub" id="pj-resumen">Del pedido del cliente al cierre</div></div>
     <div class="btn-row">
-      <div class="seg"><button class="on" data-seg-mias="0">Todo</button><button data-seg-mias="1">Solo lo mío</button></div>
-      <button class="btn btn-ghost btn-sm" id="seg-btn-recordar" onclick="probarRecordatorios()" style="display:none" title="Te manda a ti el resumen de hoy, para probar"><i class="ti ti-bell-ringing"></i>Probar recordatorio</button>
+      <div class="seg"><button class="on" data-pj-vista="tablero"><i class="ti ti-layout-kanban"></i> Tablero</button><button data-pj-vista="lista"><i class="ti ti-list"></i> Lista</button></div>
+      <div class="seg"><button class="on" data-seg-mias="0">Todo</button><button data-seg-mias="1">Lo mío</button></div>
+      <button class="btn btn-blue btn-sm" onclick="abrirSolicitud()"><i class="ti ti-plus"></i>Nueva solicitud</button>
+      <button class="btn btn-ghost btn-sm" id="seg-btn-recordar" onclick="probarRecordatorios()" style="display:none" title="Te manda a ti el resumen de hoy"><i class="ti ti-bell-ringing"></i></button>
     </div>
   </div>
   <div id="seg-aviso"></div>
-  <div class="sg" style="margin-bottom:13px">
-    <div class="sc"><div class="sc-top" style="background:var(--red)"></div><div class="slabel">Cotizaciones en rojo</div><div class="sval" id="seg-k-rojo" style="color:var(--red)">—</div><div class="ssub">5+ días sin contacto o evento en &lt; 7 días</div></div>
-    <div class="sc"><div class="sc-top" style="background:var(--orange)"></div><div class="slabel">En amarillo</div><div class="sval" id="seg-k-amarillo" style="color:var(--orange)">—</div><div class="ssub">2 a 4 días sin contacto</div></div>
-    <div class="sc"><div class="sc-top" style="background:var(--green)"></div><div class="slabel">Al día</div><div class="sval" id="seg-k-verde" style="color:var(--green)">—</div><div class="ssub" id="seg-k-verde-sub">menos de 2 días</div></div>
-    <div class="sc"><div class="sc-top" style="background:var(--magenta)"></div><div class="slabel">Tareas vencidas</div><div class="sval" id="seg-k-tareas" style="color:var(--magenta)">—</div><div class="ssub" id="seg-k-tareas-sub">—</div></div>
+  <div id="pj-cont"><div style="color:var(--w4);font-size:12px">Cargando...</div></div>
+  <div style="margin:4px 0 14px;font-size:11px;color:var(--w4)">
+    <a href="#" data-pj-cerrados="1" style="color:var(--w4)" id="pj-ver-cerrados">Ver finalizados y negados</a>
   </div>
-  <div class="card">
-    <div class="ctitle">Cotizaciones abiertas · semáforo</div>
-    <div id="seg-cots"><div style="color:var(--w4);font-size:12px">Cargando...</div></div>
-  </div>
-  <div class="card">
-    <div class="ctitle">Próximos eventos · estatus</div>
-    <div id="seg-eventos" class="seg-ev-grid"></div>
-  </div>
-  <div class="card">
+  <div class="card" id="seg-tareas-card">
     <div class="ctitle">Tareas pendientes</div>
     <div id="seg-tareas"></div>
   </div>
@@ -1389,6 +1424,36 @@ textarea.ai-box{width:100%;resize:vertical;font-family:inherit;display:block;fon
   </div>
 </div>
 
+<div class="modal-bg" id="modal-proy">
+  <div class="modal" style="width:560px;max-height:92vh;overflow-y:auto">
+    <div class="modal-title" id="pj-titulo"></div>
+    <div id="pj-sub" style="font-size:12px;color:var(--w4);margin:-6px 0 12px;line-height:1.6"></div>
+    <div class="pj-pasos" id="pj-pasos"></div>
+    <div id="pj-cuerpo"></div>
+    <div class="modal-footer" id="pj-acciones" style="flex-wrap:wrap"></div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal-sol">
+  <div class="modal" style="width:520px;max-height:92vh;overflow-y:auto">
+    <div class="modal-title" id="sol-titulo">Nueva solicitud</div>
+    <div class="fg" style="margin-bottom:9px">
+      <div class="fgrp"><label class="flabel">Cliente</label><input type="text" id="sol-cliente" placeholder="Nombre del cliente"></div>
+      <div class="fgrp"><label class="flabel">Contacto</label><input type="text" id="sol-contacto" placeholder="Teléfono o correo"></div>
+      <div class="fgrp"><label class="flabel">Tipo de evento</label><select id="sol-tipo"><option>Fiesta</option><option>Matrimonio</option><option>Corporativo</option><option>Graduación</option><option>Conferencia</option><option>Institucional</option><option>Concierto</option><option>Otro</option></select></div>
+      <div class="fgrp"><label class="flabel">Fecha del evento</label><input type="date" id="sol-fecha"></div>
+      <div class="fgrp"><label class="flabel">Lugar</label><input type="text" id="sol-lugar"></div>
+      <div class="fgrp"><label class="flabel">Invitados</label><input type="number" id="sol-invitados" inputmode="numeric"></div>
+      <div class="fgrp"><label class="flabel">Responsable</label><select id="sol-resp"><option>Gustavo Briceño</option><option>Eduardo Behrens</option><option>Francisco Massari</option></select></div>
+    </div>
+    <div class="fgrp"><label class="flabel">¿Qué pidió?</label><textarea id="sol-detalle" rows="3" placeholder="Ej: sonido para 200 personas, pista LED, DJ hasta las 3am"></textarea></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="document.getElementById('modal-sol').classList.remove('show')">Cancelar</button>
+      <button class="btn btn-blue" id="sol-btn" onclick="guardarSolicitud()"><i class="ti ti-device-floppy"></i>Guardar</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-bg" id="modal-seg">
   <div class="modal" style="width:440px">
     <div class="modal-title" id="ms-titulo">Seguimiento</div>
@@ -1777,7 +1842,7 @@ textarea.ai-box{width:100%;resize:vertical;font-family:inherit;display:block;fon
 
 <script>
 // ═══════════════════════════════════════════════
-// BLAST PROSOUND · Sistema de Gestión v6.4
+// BLAST PROSOUND · Sistema de Gestión v6.5
 // ═══════════════════════════════════════════════
 
 // ─── CONFIG ───
@@ -5517,15 +5582,15 @@ function moverItem(btn, dir) {
   }
 }
 
-function nuevaCotizacion() {
-  if (document.querySelectorAll('.cir').length && !confirm('¿Empezar una cotización nueva? Se limpiará lo que tengas en pantalla.')) return;
+function nuevaCotizacion(sinPreguntar) {
+  if (!sinPreguntar && document.querySelectorAll('.cir').length && !confirm('¿Empezar una cotización nueva? Se limpiará lo que tengas en pantalla.')) return;
   ['cc','cplace','cguests'].forEach(id => { const e = $(id); if (e) e.value = ''; });
   if ($('ctype'))  $('ctype').value  = 'Matrimonio';
   if ($('cdate'))  $('cdate').value  = '';
   if ($('c-desc')) $('c-desc').value = 0;
   if ($('c-iva'))  $('c-iva').checked = false;
   if ($('ai-out')) $('ai-out').value = '';
-  if ($('ccode'))  { $('ccode').textContent = 'COT ——'; delete $('ccode').dataset.manual; }
+  if ($('ccode'))  { $('ccode').textContent = 'COT ——'; delete $('ccode').dataset.manual; delete $('ccode').dataset.proy; }
   if ($('cmulti')) $('cmulti').checked = false;
   if ($('cdate-fin')) $('cdate-fin').value = '';
   setHoraSel('ctime-start', ''); setHoraSel('ctime-end', '');
@@ -6129,6 +6194,7 @@ async function guardarCotizacionDB(silencioso){
     if (!silencioso) alert('No se pudo guardar: ' + error.message);
     return 'error';
   }
+  vincularCotProyecto(codigo);
   if (!silencioso) await cargarHistorial();
   return 'ok';
 }
@@ -6746,7 +6812,7 @@ async function cargarHistorial() {
   const {data, error} = await supa.from('cotizaciones').select('*').order('created_at', {ascending: false});
   if (!error && data) _historialData = data;
   renderHistorial();
-  if ($('v-seguimiento') && $('v-seguimiento').classList.contains('on')) renderSeguimiento();
+  if ($('v-seguimiento') && $('v-seguimiento').classList.contains('on')) { armarProyectos(); renderSeguimiento(); }
 }
 
 function cargarCotizacion(codigo) {
@@ -6774,7 +6840,11 @@ function cargarCotizacion(codigo) {
     if($('c-desc'))  $('c-desc').value  = parseFloat(c.descuento)||0;
     if($('c-iva'))   $('c-iva').checked = c.iva || false;
     if($('ai-out')) $('ai-out').value = c.descripcion_ia || '';
-    if($('ccode')) $('ccode').textContent = c.codigo || '';
+    if($('ccode')) {
+      $('ccode').textContent = c.codigo || '';
+      const pr = (SEG.proyectos || []).find(x => x.codigo_cot === c.codigo);
+      if (pr) $('ccode').dataset.proy = pr.id; else delete $('ccode').dataset.proy;
+    }
     toggleMultiDia();
     // Load items
     $('cot-items').innerHTML = '';
@@ -7837,62 +7907,6 @@ document.addEventListener('click', e => {
   if (acc === 'log')     irALogistica(cod);
 });
 
-async function cargarSeguimiento() {
-  if ($('seg-btn-recordar')) $('seg-btn-recordar').style.display = CURRENT_USER.rol === 'admin' ? '' : 'none';
-  const tareasQ = supa.from('evento_tareas').select('*').order('fecha_limite', {ascending: true, nullsFirst: false});
-  const [, , t] = await Promise.all([cargarHistorial(), USUARIOS.length ? null : cargarUsuarios(), tareasQ]);
-  SEG.faltaSQL = !!(t && t.error);
-  SEG.tareas = (t && t.data) || [];
-  renderSeguimiento();
-  await pintarPanelEventos();
-}
-
-function renderSeguimiento() {
-  const aviso = $('seg-aviso');
-  if (aviso) aviso.innerHTML = SEG.faltaSQL
-    ? '<div class="card" style="border-color:rgba(244,169,61,.4);color:var(--orange);font-size:12px">Falta correr el SQL de la Fase 3 en Supabase (tareas y fechas de envío).</div>' : '';
-
-  // ── Cotizaciones
-  let cots = (_historialData || []).map(c => ({c, s: semaforoCot(c)})).filter(x => x.s);
-  if (SEG.mias) cots = cots.filter(x => mismaPersona(x.c.responsable, CURRENT_USER.nombre));
-  cots.sort((a, b) => a.s.orden - b.s.orden || ((a.s.dEv ?? 999) - (b.s.dEv ?? 999)));
-  const n = k => cots.filter(x => x.s.c === k).length;
-  $('seg-k-rojo').textContent = n('rojo');
-  $('seg-k-amarillo').textContent = n('amarillo');
-  $('seg-k-verde').textContent = n('verde');
-  $('seg-k-verde-sub').textContent = 'menos de 2 días' + (n('gris') ? ' · ' + n('gris') + ' sin enviar o pasadas' : '');
-
-  const fila = ({c, s}) => {
-    const cod = esc(c.codigo);
-    const sim = c.moneda === 'EUR' ? '€' : '$';
-    const det = [c.codigo, c.fecha_evento ? 'evento ' + fCorta(c.fecha_evento) : 'sin fecha', c.responsable, c.total ? sim + Number(c.total).toLocaleString('es-VE') : '']
-      .filter(Boolean).map(esc).join(' · ');
-    return '<div class="seg-fila">'
-      + '<span class="semaf ' + s.c + '"></span>'
-      + '<div class="seg-main"><div class="seg-nom">' + esc(c.cliente || c.codigo) + '</div><div class="seg-det">' + det + '</div>'
-      +   (c.seguimiento_nota ? '<div class="seg-det" style="font-style:italic">“' + esc(c.seguimiento_nota) + '”</div>' : '') + '</div>'
-      + '<div class="seg-txt ' + s.c + '">' + esc(s.txt) + '</div>'
-      + '<div class="seg-acc">'
-      +   (s.orden === 4 ? '' : '<button class="btn btn-ghost btn-sm" data-seg="hecho" data-cod="' + cod + '" title="Ya lo contacté"><i class="ti ti-phone-check"></i>Seguimiento</button>')
-      +   '<button class="btn btn-ghost btn-sm" data-seg="abrir" data-cod="' + cod + '" title="Abrir"><i class="ti ti-edit"></i></button>'
-      +   '<button class="btn btn-ghost btn-sm btn-confirmar-cot" data-cot="' + cod + '" style="color:var(--green)" title="Confirmar"><i class="ti ti-circle-check"></i></button>'
-      +   '<button class="btn btn-ghost btn-sm" data-seg="perdida" data-cod="' + cod + '" style="color:var(--red)" title="Perdida"><i class="ti ti-x"></i></button>'
-      + '</div></div>';
-  };
-  $('seg-cots').innerHTML = cots.length ? cots.map(fila).join('')
-    : '<div style="color:var(--w4);font-size:12px;padding:10px 0">No hay cotizaciones abiertas.</div>';
-
-  // ── Tareas pendientes
-  const hoy = hoyLocalISO();
-  let pend = SEG.tareas.filter(t => !t.hecha);
-  if (SEG.mias) pend = pend.filter(t => (t.responsable_email || '').toLowerCase() === CURRENT_USER.email.toLowerCase());
-  const venc = pend.filter(t => t.fecha_limite && t.fecha_limite < hoy).length;
-  $('seg-k-tareas').textContent = venc;
-  $('seg-k-tareas-sub').textContent = pend.length + ' pendiente' + (pend.length === 1 ? '' : 's') + ' en total';
-  $('seg-tareas').innerHTML = pend.length ? pend.map(t => filaTarea(t, true)).join('')
-    : '<div style="color:var(--w4);font-size:12px;padding:10px 0">' + (SEG.faltaSQL ? 'Disponible al correr el SQL.' : 'Sin tareas pendientes 🎉') + '</div>';
-}
-
 function filaTarea(t, conEvento) {
   const hoy = hoyLocalISO();
   let vence = '';
@@ -7913,66 +7927,477 @@ function filaTarea(t, conEvento) {
     + '</div>';
 }
 
-// ── Panel de próximos eventos (confirmados)
-async function pintarPanelEventos() {
-  const box = $('seg-eventos');
-  if (!box) return;
+// ── Ciclo del evento: 6 etapas
+var ETAPAS = [
+  {id: 'solicitud',   nom: 'Solicitud',   color: '#a0a0a0'},
+  {id: 'preparacion', nom: 'Preparación', color: 'var(--magenta)'},
+  {id: 'enviada',     nom: 'Enviada',     color: 'var(--orange)'},
+  {id: 'produccion',  nom: 'Producción',  color: 'var(--blue)'},
+  {id: 'ejecucion',   nom: 'Ejecución',   color: '#8b7cf6'},
+  {id: 'cierre',      nom: 'Cierre',      color: 'var(--green)'}
+];
+var IDX_ETAPA = {solicitud: 0, preparacion: 1, enviada: 2, produccion: 3, ejecucion: 4, cierre: 5, finalizado: 6, negado: 7};
+var NOM_ETAPA = {finalizado: 'Finalizado', negado: 'Negado'};
+ETAPAS.forEach(e => NOM_ETAPA[e.id] = e.nom);
+// Checklist por etapa. auto = el sistema lo sabe solo (igual se puede marcar a mano)
+var CHECKS = {
+  solicitud:   [],
+  preparacion: [{k: 'render', t: 'Render / propuesta visual'}, {k: 'prov', t: 'Cotizar con proveedores'}, {k: 'presupuesto', t: 'Presupuesto hecho', auto: true}],
+  enviada:     [{k: 'enviada', t: 'Cotización enviada', auto: true}, {k: 'seguimiento', t: 'Seguimiento al cliente', auto: true}],
+  produccion:  [{k: 'conf_prov', t: 'Confirmar proveedores'}, {k: 'precons', t: 'Precontrucción / compra de materiales'}, {k: 'personal', t: 'Personal confirmado', auto: true}, {k: 'inventario', t: 'Lista de equipos lista', auto: true}],
+  ejecucion:   [{k: 'montado', t: 'Montado', auto: true}, {k: 'devuelto', t: 'Desmontado y devuelto', auto: true}],
+  cierre:      [{k: 'cobrado', t: 'Cobrado al cliente', auto: true}, {k: 'pago_personal', t: 'Personal pagado', auto: true}, {k: 'pago_prov', t: 'Proveedores pagados', auto: true}]
+};
+SEG.vista = 'tablero';
+SEG.verCerrados = false;
+SEG.proyectos = [];
+SEG.items = {};
+SEG.log = {fichas: {}, asig: {}, inv: {}};
+
+document.addEventListener('click', e => {
+  const v = e.target.closest('[data-pj-vista]');
+  if (v) { SEG.vista = v.dataset.pjVista; document.querySelectorAll('[data-pj-vista]').forEach(x => x.classList.toggle('on', x === v)); renderSeguimiento(); return; }
+  const c = e.target.closest('[data-pj-cerrados]');
+  if (c) { e.preventDefault(); SEG.verCerrados = !SEG.verCerrados; renderSeguimiento(); return; }
+  const h = e.target.closest('.pj-col-h');
+  if (h) { h.parentElement.classList.toggle('cerrada'); return; }
+  const k = e.target.closest('[data-pj]');
+  if (k) { abrirProyecto(k.dataset.pj); return; }
+  const a = e.target.closest('[data-pja]');
+  if (a) accionProyecto(a.dataset.pja, a.dataset.k);
+});
+document.addEventListener('change', e => {
+  const ch = e.target.closest('[data-pjchk]');
+  if (ch) marcarCheck(ch.dataset.k, ch.dataset.pjchk, ch.checked);
+  const mv = e.target.closest('#pj-mover');
+  if (mv && mv.value) moverEtapa(mv.dataset.k, mv.value);
+});
+
+async function cargarSeguimiento() {
+  if ($('seg-btn-recordar')) $('seg-btn-recordar').style.display = CURRENT_USER.rol === 'admin' ? '' : 'none';
+  const [, , t, p] = await Promise.all([
+    cargarHistorial(), USUARIOS.length ? null : cargarUsuarios(),
+    supa.from('evento_tareas').select('*').order('fecha_limite', {ascending: true, nullsFirst: false}),
+    supa.from('proyectos').select('*').order('created_at', {ascending: false}).limit(1000)
+  ]);
+  SEG.faltaSQL = !!((t && t.error) || (p && p.error));
+  SEG.tareas = (t && t.data) || [];
+  SEG.proyectos = (p && p.data) || [];
+  armarProyectos();
+  await cargarLogisticaProyectos();
+  renderSeguimiento();
+}
+
+// Une solicitudes (tabla proyectos), cotizaciones y eventos de Registro en una sola lista
+function armarProyectos() {
   const hoy = hoyLocalISO();
-  const evs = EVS.filter(e => e.fecha && e.fecha >= hoy && diasEntre(hoy, e.fecha) <= 45).sort((a, b) => a.fecha.localeCompare(b.fecha));
-  if (!evs.length) { box.innerHTML = '<div style="color:var(--w4);font-size:12px">No hay eventos confirmados en los próximos 45 días.</div>'; return; }
-  box.innerHTML = '<div style="color:var(--w4);font-size:12px">Cargando estatus...</div>';
-  const cods = evs.map(e => e.codigo);
+  const hace = n => { const d = new Date(); d.setDate(d.getDate() - n); return isoLocal(d); };
+  const cots = {}; (_historialData || []).forEach(c => cots[c.codigo] = c);
+  const evs = {}; EVS.forEach(e => evs[e.codigo] = e);
+  const items = {};
+  const usadosCot = new Set(), usadosEv = new Set();
+  const add = (key, it) => {
+    it.key = key;
+    it.cot = it.cot || (it.p && it.p.codigo_cot ? cots[it.p.codigo_cot] : null) || null;
+    it.codEv = (it.p && it.p.codigo_evento) || (it.cot && it.cot.codigo_evento) || (it.ev && it.ev.codigo) || null;
+    it.ev = it.ev || (it.codEv ? evs[it.codEv] : null) || null;
+    it.cliente = (it.p && it.p.cliente) || (it.cot && it.cot.cliente) || (it.ev && it.ev.cliente) || it.codEv || '—';
+    it.fecha = (it.cot && it.cot.fecha_evento) || (it.p && it.p.fecha_evento) || (it.ev && it.ev.fecha) || null;
+    it.resp = (it.p && it.p.responsable) || (it.cot && it.cot.responsable) || (it.ev && it.ev.referente) || '';
+    it.tipo = (it.cot && it.cot.tipo_evento) || (it.p && it.p.tipo_evento) || (it.ev && it.ev.categoria) || '';
+    if (it.cot) usadosCot.add(it.cot.codigo);
+    if (it.codEv) usadosEv.add(it.codEv);
+    items[key] = it;
+  };
+  SEG.proyectos.forEach(p => add('p' + p.id, {p}));
+  (_historialData || []).forEach(c => {
+    if (usadosCot.has(c.codigo)) return;
+    if (c.codigo_evento && usadosEv.has(c.codigo_evento)) {      // el evento ya está: se le pega la cotización
+      const it = Object.values(items).find(x => x.codEv === c.codigo_evento);
+      if (it && !it.cot) { it.cot = c; usadosCot.add(c.codigo); return; }
+    }
+    const ref = c.fecha_evento || String(c.created_at || '').slice(0, 10);
+    if (c.estado === 'Perdida' && ref < hace(30)) return;
+    if (c.estado === 'Confirmada' && c.fecha_evento && c.fecha_evento < hace(60)) return;
+    add('c' + c.codigo, {cot: c});
+  });
+  EVS.forEach(e => {
+    if (usadosEv.has(e.codigo) || !e.fecha || e.fecha < hace(60)) return;
+    add('e' + e.codigo, {ev: e});
+  });
+  SEG.items = items;
+}
+
+async function cargarLogisticaProyectos() {
+  const cods = [...new Set(Object.values(SEG.items).map(i => i.codEv).filter(Boolean))];
+  SEG.log = {fichas: {}, asig: {}, inv: {}};
+  if (!cods.length) return;
   const [f, a, inv] = await Promise.all([
     supa.from('eventos_logistica').select('codigo_evento,estado_montaje,lugar,hora_montaje').in('codigo_evento', cods),
     supa.from('evento_asignaciones').select('codigo_evento,respuesta').in('codigo_evento', cods),
     supa.from('evento_inventario').select('codigo_evento').in('codigo_evento', cods)
   ]);
-  const fichas = {}; (f.data || []).forEach(x => fichas[x.codigo_evento] = x);
-  const asig = {};   (a.data || []).forEach(x => (asig[x.codigo_evento] = asig[x.codigo_evento] || []).push(x.respuesta || 'pendiente'));
-  const nInv = {};   (inv.data || []).forEach(x => nInv[x.codigo_evento] = (nInv[x.codigo_evento] || 0) + 1);
-  const porCobrar = {};
-  TX.forEach(t => { const c = (t.codigo_evento || '').trim(); if (t.estado === 'Por cobrar') porCobrar[c] = (porCobrar[c] || 0) + (parseFloat(t.ingreso) || 0); });
+  (f.data || []).forEach(x => SEG.log.fichas[x.codigo_evento] = x);
+  (a.data || []).forEach(x => (SEG.log.asig[x.codigo_evento] = SEG.log.asig[x.codigo_evento] || []).push(x.respuesta || 'pendiente'));
+  (inv.data || []).forEach(x => SEG.log.inv[x.codigo_evento] = (SEG.log.inv[x.codigo_evento] || 0) + 1);
+}
 
-  const chip = (col, ico, txt) => '<span class="chip ' + col + '"><i class="ti ti-' + ico + '"></i>' + txt + '</span>';
-  box.innerHTML = evs.map(e => {
-    const d = diasEntre(hoy, e.fecha);
-    const F = fichas[e.codigo] || {};
-    const A = asig[e.codigo] || [];
-    const T = SEG.tareas.filter(t => t.codigo_evento === e.codigo);
-    const chips = [];
-    // Personal
-    const conf = A.filter(r => r === 'confirmado').length, noP = A.filter(r => r === 'no_puede').length;
-    if (!A.length)       chips.push(['' + (d <= 3 ? 'rojo' : 'amarillo'), 'users', 'Sin personal']);
-    else if (noP)        chips.push(['rojo', 'users', noP + ' no puede · ' + conf + '/' + A.length]);
-    else if (conf < A.length) chips.push(['amarillo', 'users', conf + '/' + A.length + ' confirmados']);
-    else                 chips.push(['verde', 'users', 'Personal listo']);
-    // Equipos
-    chips.push(nInv[e.codigo] ? ['', 'speakerphone', nInv[e.codigo] + ' equipos'] : [d <= 3 ? 'amarillo' : '', 'speakerphone', 'Sin lista de equipos']);
-    // Montaje
-    const em = F.estado_montaje || 'Pendiente';
-    chips.push([em === 'Montado' || em === 'Devuelto' ? 'verde' : '', 'truck', em]);
-    // Tareas
-    if (T.length) {
-      const hechas = T.filter(t => t.hecha).length, venc = T.filter(t => !t.hecha && t.fecha_limite && t.fecha_limite < hoy).length;
-      chips.push(venc ? ['rojo', 'checklist', venc + ' tarea' + (venc > 1 ? 's' : '') + ' vencida' + (venc > 1 ? 's' : '')]
-                : hechas === T.length ? ['verde', 'checklist', 'Tareas listas'] : ['amarillo', 'checklist', hechas + '/' + T.length + ' tareas']);
-    }
-    // Cobro
-    chips.push(porCobrar[e.codigo] > 0 ? [d <= 2 ? 'rojo' : 'amarillo', 'cash', 'Por cobrar ' + fmt(porCobrar[e.codigo])] : ['verde', 'cash', 'Cobrado']);
-    const peor = chips.some(c => c[0] === 'rojo') ? 'rojo' : chips.some(c => c[0] === 'amarillo') ? 'amarillo' : 'verde';
-    return '<div class="seg-ev ' + peor + '">'
-      + '<div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start">'
-      +   '<div style="min-width:0"><div class="seg-nom" style="font-size:13px;font-weight:600;color:var(--w2)">' + esc(e.cliente || e.codigo) + '</div>'
-      +   '<div style="font-size:11px;color:var(--w4)">' + esc(e.codigo) + (F.lugar ? ' · ' + esc(F.lugar) : '') + '</div></div>'
-      +   '<div style="text-align:right;flex-shrink:0"><div style="font-size:12px;font-weight:600;color:var(--w2)">' + fCorta(e.fecha) + '</div>'
-      +   '<div style="font-size:10px;color:' + (d <= 3 ? 'var(--orange)' : 'var(--w4)') + '">' + (d === 0 ? 'HOY' : 'en ' + textoDias(d)) + '</div></div>'
-      + '</div>'
-      + '<div class="seg-chips">' + chips.map(c => chip(c[0], c[1], esc(c[2]))).join('') + '</div>'
-      + '<div style="display:flex;gap:6px">'
-      +   '<button class="btn btn-ghost btn-sm" data-seg="tareas" data-cod="' + esc(e.codigo) + '" data-nom="' + esc(e.cliente || '') + '"><i class="ti ti-checklist"></i>Tareas' + (T.length ? ' (' + T.filter(t => !t.hecha).length + ')' : '') + '</button>'
-      +   '<button class="btn btn-ghost btn-sm" data-seg="log" data-cod="' + esc(e.codigo) + '"><i class="ti ti-clipboard-list"></i>Logística</button>'
-      + '</div></div>';
+// Qué está hecho (automático) para un proyecto
+function autoChecks(it) {
+  const r = {};
+  const cot = it.cot, cod = it.codEv;
+  r.presupuesto = !!(cot && Array.isArray(cot.items) && cot.items.length);
+  r.enviada = !!(cot && (cot.enviada_at || (cot.estado && cot.estado !== 'Borrador')));
+  r.seguimiento = !!(cot && cot.ultimo_seguimiento);
+  if (cod) {
+    const A = SEG.log.asig[cod] || [];
+    r.personal = A.length > 0 && A.every(x => x === 'confirmado');
+    r.inventario = (SEG.log.inv[cod] || 0) > 0;
+    const em = (SEG.log.fichas[cod] || {}).estado_montaje || '';
+    r.montado = ['Montado', 'Devuelto'].includes(em) || !!(it.fecha && it.fecha < hoyLocalISO());
+    r.devuelto = em === 'Devuelto' || !!(it.fecha && it.fecha < hoyLocalISO());
+    const tx = TX.filter(t => (t.codigo_evento || '').trim() === cod);
+    const pp = tx.filter(t => t.estado === 'Por pagar');
+    const esPers = t => /honorar|vi[aá]tic/i.test(t.subcategoria || '');
+    r.cobrado = tx.some(t => (parseFloat(t.ingreso) || 0) > 0) && !tx.some(t => t.estado === 'Por cobrar');
+    r.pago_personal = !pp.some(esPers);
+    r.pago_prov = !pp.some(t => !esPers(t));
+    it.porCobrar = tx.filter(t => t.estado === 'Por cobrar').reduce((s, t) => s + (parseFloat(t.ingreso) || 0), 0);
+  }
+  return r;
+}
+function estadoCheck(it, k) {
+  const m = (it.p && it.p.checks) || {};
+  if (it.auto[k]) return 'auto';
+  return m[k] ? 'manual' : '';
+}
+function completo(it, etapa) { return (CHECKS[etapa] || []).every(c => estadoCheck(it, c.k)); }
+
+function etapaAuto(it) {
+  const hoy = hoyLocalISO();
+  if (it.cot && it.cot.estado === 'Perdida') return 'negado';
+  if (it.codEv) {
+    const em = (SEG.log.fichas[it.codEv] || {}).estado_montaje || '';
+    if ((it.fecha && it.fecha < hoy) || em === 'Devuelto') return completo(it, 'cierre') ? 'finalizado' : 'cierre';
+    if (['Cargado', 'En sitio', 'Montado'].includes(em) || it.fecha === hoy || completo(it, 'produccion')) return 'ejecucion';
+    return 'produccion';
+  }
+  if (it.cot) return it.auto.enviada ? 'enviada' : 'preparacion';
+  const m = (it.p && it.p.checks) || {};
+  return (m.render || m.prov) ? 'preparacion' : 'solicitud';
+}
+function calcularEtapa(it) {
+  it.auto = autoChecks(it);
+  const a = etapaAuto(it);
+  const man = it.p && it.p.etapa;
+  if (a === 'negado' || a === 'finalizado') return a;
+  if (man === 'negado' || man === 'finalizado') return man;
+  return man && IDX_ETAPA[man] >= IDX_ETAPA[a] ? man : a;
+}
+
+function renderSeguimiento() {
+  const aviso = $('seg-aviso');
+  if (aviso) aviso.innerHTML = SEG.faltaSQL
+    ? '<div class="card" style="border-color:rgba(244,169,61,.4);color:var(--orange);font-size:12px">Falta correr el SQL de la Fase 3 en Supabase.</div>' : '';
+  if (!SEG.items || !Object.keys(SEG.items).length) armarProyectos();
+  const hoy = hoyLocalISO();
+  let lista = Object.values(SEG.items);
+  lista.forEach(it => {
+    it.etapa = calcularEtapa(it);
+    it.sem = it.etapa === 'enviada' ? semaforoCot(it.cot) : null;
+    it.tareas = SEG.tareas.filter(t => it.codEv && t.codigo_evento === it.codEv);
+    it.vencidas = it.tareas.filter(t => !t.hecha && t.fecha_limite && t.fecha_limite < hoy).length;
+    const ch = CHECKS[it.etapa] || [];
+    it.hechos = ch.filter(c => estadoCheck(it, c.k)).length;
+    it.total = ch.length;
+    const falta = ch.find(c => !estadoCheck(it, c.k));
+    it.falta = it.vencidas ? it.vencidas + ' tarea' + (it.vencidas > 1 ? 's' : '') + ' vencida' + (it.vencidas > 1 ? 's' : '')
+      : it.sem ? it.sem.txt
+      : it.etapa === 'solicitud' ? (it.p && it.p.detalle ? it.p.detalle : 'Armar la cotización')
+      : falta ? 'Falta: ' + falta.t
+      : it.etapa === 'cierre' ? 'Listo para finalizar' : 'Todo listo';
+    it.alerta = it.vencidas > 0 || (it.sem && it.sem.c === 'rojo') || (it.etapa === 'cierre' && it.fecha && diasEntre(it.fecha, hoy) > 15 && !it.auto.cobrado);
+  });
+  if (SEG.mias) lista = lista.filter(it => mismaPersona(it.resp, CURRENT_USER.nombre));
+  const abiertos = lista.filter(it => IDX_ETAPA[it.etapa] < 6);
+  const cerrados = lista.filter(it => IDX_ETAPA[it.etapa] >= 6);
+  const orden = (a, b) => (b.alerta - a.alerta) || String(a.fecha || '9999').localeCompare(String(b.fecha || '9999'));
+
+  // Resumen en una línea
+  const rojos = abiertos.filter(i => i.sem && i.sem.c === 'rojo').length;
+  const venc = abiertos.reduce((s, i) => s + i.vencidas, 0);
+  const sols = abiertos.filter(i => i.etapa === 'solicitud').length;
+  const partes = [];
+  if (sols) partes.push(sols + ' solicitud' + (sols > 1 ? 'es' : '') + ' por atender');
+  if (rojos) partes.push('<span style="color:var(--red)">' + rojos + ' cotización' + (rojos > 1 ? 'es' : '') + ' en rojo</span>');
+  if (venc) partes.push('<span style="color:var(--red)">' + venc + ' tarea' + (venc > 1 ? 's' : '') + ' vencida' + (venc > 1 ? 's' : '') + '</span>');
+  $('pj-resumen').innerHTML = partes.length ? partes.join(' · ') : 'Del pedido del cliente al cierre · todo al día';
+
+  const cols = ETAPAS.concat(SEG.verCerrados ? [{id: 'finalizado', nom: 'Finalizado', color: 'var(--w4)'}, {id: 'negado', nom: 'Negado', color: 'var(--red)'}] : []);
+  const grupo = id => (IDX_ETAPA[id] >= 6 ? cerrados : abiertos).filter(i => i.etapa === id).sort(orden);
+  $('pj-ver-cerrados').textContent = SEG.verCerrados ? 'Ocultar finalizados y negados'
+    : 'Ver finalizados y negados (' + cerrados.length + ')';
+
+  if (SEG.vista === 'tablero') {
+    $('pj-cont').innerHTML = '<div class="pj-board">' + cols.map(col => {
+      const g = grupo(col.id);
+      return '<div class="pj-col' + (g.length ? '' : ' cerrada') + '"><div class="pj-col-h"><i class="dot" style="background:' + col.color + '"></i>' + col.nom + '<span class="n">' + g.length + '</span></div>'
+        + (g.length ? g.map(tarjetaProyecto).join('') : '<div class="pj-vacio">—</div>') + '</div>';
+    }).join('') + '</div>';
+  } else {
+    $('pj-cont').innerHTML = '<div class="card pj-lista">' + cols.map(col => {
+      const g = grupo(col.id);
+      if (!g.length) return '';
+      return '<div class="pj-g"><i class="dot" style="background:' + col.color + '"></i>' + col.nom + ' <span style="color:var(--w4);font-weight:400">' + g.length + '</span></div>'
+        + g.map(filaProyecto).join('');
+    }).join('') + '</div>';
+  }
+
+  // Tareas pendientes
+  let pend = SEG.tareas.filter(t => !t.hecha);
+  if (SEG.mias) pend = pend.filter(t => (t.responsable_email || '').toLowerCase() === CURRENT_USER.email.toLowerCase());
+  $('seg-tareas-card').style.display = pend.length ? '' : 'none';
+  $('seg-tareas').innerHTML = pend.map(t => filaTarea(t, true)).join('');
+}
+
+function inicialesPj(n) { return String(n || '').trim().split(/\s+/).map(w => w[0] || '').slice(0, 2).join('').toUpperCase(); }
+function barraProyecto(it) {
+  if (!it.total || it.etapa === 'enviada') return '';
+  const pct = Math.round(it.hechos / it.total * 100);
+  const col = (ETAPAS.find(e => e.id === it.etapa) || {}).color || 'var(--w4)';
+  return '<span class="b"><i style="width:' + pct + '%;background:' + col + '"></i></span>' + it.hechos + '/' + it.total;
+}
+function cuandoTxt(it) {
+  if (!it.fecha) return 'sin fecha';
+  const d = diasEntre(hoyLocalISO(), it.fecha);
+  return d === 0 ? 'HOY' : d > 0 ? 'en ' + textoDias(d) : 'hace ' + textoDias(-d);
+}
+function tarjetaProyecto(it) {
+  return '<div class="pj-card" data-pj="' + esc(it.key) + '">'
+    + '<div class="t">' + (it.sem ? '<span class="semaf ' + it.sem.c + '" style="width:8px;height:8px"></span>' : '')
+    +   '<b>' + esc(it.cliente) + '</b>' + (it.p && it.p.origen === 'web' ? '<span class="pj-web">WEB</span>' : '')
+    +   '<span class="f">' + (it.fecha ? fCorta(it.fecha) : '') + '</span></div>'
+    + '<div class="s' + (it.alerta ? ' alerta' : '') + '">' + esc(it.falta) + '</div>'
+    + '<div class="pj-bar">' + barraProyecto(it) + (it.total && it.etapa !== 'enviada' ? '' : '<span style="flex:1">' + esc(cuandoTxt(it)) + '</span>')
+    +   (it.resp ? '<span class="pj-ini" title="' + esc(it.resp) + '">' + esc(inicialesPj(it.resp)) + '</span>' : '') + '</div>'
+    + '</div>';
+}
+function filaProyecto(it) {
+  return '<div class="pj-row" data-pj="' + esc(it.key) + '">'
+    + (it.sem ? '<span class="semaf ' + it.sem.c + '" style="width:9px;height:9px"></span>' : '<span></span>')
+    + '<div class="c">' + esc(it.cliente) + (it.p && it.p.origen === 'web' ? ' <span class="pj-web">WEB</span>' : '') + '</div>'
+    + '<div style="color:var(--w3);font-size:11px">' + (it.fecha ? fCorta(it.fecha) : '—') + '</div>'
+    + '<div class="falta"' + (it.alerta ? ' style="color:var(--red)"' : '') + '>' + esc(it.falta) + '</div>'
+    + '<div class="pj-bar pj-bar-c" style="margin:0">' + barraProyecto(it) + '</div>'
+    + '<span class="resp">' + (it.resp ? '<span class="pj-ini" title="' + esc(it.resp) + '">' + esc(inicialesPj(it.resp)) + '</span>' : '') + '</span>'
+    + '</div>';
+}
+
+// ── Ficha de un proyecto
+function abrirProyecto(key) {
+  const it = SEG.items[key];
+  if (!it) return;
+  SEG.abierto = key;
+  const idx = IDX_ETAPA[it.etapa];
+  $('pj-titulo').textContent = it.cliente;
+  $('pj-sub').innerHTML = [it.fecha ? fDate(it.fecha) + ' · ' + cuandoTxt(it) : 'Sin fecha', it.tipo, (it.cot && it.cot.lugar) || (it.p && it.p.lugar) || (SEG.log.fichas[it.codEv] || {}).lugar, it.resp]
+      .filter(Boolean).map(esc).join(' · ')
+    + '<br><span class="mono" style="font-size:10px">' + [it.cot && it.cot.codigo, it.codEv].filter(Boolean).map(esc).join(' → ') + '</span>'
+    + (it.etapa === 'negado' ? ' <span class="badge b-red">Negado</span>' : it.etapa === 'finalizado' ? ' <span class="badge b-green">Finalizado</span>' : '');
+  $('pj-pasos').innerHTML = ETAPAS.map((e, i) => '<div class="' + (i < idx ? 'hecho' : i === idx ? 'actual' : '') + '">' + e.nom + '</div>').join('');
+
+  const k = esc(key);
+  const lista = etapa => (CHECKS[etapa] || []).map(c => {
+    const st = estadoCheck(it, c.k);
+    return '<label class="pj-chk' + (st ? ' ok' : '') + '"><input type="checkbox" data-pjchk="' + c.k + '" data-k="' + k + '"' + (st ? ' checked' : '') + (st === 'auto' ? ' disabled' : '') + '>'
+      + '<span>' + c.t + '</span>' + (st === 'auto' ? '<small>automático</small>' : c.auto && !st ? '<small>o márcalo tú</small>' : '') + '</label>';
   }).join('');
+  let cuerpo = '';
+  if (it.p && (it.p.detalle || it.p.contacto)) cuerpo += '<div class="pj-info">' + esc([it.p.contacto ? '📞 ' + it.p.contacto : '', it.p.detalle || ''].filter(Boolean).join('\n')) + '</div>';
+  if (it.p && it.p.motivo_negado) cuerpo += '<div class="pj-info" style="color:var(--red)">Motivo: ' + esc(it.p.motivo_negado) + '</div>';
+  if (it.sem) cuerpo += '<div class="pj-info"><span class="seg-txt ' + it.sem.c + '">● ' + esc(it.sem.txt) + '</span>' + (it.cot.seguimiento_nota ? '\n“' + esc(it.cot.seguimiento_nota) + '”' : '') + '</div>';
+  if (CHECKS[it.etapa] && CHECKS[it.etapa].length) cuerpo += '<div class="ctitle" style="margin-top:4px">' + NOM_ETAPA[it.etapa] + '</div>' + lista(it.etapa);
+  const otras = ETAPAS.filter(e => e.id !== it.etapa && CHECKS[e.id].length);
+  cuerpo += '<details style="margin-top:12px"><summary style="font-size:11px;color:var(--w4);cursor:pointer">Otras etapas</summary>'
+    + otras.map(e => '<div class="ctitle" style="margin-top:10px">' + e.nom + '</div>' + lista(e.id)).join('') + '</details>';
+  if (it.tareas.length || it.codEv) cuerpo += '<div class="ctitle" style="margin-top:14px">Tareas</div>'
+    + (it.tareas.length ? it.tareas.map(t => filaTarea(t, false)).join('') : '<div style="font-size:12px;color:var(--w4)">Sin tareas.</div>');
+  cuerpo += '<div style="display:flex;align-items:center;gap:8px;margin-top:14px;font-size:11px;color:var(--w4)">Mover a'
+    + '<select id="pj-mover" data-k="' + k + '" style="width:auto;padding:4px 8px;font-size:12px"><option value="">—</option>'
+    + ETAPAS.concat([{id: 'finalizado', nom: 'Finalizado'}, {id: 'negado', nom: 'Negado'}]).filter(e => e.id !== it.etapa).map(e => '<option value="' + e.id + '">' + e.nom + '</option>').join('')
+    + (it.p && it.p.etapa ? '<option value="auto">Automático</option>' : '') + '</select></div>';
+  $('pj-cuerpo').innerHTML = cuerpo;
+
+  // Acciones según la etapa
+  const B = (acc, txt, ico, clase, color) => '<button class="btn ' + (clase || 'btn-ghost') + ' btn-sm" data-pja="' + acc + '" data-k="' + k + '"' + (color ? ' style="color:' + color + '"' : '') + '><i class="ti ti-' + ico + '"></i>' + txt + '</button>';
+  let acc = '<button class="btn btn-ghost btn-sm" onclick="document.getElementById(\'modal-proy\').classList.remove(\'show\')">Cerrar</button>';
+  if (it.p && !it.codEv) acc += B('editar', 'Editar', 'pencil');
+  if (it.etapa === 'negado') acc += B('reabrir', 'Reabrir', 'rotate');
+  else if (it.etapa === 'finalizado') acc += B('reabrir', 'Reabrir', 'rotate');
+  else if (!it.codEv) {
+    acc += B('negado', 'Negado', 'x', 'btn-ghost', 'var(--red)');
+    if (!it.cot) acc += B('cotizar', 'Crear cotización', 'file-plus', 'btn-blue');
+    else {
+      acc += B('abrircot', 'Abrir cotización', 'edit');
+      if (!it.auto.enviada) acc += B('enviada', 'Ya la envié', 'send');
+      else acc += B('seguir', 'Seguimiento', 'phone-check');
+      acc += B('aprobado', 'Aprobado', 'circle-check', 'btn-blue');
+    }
+  } else {
+    acc += B('tareas', 'Tareas', 'checklist') + B('logistica', 'Logística', 'clipboard-list');
+    if (it.etapa === 'cierre') acc += B('cuentas', 'Cuentas pendientes', 'cash') + B('finalizar', 'Finalizar', 'flag', 'btn-blue');
+  }
+  $('pj-acciones').innerHTML = acc;
+  $('modal-proy').classList.add('show');
+}
+
+// Crea la fila en "proyectos" cuando hace falta guardar algo propio
+async function asegurarProyecto(it) {
+  if (it.p) return it.p;
+  const fila = {cliente: it.cliente, tipo_evento: it.tipo || null, fecha_evento: it.fecha || null,
+    lugar: (it.cot && it.cot.lugar) || null, responsable: it.resp || null,
+    codigo_cot: it.cot ? it.cot.codigo : null, codigo_evento: it.codEv || null};
+  let {data, error} = await supa.from('proyectos').insert(fila).select().single();
+  if (error && /duplicate|unique/i.test(error.message)) {
+    const q = supa.from('proyectos').select('*');
+    ({data, error} = await (fila.codigo_cot ? q.eq('codigo_cot', fila.codigo_cot) : q.eq('codigo_evento', fila.codigo_evento)).maybeSingle());
+  }
+  if (error || !data) { alert('No se pudo guardar' + (error ? ': ' + error.message : '')); return null; }
+  it.p = data;
+  SEG.proyectos.push(data);
+  return data;
+}
+async function guardarProyecto(it, cambios) {
+  const p = await asegurarProyecto(it);
+  if (!p) return false;
+  cambios.updated_at = new Date().toISOString();
+  const {data, error} = await supa.from('proyectos').update(cambios).eq('id', p.id).select().single();
+  if (error) { alert('No se pudo guardar: ' + error.message); return false; }
+  Object.assign(p, data);
+  return true;
+}
+async function refrescarProyecto(key) {
+  const viejo = SEG.items[key] || {};
+  renderSeguimiento();
+  const nuevo = SEG.items[key] || Object.values(SEG.items).find(x =>
+    (viejo.cot && x.cot && x.cot.codigo === viejo.cot.codigo) || (viejo.codEv && x.codEv === viejo.codEv) || (viejo.p && x.p && x.p.id === viejo.p.id)) || null;
+  if (nuevo && $('modal-proy').classList.contains('show')) abrirProyecto(nuevo.key);
+}
+async function marcarCheck(key, k, valor) {
+  const it = SEG.items[key];
+  if (!it) return;
+  const checks = Object.assign({}, (it.p && it.p.checks) || {});
+  if (valor) checks[k] = true; else delete checks[k];
+  if (await guardarProyecto(it, {checks})) refrescarProyecto(key);
+}
+async function moverEtapa(key, etapa) {
+  const it = SEG.items[key];
+  if (!it) return;
+  if (etapa === 'negado') return accionProyecto('negado', key);
+  if (etapa === 'aprobado') return accionProyecto('aprobado', key);
+  const cambios = {etapa: etapa === 'auto' ? null : etapa};
+  if (etapa === 'finalizado') cambios.finalizado_at = new Date().toISOString();
+  if (await guardarProyecto(it, cambios)) refrescarProyecto(key);
+}
+
+async function accionProyecto(acc, key) {
+  const it = SEG.items[key];
+  if (!it) return;
+  const cerrar = () => $('modal-proy').classList.remove('show');
+  if (acc === 'editar')    { cerrar(); abrirSolicitud(it); }
+  if (acc === 'cotizar')   { cerrar(); cotizacionDesdeProyecto(it); }
+  if (acc === 'abrircot')  { cerrar(); cargarCotizacion(it.cot.codigo); }
+  if (acc === 'seguir')    { cerrar(); abrirSeguimiento(it.cot.codigo); }
+  if (acc === 'aprobado')  { cerrar(); abrirConfirmarCot(it.cot.codigo); }
+  if (acc === 'tareas')    { cerrar(); abrirTareas(it.codEv, it.cliente); }
+  if (acc === 'logistica') { cerrar(); irALogistica(it.codEv); }
+  if (acc === 'cuentas')   { cerrar(); const b = document.querySelector('.ni[onclick*="pendientes"]'); if (b) sv('pendientes', b); }
+  if (acc === 'enviada') {
+    await supa.from('cotizaciones').update({estado: 'Descargada'}).eq('codigo', it.cot.codigo).eq('estado', 'Borrador');
+    await marcarEnviadaCot(it.cot.codigo);
+    await cargarHistorial(); armarProyectos(); refrescarProyecto(key);
+  }
+  if (acc === 'finalizar') {
+    if (!it.auto.cobrado && !confirm('Todavía hay cobros pendientes en Registro. ¿Finalizar igual?')) return;
+    if (await guardarProyecto(it, {etapa: 'finalizado', finalizado_at: new Date().toISOString()})) { cerrar(); renderSeguimiento(); }
+  }
+  if (acc === 'negado') {
+    const motivo = prompt('¿Por qué no se dio? (opcional)\nEj: precio, eligieron otro proveedor, se canceló el evento');
+    if (motivo === null) return;
+    if (it.cot) await supa.from('cotizaciones').update({estado: 'Perdida'}).eq('codigo', it.cot.codigo);
+    if (await guardarProyecto(it, {etapa: 'negado', motivo_negado: motivo.trim() || null})) {
+      if (it.cot) await cargarHistorial();
+      armarProyectos(); cerrar(); renderSeguimiento();
+    }
+  }
+  if (acc === 'reabrir') {
+    if (it.cot && it.cot.estado === 'Perdida') await supa.from('cotizaciones').update({estado: 'Descargada'}).eq('codigo', it.cot.codigo);
+    if (await guardarProyecto(it, {etapa: null, motivo_negado: null, finalizado_at: null})) {
+      if (it.cot) await cargarHistorial();
+      armarProyectos(); refrescarProyecto(key);
+    }
+  }
+}
+
+// ── Nueva solicitud / editar
+function abrirSolicitud(it) {
+  SEG.solEditando = it && it.p ? it.p.id : null;
+  const p = (it && it.p) || {};
+  $('sol-titulo').textContent = SEG.solEditando ? 'Editar solicitud' : 'Nueva solicitud';
+  $('sol-cliente').value = p.cliente || '';
+  $('sol-contacto').value = p.contacto || '';
+  $('sol-tipo').value = p.tipo_evento || 'Fiesta';
+  $('sol-fecha').value = p.fecha_evento || '';
+  $('sol-lugar').value = p.lugar || '';
+  $('sol-invitados').value = p.invitados || '';
+  $('sol-resp').value = p.responsable || (SOCIOS.find(n => mismaPersona(n, CURRENT_USER.nombre)) || 'Gustavo Briceño');
+  $('sol-detalle').value = p.detalle || '';
+  $('modal-sol').classList.add('show');
+  setTimeout(() => $('sol-cliente').focus(), 50);
+}
+async function guardarSolicitud() {
+  const cliente = $('sol-cliente').value.trim();
+  if (!cliente) { $('sol-cliente').focus(); return; }
+  const fila = {cliente, contacto: $('sol-contacto').value.trim() || null, tipo_evento: $('sol-tipo').value,
+    fecha_evento: $('sol-fecha').value || null, lugar: $('sol-lugar').value.trim() || null,
+    invitados: parseInt($('sol-invitados').value) || null, responsable: $('sol-resp').value,
+    detalle: $('sol-detalle').value.trim() || null, updated_at: new Date().toISOString()};
+  $('sol-btn').disabled = true;
+  const r = SEG.solEditando
+    ? await supa.from('proyectos').update(fila).eq('id', SEG.solEditando)
+    : await supa.from('proyectos').insert(fila);
+  $('sol-btn').disabled = false;
+  if (r.error) { alert('No se pudo guardar' + (/proyectos/.test(r.error.message) ? ': falta correr el SQL fase3b.' : ': ' + r.error.message)); return; }
+  $('modal-sol').classList.remove('show');
+  await cargarSeguimiento();
+}
+
+// ── De la solicitud a la cotización
+function cotizacionDesdeProyecto(it) {
+  asegurarProyecto(it).then(p => {
+    if (!p) return;
+    const b = document.querySelector('.ni[onclick*="\'cotizacion\'"]');
+    if (b) sv('cotizacion', b);
+    nuevaCotizacion(true);
+    $('cc').value = p.cliente || '';
+    const tipos = [...$('ctype').options].map(o => o.value);
+    if (p.tipo_evento && tipos.includes(p.tipo_evento)) $('ctype').value = p.tipo_evento;
+    $('cdate').value = p.fecha_evento || '';
+    $('cplace').value = p.lugar || '';
+    $('cguests').value = p.invitados || '';
+    if (p.responsable && [...$('cresp').options].some(o => o.value === p.responsable)) $('cresp').value = p.responsable;
+    if (p.detalle) $('ai-out').value = p.detalle;
+    $('ai-include').checked = false;
+    updateCotCode();
+    $('ccode').dataset.proy = p.id;
+  });
+}
+// Mantiene el vínculo proyecto → cotización (el código cambia si cambian cliente o fecha)
+function vincularCotProyecto(codigo) {
+  const pid = $('ccode').dataset.proy;
+  if (!pid || !codigo) return;
+  supa.from('proyectos').update({codigo_cot: codigo, updated_at: new Date().toISOString()}).eq('id', pid)
+    .then(({error}) => { if (error) console.warn('Vínculo proyecto:', error.message); });
 }
 
 // ── Registrar un seguimiento
@@ -8076,8 +8501,8 @@ async function refrescarTareas() {
   if ($('v-seguimiento') && $('v-seguimiento').classList.contains('on')) {
     const {data} = await supa.from('evento_tareas').select('*').order('fecha_limite', {ascending: true, nullsFirst: false});
     SEG.tareas = data || [];
+    armarProyectos();
     renderSeguimiento();
-    pintarPanelEventos();
   }
   if ($('v-staff') && $('v-staff').classList.contains('on')) pintarTareasStaff();
 }
