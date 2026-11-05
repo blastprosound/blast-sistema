@@ -161,7 +161,7 @@ input[type=checkbox]{width:auto;accent-color:var(--blue)}
 .cir input,.cir select{padding:5px 7px;font-size:12px}
 .xsub{font-size:12px;color:var(--blue);text-align:center;font-weight:600}
 /* columnas: mover · concepto · categoría · ×días · cant · precio · total · borrar */
-.cih,.cir{grid-template-columns:24px 1fr 130px 0 56px 72px 72px 30px}
+.cih,.cir{grid-template-columns:24px 1fr 130px 56px 72px 72px 30px}
 #cot-wrap.multi .cih,#cot-wrap.multi .cir{grid-template-columns:24px 1fr 130px 52px 56px 72px 72px 30px}
 .xdia,.cih-dia{display:none}
 #cot-wrap.multi .xdia{display:flex}
@@ -5998,29 +5998,47 @@ function blobABase64(blob) {
   });
 }
 
-// WhatsApp: en el celular abre "Compartir" con el PDF adjunto
+// WhatsApp: en el celular abre "Compartir" con el PDF adjunto; en computadora descarga el PDF y abre WhatsApp Web.
+// Importante: el navegador solo deja abrir ventanas o "Compartir" justo después del clic. Como armar el PDF tarda,
+// la ventana se abre antes y, si "Compartir" se vence, se pide un segundo toque.
+function puedeCompartirPDF() {
+  try { return !!(navigator.canShare && navigator.canShare({files: [new File(['x'], 'x.pdf', {type: 'application/pdf'})]})); }
+  catch (e) { return false; }
+}
+function esCelular() { return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 1 && /Macintosh/.test(navigator.userAgent)); }
 async function enviarCotWhatsApp() {
   if (!hayItemsCot()) { alert('Agrega al menos un ítem antes de enviar.'); return; }
   const D = datosCot();
-  const texto = 'Hola ' + ($('cc').value || '') + ', te envío la cotización ' + D.codigo + ' de Blast ProSound para tu ' + D.tipo.toLowerCase()
+  const texto = 'Hola ' + ($('cc').value || '') + ', te envío la cotización ' + D.codigo + ' de Blast ProSound para tu ' + (D.tipo || 'evento').toLowerCase()
     + ' (' + D.fechaTxt + '). Total: ' + fmtMonto(D.simbolo, D.total) + '. Cualquier duda quedo atento.';
+  const compartir = esCelular() && puedeCompartirPDF();
+  // en computadora la pestaña de WhatsApp se abre ya, durante el clic, para que el navegador no la bloquee
+  const win = compartir ? null : window.open('', '_blank');
   let blob;
   try { blob = await generarPDFBlob(); }
-  catch (e) { alert('No se pudo generar el PDF: ' + e.message); return; }
+  catch (e) { if (win) win.close(); alert('No se pudo generar el PDF: ' + e.message); return; }
   const _codEnv = $('ccode').textContent;
-  guardarCotizacionDB(true).then(r => { if (r === 'ok') marcarEnviadaCot(_codEnv); });
+  guardarCotizacionDB(true).then(r => { if (r === 'ok') marcarEnviadaCot(_codEnv); }).catch(e => console.warn(e));
   const file = new File([blob], nombreArchivoCot(), {type: 'application/pdf'});
-  if (navigator.canShare && navigator.canShare({files: [file]})) {
-    try { await navigator.share({files: [file], text: texto}); }
-    catch (e) { if (e.name !== 'AbortError') alert('No se pudo compartir: ' + e.message); }
+  if (compartir) {
+    const share = () => navigator.share({files: [file], text: texto});
+    try { await share(); }
+    catch (e) {
+      if (e.name === 'AbortError') return;
+      // el permiso del clic se venció mientras se armaba el PDF: un segundo toque lo abre
+      if (confirm('El PDF está listo. Toca “Aceptar” para abrir WhatsApp y enviarlo.')) {
+        try { await share(); } catch (e2) { if (e2.name !== 'AbortError') alert('No se pudo compartir: ' + e2.message); }
+      }
+    }
     return;
   }
-  // Computadora: descarga el PDF y abre WhatsApp Web con el mensaje para adjuntarlo
   const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob); a.download = file.name; a.click();
-  setTimeout(() => URL.revokeObjectURL(a.href), 5000);
-  window.open('https://wa.me/?text=' + encodeURIComponent(texto), '_blank');
-  alert('En computadora WhatsApp no deja adjuntar automático: el PDF se descargó, arrástralo al chat que se abrió.');
+  a.href = URL.createObjectURL(blob); a.download = file.name; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 8000);
+  const url = 'https://web.whatsapp.com/send?text=' + encodeURIComponent(texto);
+  if (win && !win.closed) win.location.href = url;
+  else if (!window.open(url, '_blank')) { location.href = 'https://wa.me/?text=' + encodeURIComponent(texto); return; }
+  setTimeout(() => alert('El PDF se descargó. En la pestaña de WhatsApp elige el chat y arrastra el PDF.'), 300);
 }
 
 // Correo: abre la ventanita con el correo del cliente si está registrado
