@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Blast ProSound · Sistema</title>
+<title>Blast · Sistema</title>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@300;400;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -384,7 +384,7 @@ textarea.ai-box{width:100%;resize:vertical;font-family:inherit;display:block;fon
 <!-- LOGIN SCREEN -->
 <div class="login-screen" id="login-screen">
   <div class="login-box">
-    <img src="https://blastprosound.github.io/blast-sistema/logo-white.png" style="height:40px;width:auto;margin:0 auto 16px;display:block" alt="Blast ProSound">
+    <img src="https://blastprosound.github.io/blast-sistema/logo-white.png" style="height:40px;width:auto;margin:0 auto 16px;display:block" alt="Blast">
     <div class="login-error" id="login-error">Contraseña incorrecta</div>
 
     <!-- Login directo · recuerda el último usuario que entró en este equipo -->
@@ -405,13 +405,13 @@ textarea.ai-box{width:100%;resize:vertical;font-family:inherit;display:block;fon
       <button class="login-btn" id="login-btn" onclick="doLogin()">Entrar</button>
     </div>
   </div>
-  <div style="margin-top:20px;font-size:10px;color:var(--w4)">Blast ProSound · Sistema interno</div>
+  <div style="margin-top:20px;font-size:10px;color:var(--w4)">Blast · Sistema interno</div>
 </div>
 
 <div class="topbar">
   <div style="display:flex;align-items:center;gap:10px">
     <button class="menu-btn btn btn-ghost btn-sm" onclick="toggleNav()" style="display:none;padding:4px 8px" aria-label="Menú"><i class="ti ti-menu-2" style="font-size:18px"></i></button>
-    <div class="brand"><img id="logo-img" src="https://blastprosound.github.io/blast-sistema/logo-white.png" style="height:26px;width:auto;display:block" alt="Blast ProSound"></div>
+    <div class="brand"><img id="logo-img" src="https://blastprosound.github.io/blast-sistema/logo-white.png" style="height:26px;width:auto;display:block" alt="Blast"></div>
   </div>
   <div class="topbar-right">
     <div class="tasa-pill" id="tasa-pill" onclick="toggleTasasDropdown()" style="cursor:pointer;position:relative">
@@ -678,7 +678,7 @@ textarea.ai-box{width:100%;resize:vertical;font-family:inherit;display:block;fon
     <div class="sc"><div class="sc-top" style="background:var(--orange)"></div><div class="slabel">Francisco Massari</div><div class="sval" id="bal-fm" style="color:var(--orange)">—</div><div class="ssub" id="bal-fm-d">Agarro — · Entregó —</div></div>
   </div>
   <div class="card" style="text-align:center;padding:22px;margin-bottom:13px">
-    <div class="ctitle">Total disponible en Blast ProSound</div>
+    <div class="ctitle">Total disponible en Blast</div>
     <div id="bal-total" style="font-size:36px;font-weight:700;color:var(--blue);letter-spacing:-1px">—</div>
     <div style="font-size:11px;color:var(--w4);margin-top:5px">Suma del balance de los 3 socios</div>
   </div>
@@ -1842,7 +1842,7 @@ textarea.ai-box{width:100%;resize:vertical;font-family:inherit;display:block;fon
 
 <script>
 // ═══════════════════════════════════════════════
-// BLAST PROSOUND · Sistema de Gestión v6.5
+// BLAST · Sistema de Gestión v6.5
 // ═══════════════════════════════════════════════
 
 // ─── CONFIG ───
@@ -3237,7 +3237,7 @@ function plantillaCorreo({titulo, cuerpo, boton}) {
 
   // Cabecera
   + '<tr><td style="background:#141414;padding:24px 28px" align="center">'
-  +   '<img src="' + LOGO_CORREO + '" alt="Blast ProSound" style="height:30px;width:auto;display:block">'
+  +   '<img src="' + LOGO_CORREO + '" alt="Blast" style="height:30px;width:auto;display:block">'
   + '</td></tr>'
 
   // Título
@@ -3260,7 +3260,7 @@ function plantillaCorreo({titulo, cuerpo, boton}) {
   // Pie
   + '<tr><td style="padding:26px 28px 24px 28px">'
   +   '<div style="border-top:1px solid #eee;padding-top:14px;font-size:11px;color:#999;text-align:center">'
-  +     'Blast ProSound &middot; Caracas<br>'
+  +     'Blast &middot; Caracas<br>'
   +     'Este es un correo automático del sistema interno. No respondas a esta dirección.'
   +   '</div>'
   + '</td></tr>'
@@ -3283,7 +3283,7 @@ function correoBienvenida({nombre, email, usuario, pass, rol}) {
 
   const cuerpo = ''
   + '<p style="margin:0 0 14px">Hola <b>' + esc(nombre) + '</b>,</p>'
-  + '<p style="margin:0 0 18px">Te creamos un acceso al sistema interno de Blast ProSound '
+  + '<p style="margin:0 0 18px">Te creamos un acceso al sistema interno de Blast '
   +   'como <b>' + (roles[rol] || rol) + '</b>. Estos son tus datos para entrar:</p>'
 
   + '<table width="100%" cellpadding="0" cellspacing="0" style="background:#f7f7f7;border-radius:8px;border-left:3px solid #43bded">'
@@ -3673,7 +3673,7 @@ async function guardarUsuario() {
   if (!original && pass && $('mu-bienvenida').checked) {
     const r = await enviarCorreo({
       to: email,
-      subject: 'Tu acceso al sistema de Blast ProSound',
+      subject: 'Tu acceso al sistema de Blast',
       html: correoBienvenida({nombre, email, usuario, pass, rol})
     });
     alert(r.ok
@@ -3935,7 +3935,7 @@ function generarPDFCarga(cfg) {
     // Encabezado
     + '<table width="100%" style="border-collapse:collapse;margin-bottom:11px"><tr>'
     + '<td style="background:#141414;padding:14px 18px;border-radius:6px 0 0 6px;vertical-align:middle">'
-    +   '<img src="https://blastprosound.github.io/blast-sistema/logo-white.png" style="height:26px;width:auto;display:block" alt="Blast ProSound">'
+    +   '<img src="https://blastprosound.github.io/blast-sistema/logo-white.png" style="height:26px;width:auto;display:block" alt="Blast">'
     + '</td>'
     + '<td style="background:#141414;padding:13px 16px;text-align:right;border-radius:0 6px 6px 0">'
     +   '<div style="font-size:12px;color:#43bded;font-weight:700;letter-spacing:1.5px">LISTA DE CARGA</div>'
@@ -3970,7 +3970,7 @@ function generarPDFCarga(cfg) {
     + '<td width="33%" style="border-top:1px solid #333;padding-top:4px;font-size:8.5px;color:#777">Verificado por</td>'
     + '<td width="33%" style="border-top:1px solid #333;padding-top:4px;font-size:8.5px;color:#777">Devuelto completo</td>'
     + '</tr></table>'
-    + '<div style="margin-top:9px;font-size:7.5px;color:#bbb;text-align:center">Blast ProSound · Caracas · blast.prosound@gmail.com</div>'
+    + '<div style="margin-top:9px;font-size:7.5px;color:#bbb;text-align:center">Blast · Caracas · blast.prosound@gmail.com</div>'
     + '</body></html>';
 
   const w = window.open('', '_blank');
@@ -5758,7 +5758,7 @@ function generarDescripcionLocal(cliente, tipo, lugar, fecha, horario, total, it
   return 'Estimado/a '+cliente+', es un placer presentarle la cotización para su '+tipo.toLowerCase()
     +' en '+lugar+(diasCot()>1?' del ':' el ')+fechaStr+(horario?' de '+horario:'')+'. '
     +'El servicio incluye: '+servicios+'. '
-    +'En Blast ProSound garantizamos equipos de alta calidad y un equipo técnico con amplia experiencia. '
+    +'En Blast garantizamos equipos de alta calidad y un equipo técnico con amplia experiencia. '
     +'El monto total es de '+total+'. Para confirmar la reserva se requiere un abono del 50%. '
     +'Quedamos a su disposición para cualquier consulta.';
 }
@@ -5773,9 +5773,9 @@ var TERMINOS_COT = [
   ['Horarios y acceso', 'El cliente garantizará el acceso al lugar en los horarios acordados para montaje, prueba de sonido y desmontaje.'],
   ['Condiciones del lugar', 'El cliente debe informar por escrito, antes del evento, cualquier limitación del lugar (acceso, espacio, altura, suministro eléctrico). Si el lugar no cumple con los requerimientos técnicos, los servicios adicionales necesarios corren por cuenta del cliente.'],
   ['Área para el personal', 'El personal técnico debe contar con un área de resguardo con mesa, sillas, hidratación y acceso a baños durante el evento.'],
-  ['Cuidado de los equipos', 'El manejo técnico de los equipos es exclusivo del personal de Blast ProSound. El cliente responde por los daños o pérdidas causados por él, sus invitados o terceros, incluyendo fallas en las condiciones eléctricas del lugar, sabotaje o cualquier otra causa ajena a la operación profesional.'],
-  ['Seguridad', 'Blast ProSound se reserva el derecho de no realizar el montaje o de suspender el servicio si las condiciones de seguridad del lugar no están garantizadas.'],
-  ['Responsabilidad', 'Blast ProSound no se hace responsable por interrupciones causadas por factores externos (fallas eléctricas del lugar, clima, etc.) y actúa únicamente como proveedor de servicios técnicos y/o de producción.'],
+  ['Cuidado de los equipos', 'El manejo técnico de los equipos es exclusivo del personal de Blast. El cliente responde por los daños o pérdidas causados por él, sus invitados o terceros, incluyendo fallas en las condiciones eléctricas del lugar, sabotaje o cualquier otra causa ajena a la operación profesional.'],
+  ['Seguridad', 'Blast se reserva el derecho de no realizar el montaje o de suspender el servicio si las condiciones de seguridad del lugar no están garantizadas.'],
+  ['Responsabilidad', 'Blast no se hace responsable por interrupciones causadas por factores externos (fallas eléctricas del lugar, clima, etc.) y actúa únicamente como proveedor de servicios técnicos y/o de producción.'],
   ['Aceptación', 'La aprobación de esta cotización por correo electrónico, WhatsApp o firma implica la aceptación de todos estos términos.']
 ];
 var CORREO_PUBLICO = 'info@blasteventos.com';
@@ -5980,10 +5980,10 @@ async function generarPDFBlob() {
     pdf.setPage(p);
     pdf.setDrawColor(225, 225, 225); pdf.setLineWidth(0.5); pdf.line(M, H - PIE + 8, W - M, H - PIE + 8);
     F(6.5, 'normal', [150, 150, 150]);
-    pdf.text('Blast ProSound  ·  Caracas, Venezuela  ·  ' + CORREO_PUBLICO, M, H - PIE + 20);
+    pdf.text('Blast  ·  Caracas, Venezuela  ·  ' + CORREO_PUBLICO, M, H - PIE + 20);
     pdf.text(pdfTxt(D.codigo) + '  ·  ' + hoy + '  ·  Página ' + p + ' de ' + total, W - M, H - PIE + 20, {align: 'right'});
   }
-  pdf.setProperties({title: pdfTxt(D.codigo + ' - ' + D.cliente), author: 'Blast ProSound'});
+  pdf.setProperties({title: pdfTxt(D.codigo + ' - ' + D.cliente), author: 'Blast'});
   return pdf.output('blob');
 }
 function hayItemsCot() {
@@ -6009,7 +6009,7 @@ function esCelular() { return /Android|iPhone|iPad|iPod/i.test(navigator.userAge
 async function enviarCotWhatsApp() {
   if (!hayItemsCot()) { alert('Agrega al menos un ítem antes de enviar.'); return; }
   const D = datosCot();
-  const texto = 'Hola ' + ($('cc').value || '') + ', te envío la cotización ' + D.codigo + ' de Blast ProSound para tu ' + (D.tipo || 'evento').toLowerCase()
+  const texto = 'Hola ' + ($('cc').value || '') + ', te envío la cotización ' + D.codigo + ' de Blast para tu ' + (D.tipo || 'evento').toLowerCase()
     + ' (' + D.fechaTxt + '). Total: ' + fmtMonto(D.simbolo, D.total) + '. Cualquier duda quedo atento.';
   const compartir = esCelular() && puedeCompartirPDF();
   // en computadora la pestaña de WhatsApp se abre ya, durante el clic, para que el navegador no la bloquee
@@ -6048,9 +6048,9 @@ function abrirEnviarCorreoCot() {
   const nom = ($('cc').value || '').trim().toLowerCase();
   const cli = (typeof DB_CLIENTES_LOCAL !== 'undefined' ? DB_CLIENTES_LOCAL : []).find(c => (c.nombre || '').trim().toLowerCase() === nom);
   $('cotm-to').value = (cli && cli.email) || '';
-  $('cotm-subject').value = 'Cotización ' + D.codigo + ' · Blast ProSound';
+  $('cotm-subject').value = 'Cotización ' + D.codigo + ' · Blast';
   $('cotm-msg').value = 'Hola ' + ($('cc').value || '') + ',\n\nTe enviamos adjunta la cotización para tu ' + D.tipo.toLowerCase()
-    + ' (' + D.fechaTxt + ').\nTotal: ' + fmtMonto(D.simbolo, D.total) + '.\n\nQuedamos atentos a cualquier duda.\n\nSaludos,\n' + ($('cresp').value || 'Blast ProSound');
+    + ' (' + D.fechaTxt + ').\nTotal: ' + fmtMonto(D.simbolo, D.total) + '.\n\nQuedamos atentos a cualquier duda.\n\nSaludos,\n' + ($('cresp').value || 'Blast');
   $('cotm-status').textContent = '';
   $('modal-cot-correo').classList.add('show');
 }
@@ -6067,13 +6067,13 @@ async function enviarCotCorreo() {
     const html = '<!DOCTYPE html><html><body style="margin:0;background:#f2f2f2;font-family:Arial,Helvetica,sans-serif">'
       + '<table width="100%" cellpadding="0" cellspacing="0" style="padding:24px 12px"><tr><td align="center">'
       + '<table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background:#fff;border-radius:12px;overflow:hidden">'
-      + '<tr><td style="background:#141414;padding:22px" align="center"><img src="https://blastprosound.github.io/blast-sistema/logo-white.png" alt="Blast ProSound" style="height:28px"></td></tr>'
+      + '<tr><td style="background:#141414;padding:22px" align="center"><img src="https://blastprosound.github.io/blast-sistema/logo-white.png" alt="Blast" style="height:28px"></td></tr>'
       + '<tr><td style="padding:26px 28px;font-size:14px;line-height:1.6;color:#333">' + cuerpo + '</td></tr>'
-      + '<tr><td style="padding:14px 28px;border-top:1px solid #eee;font-size:11px;color:#999">Blast ProSound · Caracas · ' + CORREO_PUBLICO + '</td></tr>'
+      + '<tr><td style="padding:14px 28px;border-top:1px solid #eee;font-size:11px;color:#999">Blast · Caracas · ' + CORREO_PUBLICO + '</td></tr>'
       + '</table></td></tr></table></body></html>';
     const r = await invocarFuncion('enviar-correo', {
       to, subject: $('cotm-subject').value, html,
-      from: 'Blast ProSound <' + CORREO_PUBLICO + '>', reply_to: CORREO_PUBLICO,
+      from: 'Blast <' + CORREO_PUBLICO + '>', reply_to: CORREO_PUBLICO,
       attachments: [{filename: nombreArchivoCot(), content: await blobABase64(blob)}]
     });
     if (!r.ok) throw new Error(r.error);
@@ -7684,7 +7684,7 @@ async function procesarConIA() {
   statusEl.style.display = 'block';
   statusEl.innerHTML = '<span style="color:var(--blue)"><i class="ti ti-loader-2"></i> Analizando con IA...</span>';
 
-  const PROMPT = `Eres un asistente de Blast ProSound, empresa de sonido en Caracas.
+  const PROMPT = `Eres un asistente de Blast, empresa de sonido en Caracas.
 Analiza el texto o imagen y extrae TODAS las transacciones mencionadas (puede haber varias: el cobro al cliente, pagos a proveedores, honorarios, viáticos, etc.).
 Devuelve SOLO un JSON array válido. Cada objeto tiene estos campos (null si no aplica):
 [{
@@ -7960,7 +7960,7 @@ ETAPAS.forEach(e => NOM_ETAPA[e.id] = e.nom);
 // Checklist por etapa. auto = el sistema lo sabe solo (igual se puede marcar a mano)
 var CHECKS = {
   solicitud:   [],
-  preparacion: [{k: 'render', t: 'Render / propuesta visual'}, {k: 'prov', t: 'Cotizar con proveedores'}, {k: 'presupuesto', t: 'Presupuesto hecho', auto: true}],
+  preparacion: [{k: 'render', t: 'Render / propuesta visual', auto: true}, {k: 'prov', t: 'Cotizar con proveedores'}, {k: 'presupuesto', t: 'Presupuesto hecho', auto: true}],
   enviada:     [{k: 'enviada', t: 'Cotización enviada', auto: true}, {k: 'seguimiento', t: 'Seguimiento al cliente', auto: true}],
   produccion:  [{k: 'conf_prov', t: 'Confirmar proveedores'}, {k: 'precons', t: 'Precontrucción / compra de materiales'}, {k: 'personal', t: 'Personal confirmado', auto: true}, {k: 'inventario', t: 'Lista de equipos lista', auto: true}],
   ejecucion:   [{k: 'montado', t: 'Montado', auto: true}, {k: 'devuelto', t: 'Desmontado y devuelto', auto: true}],
@@ -8049,6 +8049,11 @@ function armarProyectos() {
 async function cargarLogisticaProyectos() {
   const cods = [...new Set(Object.values(SEG.items).map(i => i.codEv).filter(Boolean))];
   SEG.log = {fichas: {}, asig: {}, inv: {}};
+  SEG.renders = {};
+  try {
+    const rr = await supa.from('render_proyectos').select('codigo').not('codigo', 'is', null).limit(2000);
+    (rr.data || []).forEach(x => { const c = (x.codigo || '').trim(); if (c) SEG.renders[c] = (SEG.renders[c] || 0) + 1; });
+  } catch (e) { /* sin tabla de renders o sin permiso */ }
   if (!cods.length) return;
   const [f, a, inv] = await Promise.all([
     supa.from('eventos_logistica').select('codigo_evento,estado_montaje,lugar,hora_montaje').in('codigo_evento', cods),
@@ -8065,6 +8070,8 @@ function autoChecks(it) {
   const r = {};
   const cot = it.cot, cod = it.codEv;
   r.presupuesto = !!(cot && Array.isArray(cot.items) && cot.items.length);
+  const R = SEG.renders || {};
+  r.render = [cot && cot.codigo, cod, it.p && it.p.codigo_cot].some(c => c && R[c]);
   r.enviada = !!(cot && (cot.enviada_at || (cot.estado && cot.estado !== 'Borrador')));
   r.seguimiento = !!(cot && cot.ultimo_seguimiento);
   if (cod) {
