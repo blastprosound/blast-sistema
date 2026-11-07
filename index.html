@@ -691,7 +691,7 @@ textarea.ai-box{width:100%;resize:vertical;font-family:inherit;display:block;fon
 
 <!-- COTIZACIONES -->
 <div id="v-cotizacion" class="view">
-  <div class="ph"><div><div class="aline"></div><div class="ptitle">Cotizaciones</div><div class="psub">Generador con base de precios · envía por WhatsApp o correo</div></div><button class="btn btn-blue btn-sm" onclick="nuevaCotizacion()"><i class="ti ti-file-plus"></i>Nueva cotización</button></div>
+  <div class="ph"><div><div class="aline"></div><div class="ptitle">Cotizaciones</div><div class="psub">Generador con base de precios · envía por WhatsApp o correo</div></div><button class="btn btn-blue btn-sm" onclick="nuevaCotizacion()"><i class="ti ti-file-plus"></i>Nueva cotización</button><button class="btn btn-ghost btn-sm" onclick="nuevaPropuestaCot()" title="Copia esta cotización como otra propuesta para el mismo cliente" style="margin-left:6px"><i class="ti ti-copy"></i>Nueva propuesta</button></div>
   <div class="card">
     <div class="ctitle">Datos del evento</div>
     <div class="cot-grid">
@@ -5482,6 +5482,7 @@ function getCotDuracion() {
 }
 
 function updateCotCode() {
+  if ($('ccode') && $('ccode').dataset.fijo) return;   // código ya asignado (proyecto, propuesta o cotización guardada)
   const f = $('cdate').value, cl = $('cc').value;
   if (f && cl) {
     const d = new Date(f + 'T12:00:00');
@@ -5590,7 +5591,7 @@ function nuevaCotizacion(sinPreguntar) {
   if ($('c-desc')) $('c-desc').value = 0;
   if ($('c-iva'))  $('c-iva').checked = false;
   if ($('ai-out')) $('ai-out').value = '';
-  if ($('ccode'))  { $('ccode').textContent = 'COT ——'; delete $('ccode').dataset.manual; delete $('ccode').dataset.proy; }
+  if ($('ccode'))  { $('ccode').textContent = 'COT ——'; delete $('ccode').dataset.manual; delete $('ccode').dataset.proy; delete $('ccode').dataset.fijo; }
   if ($('cmulti')) $('cmulti').checked = false;
   if ($('cdate-fin')) $('cdate-fin').value = '';
   setHoraSel('ctime-start', ''); setHoraSel('ctime-end', '');
@@ -5808,8 +5809,34 @@ function cargarScript(src) {
   });
 }
 function nombreArchivoCot() {
-  const c = ($('cc').value || 'Cliente').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-zA-Z0-9]+/g, '_');
-  return $('ccode').textContent.replace(/[^a-zA-Z0-9-]+/g, '_') + '_' + c + '.pdf';
+  const limpio = t => String(t || '').replace(/[\\/:*?"<>|]+/g, ' ').replace(/\s+/g, ' ').trim();
+  return 'BLAST ' + limpio($('ccode').textContent) + ' (' + (limpio($('cc').value) || 'Cliente') + ').pdf';
+}
+// Código para un proyecto nuevo de Seguimiento (mismo formato que la cotización: COT ddmmaa-INICIALES)
+function codigoParaProyecto(cliente, fecha) {
+  const d = fecha ? new Date(fecha + 'T12:00:00') : new Date();
+  const dd = String(d.getDate()).padStart(2, '0'), mm = String(d.getMonth() + 1).padStart(2, '0'), yy = String(d.getFullYear()).slice(-2);
+  const ini = String(cliente || 'X').trim().split(/\s+/).map(w => w[0]).slice(0, 2).join('').toUpperCase() || 'X';
+  const usados = new Set([...(_historialData || []).map(x => x.codigo), ...((SEG && SEG.proyectos) || []).map(p => p.codigo_cot)].filter(Boolean));
+  const base = 'COT ' + dd + mm + yy + '-' + ini;
+  let c = base, n = 2;
+  while (usados.has(c)) c = base + '-' + (n++);
+  return c;
+}
+// Otra propuesta para el mismo cliente: copia la cotización abierta con el código -P2, -P3…
+async function nuevaPropuestaCot() {
+  const actual = ($('ccode').textContent || '').trim();
+  if (!/^COT /.test(actual) || actual === 'COT ——' || !hayItemsCot()) { alert('Primero arma la cotización (cliente, fecha e ítems). Luego toca “Nueva propuesta” para copiarla como otra opción.'); return; }
+  const base = actual.replace(/-P\d+$/, '');
+  const usados = new Set((_historialData || []).map(c => c.codigo));
+  let n = 2; while (usados.has(base + '-P' + n) || base + '-P' + n === actual) n++;
+  const nuevo = base + '-P' + n;
+  if (!confirm('Se guarda la cotización actual y se crea una copia como “' + nuevo + '” para armar otra propuesta. ¿Seguir?')) return;
+  await guardarCotizacionDB(true);
+  $('ccode').textContent = nuevo; $('ccode').dataset.fijo = '1';
+  const r = await guardarCotizacionDB(true);
+  await cargarHistorial();
+  alert(r === 'ok' ? 'Listo: ahora estás editando la propuesta ' + nuevo + '. La anterior quedó guardada.' : 'No se pudo guardar la nueva propuesta.');
 }
 // Logo en blanco para la cabecera negra (se carga una vez)
 var _logoPDF = null;
@@ -6860,7 +6887,8 @@ function cargarCotizacion(codigo) {
     if($('ai-out')) $('ai-out').value = c.descripcion_ia || '';
     if($('ccode')) {
       $('ccode').textContent = c.codigo || '';
-      const pr = (SEG.proyectos || []).find(x => x.codigo_cot === c.codigo);
+      if (c.codigo) $('ccode').dataset.fijo = '1';
+      const pr = (SEG.proyectos || []).find(x => x.codigo_cot === c.codigo || x.codigo_cot === (c.codigo || '').replace(/-P\d+$/, ''));
       if (pr) $('ccode').dataset.proy = pr.id; else delete $('ccode').dataset.proy;
     }
     toggleMultiDia();
@@ -8001,6 +8029,12 @@ async function cargarSeguimiento() {
   SEG.faltaSQL = !!((t && t.error) || (p && p.error));
   SEG.tareas = (t && t.data) || [];
   SEG.proyectos = (p && p.data) || [];
+  // Las solicitudes sin código (por ejemplo, las que llegan de la web) reciben uno, para poder vincular renders
+  for (const pr of SEG.proyectos.filter(x => !x.codigo_cot && !x.codigo_evento)) {
+    const cod = codigoParaProyecto(pr.cliente, pr.fecha_evento);
+    const {error} = await supa.from('proyectos').update({codigo_cot: cod}).eq('id', pr.id);
+    if (!error) pr.codigo_cot = cod;
+  }
   armarProyectos();
   await cargarLogisticaProyectos();
   renderSeguimiento();
@@ -8028,7 +8062,8 @@ function armarProyectos() {
     items[key] = it;
   };
   SEG.proyectos.forEach(p => add('p' + p.id, {p}));
-  (_historialData || []).forEach(c => {
+  const esProp = c => /-P\d+$/.test(c.codigo || '');
+  (_historialData || []).filter(c => !esProp(c)).forEach(c => {
     if (usadosCot.has(c.codigo)) return;
     if (c.codigo_evento && usadosEv.has(c.codigo_evento)) {      // el evento ya está: se le pega la cotización
       const it = Object.values(items).find(x => x.codEv === c.codigo_evento);
@@ -8038,6 +8073,16 @@ function armarProyectos() {
     if (c.estado === 'Perdida' && ref < hace(30)) return;
     if (c.estado === 'Confirmada' && c.fecha_evento && c.fecha_evento < hace(60)) return;
     add('c' + c.codigo, {cot: c});
+  });
+  // propuestas extra (COT …-P2, -P3): se pegan al proyecto de su cotización principal
+  (_historialData || []).filter(esProp).forEach(c => {
+    const base = c.codigo.replace(/-P\d+$/, '');
+    const it = Object.values(items).find(x => (x.cot && x.cot.codigo === base) || (x.p && x.p.codigo_cot === base));
+    if (!it) { add('c' + c.codigo, {cot: c}); return; }
+    it.props = it.props || [];
+    usadosCot.add(c.codigo);
+    if (c.estado === 'Confirmada' && (!it.cot || it.cot.estado !== 'Confirmada')) { if (it.cot) it.props.push(it.cot); it.cot = c; } else it.props.push(c);
+    if (c.codigo_evento) { it.codEv = it.codEv || c.codigo_evento; it.ev = it.ev || evs[it.codEv] || null; usadosEv.add(c.codigo_evento); }
   });
   EVS.forEach(e => {
     if (usadosEv.has(e.codigo) || !e.fecha || e.fecha < hace(60)) return;
@@ -8071,7 +8116,7 @@ function autoChecks(it) {
   const cot = it.cot, cod = it.codEv;
   r.presupuesto = !!(cot && Array.isArray(cot.items) && cot.items.length);
   const R = SEG.renders || {};
-  r.render = [cot && cot.codigo, cod, it.p && it.p.codigo_cot].some(c => c && R[c]);
+  r.render = [cot && cot.codigo, cod, it.p && it.p.codigo_cot].concat((it.props || []).map(c => c.codigo)).some(c => c && R[c]);
   r.enviada = !!(cot && (cot.enviada_at || (cot.estado && cot.estado !== 'Borrador')));
   r.seguimiento = !!(cot && cot.ultimo_seguimiento);
   if (cod) {
@@ -8227,7 +8272,7 @@ function abrirProyecto(key) {
   $('pj-titulo').textContent = it.cliente;
   $('pj-sub').innerHTML = [it.fecha ? fDate(it.fecha) + ' · ' + cuandoTxt(it) : 'Sin fecha', it.tipo, (it.cot && it.cot.lugar) || (it.p && it.p.lugar) || (SEG.log.fichas[it.codEv] || {}).lugar, it.resp]
       .filter(Boolean).map(esc).join(' · ')
-    + '<br><span class="mono" style="font-size:10px">' + [it.cot && it.cot.codigo, it.codEv].filter(Boolean).map(esc).join(' → ') + '</span>'
+    + '<br><span class="mono" style="font-size:10px">' + [(it.cot && it.cot.codigo) || (it.p && it.p.codigo_cot), it.codEv].filter(Boolean).map(esc).join(' → ') + '</span>'
     + (it.etapa === 'negado' ? ' <span class="badge b-red">Negado</span>' : it.etapa === 'finalizado' ? ' <span class="badge b-green">Finalizado</span>' : '');
   $('pj-pasos').innerHTML = ETAPAS.map((e, i) => '<div class="' + (i < idx ? 'hecho' : i === idx ? 'actual' : '') + '">' + e.nom + '</div>').join('');
 
@@ -8239,6 +8284,7 @@ function abrirProyecto(key) {
   }).join('');
   let cuerpo = '';
   if (it.p && (it.p.detalle || it.p.contacto)) cuerpo += '<div class="pj-info">' + esc([it.p.contacto ? '📞 ' + it.p.contacto : '', it.p.detalle || ''].filter(Boolean).join('\n')) + '</div>';
+  if (it.props && it.props.length) cuerpo += '<div class="pj-info">Propuestas: ' + [it.cot].concat(it.props).filter(Boolean).map(c => '<button class="btn btn-ghost btn-sm" style="margin:2px" data-pja="prop:' + esc(c.codigo) + '" data-k="' + k + '">' + esc(c.codigo.replace(/^COT /, '')) + (c.estado === 'Confirmada' ? ' ✓' : '') + '</button>').join('') + '</div>';
   if (it.p && it.p.motivo_negado) cuerpo += '<div class="pj-info" style="color:var(--red)">Motivo: ' + esc(it.p.motivo_negado) + '</div>';
   if (it.sem) cuerpo += '<div class="pj-info"><span class="seg-txt ' + it.sem.c + '">● ' + esc(it.sem.txt) + '</span>' + (it.cot.seguimiento_nota ? '\n“' + esc(it.cot.seguimiento_nota) + '”' : '') + '</div>';
   if (CHECKS[it.etapa] && CHECKS[it.etapa].length) cuerpo += '<div class="ctitle" style="margin-top:4px">' + NOM_ETAPA[it.etapa] + '</div>' + lista(it.etapa);
@@ -8332,6 +8378,7 @@ async function accionProyecto(acc, key) {
   if (acc === 'editar')    { cerrar(); abrirSolicitud(it); }
   if (acc === 'cotizar')   { cerrar(); cotizacionDesdeProyecto(it); }
   if (acc === 'abrircot')  { cerrar(); cargarCotizacion(it.cot.codigo); }
+  if (String(acc).startsWith('prop:')) { cerrar(); cargarCotizacion(acc.slice(5)); return; }
   if (acc === 'seguir')    { cerrar(); abrirSeguimiento(it.cot.codigo); }
   if (acc === 'aprobado')  { cerrar(); abrirConfirmarCot(it.cot.codigo); }
   if (acc === 'tareas')    { cerrar(); abrirTareas(it.codEv, it.cliente); }
@@ -8388,6 +8435,8 @@ async function guardarSolicitud() {
     invitados: parseInt($('sol-invitados').value) || null, responsable: $('sol-resp').value,
     detalle: $('sol-detalle').value.trim() || null, updated_at: new Date().toISOString()};
   $('sol-btn').disabled = true;
+  const prev = SEG.solEditando ? (SEG.proyectos || []).find(p => p.id === SEG.solEditando) : null;
+  if (!SEG.solEditando || (prev && !prev.codigo_cot && !prev.codigo_evento)) fila.codigo_cot = codigoParaProyecto(cliente, fila.fecha_evento);
   const r = SEG.solEditando
     ? await supa.from('proyectos').update(fila).eq('id', SEG.solEditando)
     : await supa.from('proyectos').insert(fila);
@@ -8414,13 +8463,14 @@ function cotizacionDesdeProyecto(it) {
     if (p.detalle) $('ai-out').value = p.detalle;
     $('ai-include').checked = false;
     updateCotCode();
+    if (p.codigo_cot) { $('ccode').textContent = p.codigo_cot; $('ccode').dataset.fijo = '1'; }
     $('ccode').dataset.proy = p.id;
   });
 }
 // Mantiene el vínculo proyecto → cotización (el código cambia si cambian cliente o fecha)
 function vincularCotProyecto(codigo) {
   const pid = $('ccode').dataset.proy;
-  if (!pid || !codigo) return;
+  if (!pid || !codigo || /-P\d+$/.test(codigo)) return;   // las propuestas extra no cambian el vínculo principal
   supa.from('proyectos').update({codigo_cot: codigo, updated_at: new Date().toISOString()}).eq('id', pid)
     .then(({error}) => { if (error) console.warn('Vínculo proyecto:', error.message); });
 }
