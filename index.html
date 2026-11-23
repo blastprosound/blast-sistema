@@ -36,7 +36,7 @@ body{font-family:'Archivo',sans-serif;font-weight:300;background:var(--black);co
 .layout{display:flex;flex:1}
 
 /* NAV */
-.nav{width:192px;background:var(--black2);border-right:1px solid var(--border);padding:12px 0;flex-shrink:0;display:flex;flex-direction:column;min-height:calc(100vh - 52px)}
+.nav{width:192px;background:var(--black2);border-right:1px solid var(--border);padding:12px 0;flex-shrink:0;display:flex;flex-direction:column;min-height:calc(100vh - 52px);position:sticky;top:52px;height:calc(100vh - 52px);overflow-y:auto;align-self:flex-start}
 .nlabel{font-size:9px;letter-spacing:2.5px;color:var(--w4);text-transform:uppercase;padding:10px 14px 3px;font-weight:600}
 .ni{display:flex;align-items:center;gap:9px;padding:7px 10px;border-radius:6px;cursor:pointer;font-size:12px;color:var(--w3);border:none;background:none;width:calc(100% - 8px);margin:1px 4px;text-align:left;transition:all .15s;font-family:'Archivo',sans-serif}
 .ni:hover{background:rgba(67,189,237,0.07);color:var(--w2)}
@@ -489,7 +489,6 @@ textarea.ai-box{width:100%;resize:vertical;font-family:inherit;display:block;fon
   <button class="ni" onclick="sv('admin',this)"><i class="ti ti-shield-lock"></i>Administración</button>
   <div class="nav-bottom">
     <div class="ndiv"></div>
-    <button class="ni" style="color:var(--w4)"><i class="ti ti-settings"></i>Configuración</button>
   </div>
 </nav>
 
@@ -737,6 +736,15 @@ textarea.ai-box{width:100%;resize:vertical;font-family:inherit;display:block;fon
     </div>
   </div>
   <div class="card">
+    <div class="ctitle">Imagen del escenario (sale en el PDF)</div>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+      <label class="btn btn-ghost btn-sm" style="cursor:pointer"><i class="ti ti-photo-up"></i>Subir imagen del render<input type="file" id="cot-img-in" accept="image/png,image/jpeg,image/webp" style="display:none" onchange="subirImgCot(this)"></label>
+      <button class="btn btn-ghost btn-sm" id="cot-img-del" onclick="quitarImgCot()" style="display:none;color:var(--red2)"><i class="ti ti-trash"></i>Quitar</button>
+      <span id="cot-img-st" style="font-size:11px;color:var(--w4)">Exporta el render (Guardar imagen) y súbelo aquí.</span>
+    </div>
+    <div id="cot-img-prev" style="margin-top:8px"></div>
+  </div>
+  <div class="card">
     <div class="ctitle">Descripción · escríbela o genérala y luego edítala</div>
     <div class="btn-row" style="margin-bottom:6px">
       <button class="btn btn-blue btn-sm" onclick="genIA()"><i class="ti ti-sparkles"></i>Generar descripción</button>
@@ -751,7 +759,7 @@ textarea.ai-box{width:100%;resize:vertical;font-family:inherit;display:block;fon
     <div class="btn-row">
       <button class="btn btn-ghost btn-sm" id="btn-guardar-cot" onclick="guardarCotizacionManual()"><i class="ti ti-device-floppy"></i>Guardar</button>
       <button class="btn btn-ghost btn-sm" onclick="confirmarCotizacionActual()" style="color:var(--green);border-color:rgba(61,202,110,.35)"><i class="ti ti-circle-check"></i>Confirmar evento</button>
-      <button class="btn btn-ghost btn-sm" onclick="exportPDF()"><i class="ti ti-file-download"></i>Ver / Imprimir PDF</button>
+      <button class="btn btn-ghost btn-sm" onclick="exportPDF()"><i class="ti ti-file-download"></i>Descargar PDF</button>
       <button class="btn btn-wa btn-sm" onclick="enviarCotWhatsApp()"><i class="ti ti-brand-whatsapp"></i>WhatsApp</button>
       <button class="btn btn-ghost btn-sm" onclick="abrirEnviarCorreoCot()"><i class="ti ti-mail"></i>Enviar por correo</button>
       <button class="btn btn-drive btn-sm" onclick="exportarADriveConGuardado()" id="btn-drive">
@@ -1434,6 +1442,14 @@ textarea.ai-box{width:100%;resize:vertical;font-family:inherit;display:block;fon
   </div>
 </div>
 
+<div class="modal-bg" id="modal-dispo">
+  <div class="modal" style="width:460px;max-height:90vh;overflow-y:auto">
+    <div class="modal-title" id="dispo-titulo">Pedir disponibilidad</div>
+    <div style="font-size:12px;color:var(--w4);margin-bottom:8px">Marca a quién le preguntas. Le llega un aviso (y correo si lo tiene activo); responde en su portal y, si confirma, el evento queda en su calendario.</div>
+    <div id="dispo-lista"></div>
+    <div class="btn-row" style="margin-top:12px"><button class="btn btn-ghost" onclick="document.getElementById('modal-dispo').classList.remove('show')">Cancelar</button><button class="btn btn-blue" id="dispo-btn" onclick="enviarDisponibilidad()"><i class="ti ti-send"></i>Preguntar</button></div>
+  </div>
+</div>
 <div class="modal-bg" id="modal-sol">
   <div class="modal" style="width:520px;max-height:92vh;overflow-y:auto">
     <div class="modal-title" id="sol-titulo">Nueva solicitud</div>
@@ -1603,6 +1619,7 @@ textarea.ai-box{width:100%;resize:vertical;font-family:inherit;display:block;fon
       <div class="fgrp"><label class="flabel">Rol</label>
         <select id="mu-rol" onchange="rolCambiado()">
           <option value="staff">Personal de eventos</option>
+          <option value="productor">Productor</option>
           <option value="socio">Socio</option>
           <option value="admin">Administrador</option>
         </select>
@@ -2304,6 +2321,7 @@ function renderRegistro(data) {
       + ing + egr
       + '<td><span class="badge ' + bc + '">' + esc(t.estado) + '</span></td>'
       + '<td><div style="display:flex;gap:3px">'
+      + (hasCodigo ? '<button class="btn btn-ghost btn-sm tx-btn-add" data-id="' + id + '" title="Agregar otra fila de este evento (misma fecha y código)" style="padding:3px 5px;font-size:10px;color:var(--blue)"><i class="ti ti-plus"></i></button>' : '')
       + '<button class="btn btn-ghost btn-sm tx-btn-edit" data-id="' + id + '" style="padding:3px 5px;font-size:10px"><i class="ti ti-pencil"></i></button>'
       + '<button class="btn btn-ghost btn-sm tx-btn-dup"  data-id="' + id + '" style="padding:3px 5px;font-size:10px"><i class="ti ti-copy"></i></button>'
       + '<button class="btn btn-ghost btn-sm tx-btn-del"  data-id="' + id + '" style="padding:3px 5px;font-size:10px;color:var(--red2)"><i class="ti ti-trash"></i></button>'
@@ -2343,6 +2361,8 @@ document.addEventListener('click', function(e) {
   const edit = e.target.closest('.tx-btn-edit');
   const dup  = e.target.closest('.tx-btn-dup');
   const del  = e.target.closest('.tx-btn-del');
+  const add  = e.target.closest('.tx-btn-add');
+  if (add)  nuevaTxDelEvento(add.dataset.id);
   if (edit) abrirModalTx(edit.dataset.id);
   if (dup)  duplicarTx(dup.dataset.id);
   if (del)  eliminarTx(del.dataset.id);
@@ -2434,6 +2454,19 @@ async function guardarTx() {
   await cargarTX();
 }
 
+// Nueva fila del mismo evento: misma fecha y código (por ejemplo, honorarios o un proveedor)
+function nuevaTxDelEvento(id) {
+  const t = TX.find(x => x.id === id);
+  if (!t) return;
+  abrirModalTx(null);
+  $('tx-fecha-evento').value = t.fecha_evento || '';
+  $('tx-codigo').value = t.codigo_evento || '';
+  $('tx-codigo').dataset.manual = 'true';
+  $('tx-cat').value = t.categoria || 'Evento';
+  $('tx-estado').value = 'Por pagar';
+  $('tx-ingreso').value = 0; $('tx-egreso').value = 0;
+  setTimeout(() => { const s = $('tx-sub'); if (s) s.focus(); }, 80);
+}
 async function duplicarTx(id) {
   const t = TX.find(x => x.id === id);
   if (!t) return;
@@ -3060,7 +3093,8 @@ const VISTAS = [
 const PERMISOS_DEFECTO = {
   admin: VISTAS.map(v => v.id).concat('admin'),
   socio: VISTAS.map(v => v.id).filter(v => v !== 'staff'),
-  staff: ['staff']
+  staff: ['staff'],
+  productor: ['seguimiento', 'calendario', 'estimador', 'cotizacion', 'historial', 'clientes', 'inventario', 'logistica', 'renders']
 };
 
 let USUARIOS = [];
@@ -3278,7 +3312,7 @@ async function cuentaAuth(email, password) {
 
 // Correo de bienvenida con credenciales
 function correoBienvenida({nombre, email, usuario, pass, rol}) {
-  const roles = {admin:'Administrador', socio:'Socio', staff:'Personal'};
+  const roles = {admin:'Administrador', socio:'Socio', staff:'Personal', productor:'Productor'};
   const credencial = usuario || email;
 
   const cuerpo = ''
@@ -3451,7 +3485,7 @@ function pintarDestinatarios() {
     cont.innerHTML = '<div style="color:var(--w4);font-size:11px;grid-column:1/-1">No hay otros usuarios activos.</div>';
     return;
   }
-  const colorRol = {admin:'var(--blue)', socio:'var(--green)', staff:'var(--orange)'};
+  const colorRol = {admin:'var(--blue)', socio:'var(--green)', staff:'var(--orange)', productor:'var(--magenta)'};
   cont.innerHTML = gente.map(u =>
       '<label style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--black3);border-radius:7px;font-size:12px;color:var(--w3);cursor:pointer">'
     + '<input type="checkbox" class="msg-dest" value="' + esc(u.email) + '" data-nombre="' + esc(u.nombre || '') + '" style="accent-color:var(--blue)">'
@@ -5592,6 +5626,7 @@ function nuevaCotizacion(sinPreguntar) {
   if ($('c-iva'))  $('c-iva').checked = false;
   if ($('ai-out')) $('ai-out').value = '';
   if ($('ccode'))  { $('ccode').textContent = 'COT ——'; delete $('ccode').dataset.manual; delete $('ccode').dataset.proy; delete $('ccode').dataset.fijo; }
+  _cotImg = null; if ($('cot-img-prev')) pintarImgCot();
   if ($('cmulti')) $('cmulti').checked = false;
   if ($('cdate-fin')) $('cdate-fin').value = '';
   setHoraSel('ctime-start', ''); setHoraSel('ctime-end', '');
@@ -5808,6 +5843,35 @@ function cargarScript(src) {
     document.head.appendChild(s);
   });
 }
+// Imagen del render adjunta a la cotización (se guarda en Storage y su enlace en cotizaciones.render_url)
+var _cotImg = null;
+function pintarImgCot() {
+  $('cot-img-prev').innerHTML = _cotImg ? '<img src="' + esc(_cotImg) + '" style="max-width:100%;max-height:220px;border-radius:6px;border:1px solid var(--border)">' : '';
+  $('cot-img-del').style.display = _cotImg ? '' : 'none';
+}
+async function subirImgCot(inp) {
+  const f = inp.files[0]; inp.value = ''; if (!f) return;
+  $('cot-img-st').textContent = 'Subiendo…';
+  try {
+    const url = URL.createObjectURL(f);
+    const im = await new Promise((ok, no) => { const i = new Image(); i.onload = () => ok(i); i.onerror = no; i.src = url; });
+    const sc = Math.min(1, 2000 / Math.max(im.width, im.height));
+    const c = document.createElement('canvas'); c.width = Math.round(im.width * sc); c.height = Math.round(im.height * sc);
+    c.getContext('2d').drawImage(im, 0, 0, c.width, c.height); URL.revokeObjectURL(url);
+    const blob = await new Promise(r => c.toBlob(r, 'image/jpeg', .85));
+    const cod = ($('ccode').textContent || 'cot').replace(/[^A-Za-z0-9-]+/g, '_');
+    const path = 'cotizaciones/' + cod + '_' + Date.now() + '.jpg';
+    const {error} = await supa.storage.from('renders').upload(path, blob, {contentType: 'image/jpeg'});
+    if (error) throw error;
+    _cotImg = supa.storage.from('renders').getPublicUrl(path).data.publicUrl;
+    pintarImgCot(); $('cot-img-st').textContent = 'Lista: sale en el PDF.'; scheduleCotAutosave();
+  } catch (e) { $('cot-img-st').textContent = 'No se pudo subir: ' + (e.message || e); }
+}
+function quitarImgCot() { _cotImg = null; pintarImgCot(); $('cot-img-st').textContent = 'Sin imagen.'; scheduleCotAutosave(); }
+async function imgADataURL(u) {
+  const b = await (await fetch(u)).blob();
+  return await new Promise(ok => { const r = new FileReader(); r.onload = () => ok(r.result); r.readAsDataURL(b); });
+}
 function nombreArchivoCot() {
   const limpio = t => String(t || '').replace(/[\\/:*?"<>|]+/g, ' ').replace(/\s+/g, ' ').trim();
   return 'BLAST ' + limpio($('ccode').textContent) + ' (' + (limpio($('cc').value) || 'Cliente') + ').pdf';
@@ -5977,6 +6041,19 @@ async function generarPDFBlob() {
     y += h + 18;
   }
 
+  // ── Imagen del escenario (render)
+  if (_cotImg) {
+    try {
+      const im = await imgADataURL(_cotImg);
+      const p = pdf.getImageProperties(im);
+      let w = AN, h = AN * p.height / p.width;
+      const maxH = H - M * 2 - PIE - 40;
+      if (h > maxH) { h = maxH; w = h * p.width / p.height; }
+      salto(h + 34);
+      F(10, 'bold', NEGRO); pdf.text('Propuesta visual del escenario', M, y + 10); y += 20;
+      pdf.addImage(im, 'JPEG', M + (AN - w) / 2, y, w, h); y += h + 16;
+    } catch (e) { console.warn('Imagen de la cotización:', e); }
+  }
   // ── Términos y condiciones (letra pequeña)
   salto(40);
   F(7.5, 'bold', NEGRO); pdf.setCharSpace(1); pdf.text('TÉRMINOS Y CONDICIONES', M, y); pdf.setCharSpace(0);
@@ -6122,13 +6199,14 @@ async function enviarCotCorreo() {
 
 async function exportPDF() {
   if(!hayItemsCot()){alert('Agrega al menos un ítem antes de exportar.');return;}
-  const w = window.open('','_blank');      // se abre ya, si no el navegador lo bloquea
-  if(!w){alert('Permite ventanas emergentes para ver el PDF.');return;}
-  w.document.write('<p style="font-family:Arial;padding:20px">Generando PDF…</p>');
+  // Se descarga directo con su nombre (abrirlo en otra pestaña lo guardaba con un nombre raro)
   try {
     const blob = await generarPDFBlob();
-    w.location.href = URL.createObjectURL(blob);
-  } catch (e) { w.close(); alert('No se pudo generar el PDF: ' + e.message); return; }
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new File([blob], nombreArchivoCot(), {type: 'application/pdf'}));
+    a.download = nombreArchivoCot(); document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 10000);
+  } catch (e) { alert('No se pudo generar el PDF: ' + e.message); return; }
   // Save and mark as Descargada
   const res = await guardarCotizacionDB(true);
   const codigo = $('ccode').textContent;
@@ -6225,10 +6303,16 @@ async function guardarCotizacionDB(silencioso){
     descripcion_ia:$('ai-out').value.trim()||null,
     fecha_fin: multi ? ($('cdate-fin').value||null) : null,
     estado: estadoActual,
+    render_url: _cotImg || null,
     items
   };
   let {error} = await supa.from('cotizaciones').upsert(fila,{onConflict:'codigo'});
   // Si todavía no se corrió el SQL de fecha_fin, guarda igual sin esa columna
+  if (error && /render_url/.test(error.message||'')) {
+    console.warn('Falta la columna render_url en cotizaciones (correr el SQL nuevo)');
+    delete fila.render_url;
+    ({error} = await supa.from('cotizaciones').upsert(fila,{onConflict:'codigo'}));
+  }
   if (error && /fecha_fin/.test(error.message||'')) {
     console.warn('Falta la columna fecha_fin en cotizaciones (correr SQL v6.2)');
     delete fila.fecha_fin;
@@ -6361,6 +6445,7 @@ const ITEMS_TIPICOS = {
 };
 
 function runEstimador() {
+  if (!_historialData.length && !runEstimador._cargando) { runEstimador._cargando = true; cargarHistorial().then(() => runEstimador()); }
   const tipo    = $('est-tipo').value;
   const invBkt  = $('est-inv').value;
   const fuera   = $('est-lugar').value === '1';
@@ -6473,6 +6558,10 @@ function runEstimador() {
   // Comparación con cotizaciones del mismo tipo
   const cots = (typeof _historialData !== 'undefined' ? _historialData : [])
     .filter(x => (x.tipo_evento || '') === tipo && parseFloat(x.total) > 0);
+  // si hay suficientes cotizaciones con invitados en el mismo rango, usa esas
+  if (invRange && cots.filter(x => x.invitados >= invRange[0] && x.invitados <= invRange[1]).length >= 3) {
+    const enRango = cots.filter(x => x.invitados >= invRange[0] && x.invitados <= invRange[1]); cots.length = 0; cots.push(...enRango);
+  }
   if (cots.length) {
     const tot = cots.map(x => parseFloat(x.total)).sort((a,b) => a-b);
     const promCot = tot.reduce((s,v) => s+v, 0) / tot.length;
@@ -6517,6 +6606,10 @@ function generarCodigoTx() {
   const concepto = $('tx-concepto').value.trim();
   const codigoEl = $('tx-codigo');
   if (!codigoEl || codigoEl.dataset.manual === 'true') return;
+  // El código solo se arma desde la fila del cliente: honorarios, viáticos o proveedores conservan el código del evento
+  const sub = ($('tx-sub').value || '').toLowerCase();
+  const esServicio = /honorar|vi[aá]tic|proveed|alquiler|transporte|comida/.test(sub) || $('tx-estado').value === 'Por pagar' || (parseFloat($('tx-egreso').value) || 0) > 0;
+  if (esServicio && codigoEl.value.trim()) return;
   if (fecha && concepto) {
     const d   = new Date(fecha + 'T12:00:00');
     const dd  = String(d.getDate()).padStart(2,'0');
@@ -6885,6 +6978,7 @@ function cargarCotizacion(codigo) {
     if($('c-desc'))  $('c-desc').value  = parseFloat(c.descuento)||0;
     if($('c-iva'))   $('c-iva').checked = c.iva || false;
     if($('ai-out')) $('ai-out').value = c.descripcion_ia || '';
+    _cotImg = c.render_url || null; if ($('cot-img-prev')) pintarImgCot();
     if($('ccode')) {
       $('ccode').textContent = c.codigo || '';
       if (c.codigo) $('ccode').dataset.fijo = '1';
@@ -7282,6 +7376,11 @@ async function confirmarCotizacion() {
     notas:   c.horario ? 'Horario del evento: ' + c.horario : null
   }, {onConflict: 'codigo_evento', ignoreDuplicates: true});
 
+  for (const pc of new Set([c.codigo, c.codigo.replace(/-P\d+$/, '')])) {
+    if (pc === codigo) continue;
+    await supa.from('evento_asignaciones').update({codigo_evento: codigo}).eq('codigo_evento', pc);
+    await supa.from('eventos_logistica').delete().eq('codigo_evento', pc).like('codigo_evento', 'COT %');
+  }
   const {error: e2} = await supa.from('cotizaciones').update({
     estado: 'Confirmada', codigo_evento: codigo, confirmada_at: new Date().toISOString(), fecha_evento: fecha
   }).eq('codigo', c.codigo);
@@ -8303,6 +8402,7 @@ function abrirProyecto(key) {
   const B = (acc, txt, ico, clase, color) => '<button class="btn ' + (clase || 'btn-ghost') + ' btn-sm" data-pja="' + acc + '" data-k="' + k + '"' + (color ? ' style="color:' + color + '"' : '') + '><i class="ti ti-' + ico + '"></i>' + txt + '</button>';
   let acc = '<button class="btn btn-ghost btn-sm" onclick="document.getElementById(\'modal-proy\').classList.remove(\'show\')">Cerrar</button>';
   if (it.p && !it.codEv) acc += B('editar', 'Editar', 'pencil');
+  if (it.fecha && it.etapa !== 'negado' && it.etapa !== 'finalizado') acc += B('dispo', 'Pedir disponibilidad', 'user-question');
   if (it.etapa === 'negado') acc += B('reabrir', 'Reabrir', 'rotate');
   else if (it.etapa === 'finalizado') acc += B('reabrir', 'Reabrir', 'rotate');
   else if (!it.codEv) {
@@ -8379,6 +8479,7 @@ async function accionProyecto(acc, key) {
   if (acc === 'cotizar')   { cerrar(); cotizacionDesdeProyecto(it); }
   if (acc === 'abrircot')  { cerrar(); cargarCotizacion(it.cot.codigo); }
   if (String(acc).startsWith('prop:')) { cerrar(); cargarCotizacion(acc.slice(5)); return; }
+  if (acc === 'dispo')     { cerrar(); abrirDisponibilidad(it); return; }
   if (acc === 'seguir')    { cerrar(); abrirSeguimiento(it.cot.codigo); }
   if (acc === 'aprobado')  { cerrar(); abrirConfirmarCot(it.cot.codigo); }
   if (acc === 'tareas')    { cerrar(); abrirTareas(it.codEv, it.cliente); }
@@ -8473,6 +8574,43 @@ function vincularCotProyecto(codigo) {
   if (!pid || !codigo || /-P\d+$/.test(codigo)) return;   // las propuestas extra no cambian el vínculo principal
   supa.from('proyectos').update({codigo_cot: codigo, updated_at: new Date().toISOString()}).eq('id', pid)
     .then(({error}) => { if (error) console.warn('Vínculo proyecto:', error.message); });
+}
+
+// ── Pedir disponibilidad: crea la asignación (pendiente) y avisa; la persona responde Confirmo / No puedo en su portal y le queda en su calendario
+function codigoDeProyecto(it) { return it.codEv || (it.cot && it.cot.codigo) || (it.p && it.p.codigo_cot) || null; }
+async function abrirDisponibilidad(it) {
+  const cod = codigoDeProyecto(it);
+  if (!cod) { alert('Este proyecto todavía no tiene código. Edítalo y guárdalo para que se le asigne uno.'); return; }
+  if (!USUARIOS.length) await cargarUsuarios();
+  const {data: ya} = await supa.from('evento_asignaciones').select('email,respuesta').eq('codigo_evento', cod);
+  const yaPor = {}; (ya || []).forEach(a => yaPor[a.email] = a.respuesta || 'pendiente');
+  const gente = USUARIOS.filter(u => u.activo !== false && (u.rol === 'staff' || u.rol === 'productor'));
+  SEG.dispo = {it, cod};
+  $('dispo-titulo').textContent = 'Pedir disponibilidad · ' + it.cliente + (it.fecha ? ' · ' + fDate(it.fecha) : '');
+  $('dispo-lista').innerHTML = gente.length ? gente.map(u => {
+    const r = yaPor[u.email];
+    return '<label style="display:flex;align-items:center;gap:8px;padding:5px 0;font-size:13px"><input type="checkbox" class="dispo-chk" value="' + esc(u.email) + '" data-nombre="' + esc(u.nombre || '') + '"' + (r ? ' checked disabled' : '') + '>'
+      + esc(u.nombre || u.email) + ' <span style="font-size:10px;color:var(--w4)">' + (u.rol === 'productor' ? 'Productor' : 'Personal') + '</span>'
+      + (r ? ' <span class="badge ' + (r === 'confirmado' ? 'b-green' : r === 'no_puede' ? 'b-red' : 'b-blue') + '">' + (r === 'confirmado' ? 'Disponible' : r === 'no_puede' ? 'No puede' : 'Esperando') + '</span>' : '') + '</label>';
+  }).join('') : '<div style="color:var(--w4);font-size:12px">No hay usuarios de personal o productores activos.</div>';
+  $('modal-dispo').classList.add('show');
+}
+async function enviarDisponibilidad() {
+  const D = SEG.dispo; if (!D) return;
+  const sel = [...document.querySelectorAll('.dispo-chk:checked:not(:disabled)')].map(c => ({email: c.value, nombre: c.dataset.nombre || null}));
+  if (!sel.length) { alert('Marca al menos una persona.'); return; }
+  const it = D.it, cod = D.cod;
+  $('dispo-btn').disabled = true;
+  // ficha mínima para que aparezca en su portal y calendario (no pisa una existente)
+  await supa.from('eventos_logistica').upsert({codigo_evento: cod, cliente: it.cliente || null, fecha: it.fecha || null,
+    lugar: (it.cot && it.cot.lugar) || (it.p && it.p.lugar) || null}, {onConflict: 'codigo_evento', ignoreDuplicates: true});
+  const {error} = await supa.from('evento_asignaciones').insert(sel.map(s => ({codigo_evento: cod, email: s.email, nombre: s.nombre, respuesta: 'pendiente'})));
+  $('dispo-btn').disabled = false;
+  if (error) { alert('No se pudo enviar: ' + error.message); return; }
+  const msg = '¿Estás disponible para ' + (it.cliente || 'un evento') + (it.fecha ? ' el ' + fDate(it.fecha) : '') + '? Responde “Confirmo” o “No puedo” en tu portal de Blast.';
+  await avisarYCorreo(sel.map(s => ({email: s.email, titulo: 'Disponibilidad · ' + (it.cliente || cod), mensaje: msg, codigo_evento: cod, tipo: 'asignacion'})));
+  $('modal-dispo').classList.remove('show');
+  alert('Listo: se le preguntó a ' + sel.length + ' persona(s). Cuando respondan, te llega el aviso.');
 }
 
 // ── Registrar un seguimiento
